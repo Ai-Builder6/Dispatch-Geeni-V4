@@ -169,7 +169,7 @@ export function parseLeadOrRawText(rawText: string): ParsedLeadData {
   return {
     customerName: customerName || 'Lead Contact',
     phone: phone || '(780) 555-0199',
-    email: email || 'lead@tidyupscleaning.com',
+    email: email || 'lead@dispatchgeeni.com',
     address: address || '10405 Jasper Ave NW, Edmonton, AB',
     city,
     postalCode,

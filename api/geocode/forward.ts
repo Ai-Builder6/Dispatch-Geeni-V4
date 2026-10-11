@@ -75,7 +75,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         
         const response = await fetch(url, {
           headers: {
-            Referer: "https://app.tidyupscleaning.com/",
+            Referer: "https://dispatchgeeni.com/",
           },
           signal: AbortSignal.timeout(5000),
         });

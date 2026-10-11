@@ -14,9 +14,9 @@ export default defineConfig(() => {
         includeAssets: ['favicon.ico', 'icon.svg'],
         manifest: {
           id: '/',
-          name: 'TidyUps Booking & Dispatch Pro',
-          short_name: 'TidyUps',
-          description: 'TidyUps Cleaning Service Inc. operations dispatch console & customer booking app with 15 decentralized home hubs and Jobber sync.',
+          name: 'Dispatch Genie',
+          short_name: 'Dispatch Genie',
+          description: 'Dispatch Genie intelligent operations console, live field service dispatch board, automated scheduling, and Jobber sync.',
           theme_color: '#2563EB',
           background_color: '#F8FAFC',
           display: 'standalone',

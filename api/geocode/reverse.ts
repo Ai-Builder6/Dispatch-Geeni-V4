@@ -68,7 +68,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       const url = `https://maps.googleapis.com/maps/api/geocode/json?latlng=${lat},${lng}&key=${mapsKey}&solution_id=gmp_mcp_codeassist_v1_aistudio`;
       const response = await fetch(url, {
         headers: {
-          Referer: "https://app.tidyupscleaning.com/",
+          Referer: "https://dispatchgeeni.com/",
         },
         signal: AbortSignal.timeout(5000),
       });

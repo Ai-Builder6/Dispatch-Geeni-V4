@@ -372,78 +372,58 @@ export const QuickLinksModal: React.FC<QuickLinksModalProps> = ({
                 </div>
                 <div>
                   <p className="font-extrabold text-indigo-950 flex items-center gap-2 flex-wrap">
-                    <span>Easy Dispatch Daily Checkpoint Archives (.ZIP)</span>
-                    <span className="px-2 py-0.5 rounded text-[10px] font-mono bg-indigo-200 text-indigo-900 font-bold">
-                      dispatch 05.zip
+                    <span>Dispatch Genie Checkpoint Archives (.ZIP)</span>
+                    <span className="px-2 py-0.5 rounded text-[10px] font-mono bg-purple-200 text-purple-950 font-bold border border-purple-300">
+                      dispatch-genie-v1.zip
                     </span>
                   </p>
                   <p className="text-[11px] text-indigo-700 mt-0.5 leading-relaxed">
-                    Full codebase archive with 15 Jobber team members, Edmonton route dispatch, and real Jobber data. Every archive automatically extracts into its own dedicated folder (e.g. <code>dispatch 01/</code>, <code>dispatch 02/</code>, <code>dispatch 03/</code>, etc.) so each daily re-pull creates a clean new folder without overwriting.
+                    Full codebase archive with 15 Jobber team members, Edmonton territory route dispatch, fast local database caching, and real Jobber data. Every archive automatically extracts into its own dedicated folder (e.g. <code>dispatch-genie-v1/</code>, <code>dispatch-genie-v2/</code>, etc.) so each checkpoint creates a clean new folder without overwriting.
                   </p>
                 </div>
               </div>
             </div>
 
-            {/* Quick Daily Re-Pull Action Buttons */}
+            {/* Daily Version Checkpoints Action Buttons */}
             <div className="flex items-center gap-2 flex-wrap pt-1 border-t border-indigo-200/60">
               <a
-                href="/api/download-zip?name=dispatch%2001"
-                download="dispatch 01.zip"
-                className="px-3 py-2 bg-white hover:bg-indigo-100 text-indigo-800 border border-indigo-300 rounded-xl font-bold flex items-center gap-1.5 transition-all cursor-pointer text-xs active:scale-95"
-                title="Download dispatch 01 archive"
-              >
-                <Download className="w-3.5 h-3.5 text-indigo-600" />
-                <span>dispatch 01</span>
-              </a>
-
-              <a
-                href="/api/download-zip?name=dispatch%2002"
-                download="dispatch 02.zip"
-                className="px-3 py-2 bg-white hover:bg-indigo-100 text-indigo-800 border border-indigo-300 rounded-xl font-bold flex items-center gap-1.5 transition-all cursor-pointer text-xs active:scale-95"
-                title="Download dispatch 02 archive"
-              >
-                <Download className="w-3.5 h-3.5 text-indigo-600" />
-                <span>dispatch 02</span>
-              </a>
-
-              <a
-                href="/api/download-zip?name=dispatch%2003"
-                download="dispatch 03.zip"
-                className="px-3 py-2 bg-white hover:bg-indigo-100 text-indigo-800 border border-indigo-300 rounded-xl font-bold flex items-center gap-1.5 transition-all cursor-pointer text-xs active:scale-95"
-                title="Download dispatch 03 archive"
-              >
-                <Download className="w-3.5 h-3.5 text-indigo-600" />
-                <span>dispatch 03</span>
-              </a>
-
-              <a
-                href="/api/download-zip?name=dispatch%2004"
-                download="dispatch 04.zip"
-                className="px-3 py-2 bg-white hover:bg-indigo-100 text-indigo-800 border border-indigo-300 rounded-xl font-bold flex items-center gap-1.5 transition-all cursor-pointer text-xs active:scale-95"
-                title="Download dispatch 04 archive"
-              >
-                <Download className="w-3 h-3 text-indigo-600" />
-                <span>dispatch 04</span>
-              </a>
-
-              <a
-                href="/api/download-zip?name=dispatch%2005"
-                download="dispatch 05.zip"
-                className="px-3.5 py-2 bg-purple-600 hover:bg-purple-700 text-white rounded-xl font-bold flex items-center gap-1.5 shadow-xs transition-all cursor-pointer shrink-0 active:scale-95"
-                title="Download dispatch 05 (Today) - Extracts into 'dispatch 05/' folder"
+                href="/dispatch-genie-v1.zip"
+                download="dispatch-genie-v1.zip"
+                className="px-3.5 py-2 bg-gradient-to-r from-pink-600 to-purple-600 hover:opacity-95 text-white rounded-xl font-bold flex items-center gap-1.5 shadow-xs transition-all cursor-pointer shrink-0 active:scale-95 text-xs"
+                title="Download dispatch-genie-v1.zip (Primary Production Snapshot)"
               >
                 <Download className="w-3.5 h-3.5" />
-                <span>dispatch 05 (Today)</span>
+                <span>dispatch-genie-v1 (Today)</span>
               </a>
 
               <a
-                href="/api/download-zip?name=dispatch%2006"
-                download="dispatch 06.zip"
+                href="/api/download-zip?name=dispatch-genie-v2"
+                download="dispatch-genie-v2.zip"
                 className="px-3 py-2 bg-white hover:bg-indigo-100 text-indigo-800 border border-indigo-300 rounded-xl font-bold flex items-center gap-1.5 transition-all cursor-pointer text-xs active:scale-95"
-                title="Download dispatch 06 archive"
+                title="Generate dispatch-genie-v2 archive"
               >
-                <Download className="w-3 h-3 text-indigo-600" />
-                <span>dispatch 06</span>
+                <Download className="w-3.5 h-3.5 text-indigo-600" />
+                <span>dispatch-genie-v2 (Day 2)</span>
+              </a>
+
+              <a
+                href="/api/download-zip?name=dispatch-genie-v3"
+                download="dispatch-genie-v3.zip"
+                className="px-3 py-2 bg-white hover:bg-indigo-100 text-indigo-800 border border-indigo-300 rounded-xl font-bold flex items-center gap-1.5 transition-all cursor-pointer text-xs active:scale-95"
+                title="Generate dispatch-genie-v3 archive"
+              >
+                <Download className="w-3.5 h-3.5 text-indigo-600" />
+                <span>dispatch-genie-v3 (Day 3)</span>
+              </a>
+
+              <a
+                href="/api/download-zip?name=dispatch-genie-v4"
+                download="dispatch-genie-v4.zip"
+                className="px-3 py-2 bg-white hover:bg-indigo-100 text-indigo-800 border border-indigo-300 rounded-xl font-bold flex items-center gap-1.5 transition-all cursor-pointer text-xs active:scale-95"
+                title="Generate dispatch-genie-v4 archive"
+              >
+                <Download className="w-3.5 h-3.5 text-indigo-600" />
+                <span>dispatch-genie-v4</span>
               </a>
             </div>
           </div>

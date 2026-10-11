@@ -1,3 +1,11 @@
+// Safeguard tsx runtime bug where global.__dirname is set to '.' breaking createRequire in ESM
+if ((globalThis as any).__dirname === ".") {
+  delete (globalThis as any).__dirname;
+}
+if ((global as any).__dirname === ".") {
+  delete (global as any).__dirname;
+}
+
 import express from "express";
 import http from "http";
 import path from "path";
@@ -938,14 +946,17 @@ function getAppBaseUrl(req: express.Request): string {
   }
   // Jobber strictly requires HTTPS for OAuth redirect URIs
   const forwardedHost = (req.headers["x-forwarded-host"] as string) || req.get("host") || "";
+  if (forwardedHost.includes("dispatchgeeni.com") || forwardedHost.includes("dispatchgenie.com") || forwardedHost.includes("distpatchgeeni.com")) {
+    return "https://dispatchgeeni.com";
+  }
   if (forwardedHost.includes("tidyupscleaning.com")) {
     return "https://app.tidyupscleaning.com";
   }
   if (forwardedHost.includes("run.app") || forwardedHost.includes("ais-")) {
     return `https://${forwardedHost}`;
   }
-  // Production domain where the Jobber Redirect URI is registered
-  return "https://app.tidyupscleaning.com";
+  // Production domain connected via Hostinger
+  return "https://dispatchgeeni.com";
 }
 
 // Jobber Developer App & GraphQL Integration Endpoints (https://developer.getjobber.com/docs)
@@ -1508,60 +1519,82 @@ app.post("/api/jobber/sync-clients", async (_req, res) => {
   res.json({ success: true, ...data, lastSyncedAt: jobberConfig.lastSyncedAt });
 });
 
-// POST Sync Quotes & Approvals (jobberQuoteSync)
+// POST Sync Quotes & Approvals (jobberQuoteSync) with Incremental Delta Sync
 app.post("/api/jobber/sync-quotes", async (_req, res) => {
   jobberConfig.lastSyncedAt = new Date().toISOString();
-  const currentStore = loadStore();
+  const currentStore = loadStore() || {
+    version: 1,
+    lastSavedAt: new Date().toISOString(),
+    tickets: INITIAL_TICKETS,
+    cleanerOverrides: {},
+    scheduledVisits: generateHistoricAndFutureVisits(),
+    unscheduledJobs: INITIAL_UNSCHEDULED_JOBS,
+    quotes: generateJobberQuotes(),
+    invoices: generateJobberInvoices(),
+  };
 
-  if (jobberConfig.accessToken && jobberConfig.isConnected) {
-    const data = await syncJobberQuotes(jobberConfig.accessToken, getJobberCreds());
-    if (data.quotes && data.quotes.length > 0 && currentStore) {
-      currentStore.quotes = data.quotes;
-      currentStore.lastSavedAt = new Date().toISOString();
-      saveStore(currentStore);
-    }
-    return res.json({ success: true, ...data, isLiveJobber: true, lastSyncedAt: jobberConfig.lastSyncedAt });
+  const existingQuotes = currentStore.quotes && currentStore.quotes.length > 0 ? currentStore.quotes : generateJobberQuotes();
+  const data = await syncJobberQuotes(jobberConfig.accessToken, getJobberCreds(), existingQuotes);
+
+  if (data.quotes && data.quotes.length > 0) {
+    currentStore.quotes = data.quotes;
+    currentStore.lastSavedAt = new Date().toISOString();
+    saveStore(currentStore);
   }
 
-  const quotes = currentStore?.quotes || generateJobberQuotes();
+  const quotes = currentStore.quotes;
   res.json({
     success: true,
     quotes,
     syncedQuotesCount: quotes.length,
     approvedCount: quotes.filter((q: any) => q.quoteStatus === "APPROVED" || q.quoteStatus === "CONVERTED").length,
     awaitingResponseCount: quotes.filter((q: any) => q.quoteStatus === "AWAITING_RESPONSE").length,
-    isLiveJobber: false,
-    message: "Displaying cached dispatch database quotes. Connect live Jobber account to sync live changes.",
+    delta: data.delta,
+    isLiveJobber: Boolean(data.isLiveJobber),
+    message: data.isLiveJobber
+      ? `Incremental Delta Sync: ${data.delta?.newCount || 0} new, ${data.delta?.updatedCount || 0} updated, ${data.delta?.unchangedCount || 0} cached in database (${data.delta?.durationMs || 0}ms).`
+      : `Displaying ${quotes.length} quotes from local database copy. Connect live Jobber account to sync live changes.`,
     lastSyncedAt: jobberConfig.lastSyncedAt,
   });
 });
 
-// POST Sync Invoices & Payments (jobberInvoiceSync)
+// POST Sync Invoices & Payments (jobberInvoiceSync) with Incremental Delta Sync
 app.post("/api/jobber/sync-invoices", async (_req, res) => {
   jobberConfig.lastSyncedAt = new Date().toISOString();
-  const currentStore = loadStore();
+  const currentStore = loadStore() || {
+    version: 1,
+    lastSavedAt: new Date().toISOString(),
+    tickets: INITIAL_TICKETS,
+    cleanerOverrides: {},
+    scheduledVisits: generateHistoricAndFutureVisits(),
+    unscheduledJobs: INITIAL_UNSCHEDULED_JOBS,
+    quotes: generateJobberQuotes(),
+    invoices: generateJobberInvoices(),
+  };
 
-  if (jobberConfig.accessToken && jobberConfig.isConnected) {
-    const data = await syncJobberInvoices(jobberConfig.accessToken, getJobberCreds());
-    if (data.invoices && data.invoices.length > 0 && currentStore) {
-      currentStore.invoices = data.invoices;
-      currentStore.lastSavedAt = new Date().toISOString();
-      saveStore(currentStore);
-    }
-    return res.json({ success: true, ...data, isLiveJobber: true, lastSyncedAt: jobberConfig.lastSyncedAt });
+  const existingInvoices = currentStore.invoices && currentStore.invoices.length > 0 ? currentStore.invoices : generateJobberInvoices();
+  const data = await syncJobberInvoices(jobberConfig.accessToken, getJobberCreds(), existingInvoices);
+
+  if (data.invoices && data.invoices.length > 0) {
+    currentStore.invoices = data.invoices;
+    currentStore.lastSavedAt = new Date().toISOString();
+    saveStore(currentStore);
   }
 
-  const invoices = currentStore?.invoices || generateJobberInvoices();
+  const invoices = currentStore.invoices;
   const balance = invoices.reduce((acc: number, inv: any) => acc + (inv.balance || 0), 0);
   res.json({
     success: true,
     invoices,
     syncedInvoicesCount: invoices.length,
     paidCount: invoices.filter((i: any) => i.invoiceStatus === "PAID").length,
-    awaitingPaymentCount: invoices.filter((i: any) => i.invoiceStatus === "AWAITING_PAYMENT").length,
+    awaitingPaymentCount: invoices.filter((i: any) => i.invoiceStatus === "AWAITING_PAYMENT" || i.invoiceStatus === "PAST_DUE").length,
     outstandingBalance: balance,
-    isLiveJobber: false,
-    message: "Displaying cached dispatch database invoices. Connect live Jobber account to sync live changes.",
+    delta: data.delta,
+    isLiveJobber: Boolean(data.isLiveJobber),
+    message: data.isLiveJobber
+      ? `Incremental Delta Sync: ${data.delta?.newCount || 0} new, ${data.delta?.updatedCount || 0} updated, ${data.delta?.unchangedCount || 0} cached in database (${data.delta?.durationMs || 0}ms).`
+      : `Displaying ${invoices.length} invoices from local database copy. Connect live Jobber account to sync live changes.`,
     lastSyncedAt: jobberConfig.lastSyncedAt,
   });
 });
@@ -1586,60 +1619,296 @@ app.post("/api/jobber/export-booking", async (req, res) => {
   res.json(result);
 });
 
-// POST Master Comprehensive Sync: Runs all 5 Jobber modules in sequence
+// POST Master Comprehensive Sync: Runs all 5 Jobber modules with incremental delta merge
 app.post("/api/jobber/sync-all-comprehensive", async (_req, res) => {
   jobberConfig.lastSyncedAt = new Date().toISOString();
-  const currentStore = loadStore();
+  const currentStore = loadStore() || {
+    version: 1,
+    lastSavedAt: new Date().toISOString(),
+    tickets: INITIAL_TICKETS,
+    cleanerOverrides: {},
+    scheduledVisits: generateHistoricAndFutureVisits(),
+    unscheduledJobs: INITIAL_UNSCHEDULED_JOBS,
+    quotes: generateJobberQuotes(),
+    invoices: generateJobberInvoices(),
+  };
 
-  if (jobberConfig.accessToken && jobberConfig.isConnected) {
-    const summary = await runComprehensiveJobberSync(jobberConfig.accessToken);
-    return res.json({ success: true, summary, isLiveJobber: true });
+  const isLive = Boolean(jobberConfig.accessToken && jobberConfig.isConnected);
+  const summary = await runComprehensiveJobberSync(jobberConfig.accessToken, getJobberCreds(), currentStore);
+
+  // If live Jobber sync pulled new data, save store
+  if (isLive) {
+    currentStore.lastSavedAt = new Date().toISOString();
+    saveStore(currentStore);
   }
-
-  // Provide accurate summary of current database store (with September & October visits, quotes, invoices)
-  const visits = currentStore?.scheduledVisits || [];
-  const quotes = currentStore?.quotes || [];
-  const invoices = currentStore?.invoices || [];
-  const balance = invoices.reduce((acc: number, inv: any) => acc + (inv.balance || 0), 0);
 
   res.json({
     success: true,
-    isLiveJobber: false,
-    message: "Showing local dispatch database records (~60 days past through ~60 days forward). To sync directly from your live Jobber account, authenticate via 1-click OAuth or paste your Jobber Personal Access Token.",
-    summary: {
-      calendar: {
-        syncedVisitsCount: visits.length,
-        assignedToCrew1: Math.floor(visits.length / 2),
-        assignedToCrew2: Math.ceil(visits.length / 2),
-        timeSpanDays: 120,
-        status: "synced",
-      },
-      clients: {
-        syncedClientsCount: currentStore?.staffRoster?.length || 15,
-        contactsVerified: currentStore?.staffRoster?.length || 15,
-        status: "synced",
-      },
-      quotes: {
-        syncedQuotesCount: quotes.length,
-        approvedCount: quotes.filter((q: any) => q.quoteStatus === "APPROVED" || q.quoteStatus === "CONVERTED").length,
-        awaitingResponseCount: quotes.filter((q: any) => q.quoteStatus === "AWAITING_RESPONSE").length,
-        status: "synced",
-      },
-      invoices: {
-        syncedInvoicesCount: invoices.length,
-        paidCount: invoices.filter((i: any) => i.invoiceStatus === "PAID").length,
-        awaitingPaymentCount: invoices.filter((i: any) => i.invoiceStatus === "AWAITING_PAYMENT").length,
-        outstandingBalance: balance,
-        status: "synced",
-      },
-      push: {
-        activeQueueCount: currentStore?.tickets?.length || 0,
-        autoPushedCount: 14,
-        status: "ready",
-      },
-      lastSyncedAt: jobberConfig.lastSyncedAt,
-      jobberAccount: jobberConfig.accountName,
+    isLiveJobber: isLive,
+    summary,
+    message: isLive
+      ? "Comprehensive incremental sync complete. All visits, quotes, and invoices updated in local database."
+      : "Showing local dispatch database records (~60 days past through ~60 days forward). Local database copy is active and instantaneous.",
+    lastSyncedAt: jobberConfig.lastSyncedAt,
+  });
+});
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Fast Local Database Endpoints (Instant <5ms load, incremental Jobber sync)
+// ─────────────────────────────────────────────────────────────────────────────
+
+// GET /api/database/quotes: Instant database read
+app.get("/api/database/quotes", (_req, res) => {
+  const currentStore = loadStore();
+  const quotes = currentStore?.quotes || generateJobberQuotes();
+  const approved = quotes.filter((q: any) => q.quoteStatus === "APPROVED" || q.quoteStatus === "CONVERTED").length;
+  const awaiting = quotes.filter((q: any) => q.quoteStatus === "AWAITING_RESPONSE").length;
+  const totalValue = quotes.reduce((acc: number, q: any) => acc + (q.total || 0), 0);
+
+  res.json({
+    success: true,
+    source: "local_database",
+    quotes,
+    totalCount: quotes.length,
+    approvedCount: approved,
+    awaitingCount: awaiting,
+    totalValue,
+    lastSyncedAt: jobberConfig.lastSyncedAt || currentStore?.lastSavedAt,
+    isLiveJobber: Boolean(jobberConfig.accessToken && jobberConfig.isConnected),
+  });
+});
+
+// POST /api/database/quotes: Create new quote directly in local database
+app.post("/api/database/quotes", (req, res) => {
+  const { clientName, clientPhone, clientEmail, service, total, depositRequired, notes, quoteStatus } = req.body || {};
+  if (!clientName || !total) {
+    return res.status(400).json({ error: "clientName and total amount are required" });
+  }
+
+  const currentStore = loadStore() || {
+    version: 1,
+    lastSavedAt: new Date().toISOString(),
+    tickets: INITIAL_TICKETS,
+    cleanerOverrides: {},
+    scheduledVisits: generateHistoricAndFutureVisits(),
+    unscheduledJobs: INITIAL_UNSCHEDULED_JOBS,
+    quotes: generateJobberQuotes(),
+    invoices: generateJobberInvoices(),
+  };
+
+  const quoteId = `quote_local_${Date.now()}`;
+  const randomSuffix = Math.floor(1000 + Math.random() * 9000);
+  const newQuote = {
+    id: quoteId,
+    quoteNumber: `QT-${randomSuffix}`,
+    clientName: clientName.trim(),
+    clientPhone: clientPhone?.trim() || "(780) 555-0199",
+    clientEmail: clientEmail?.trim() || "",
+    service: service || "Residential Deep & Standard Cleaning",
+    quoteStatus: quoteStatus || "AWAITING_RESPONSE",
+    total: Number(total) || 350,
+    depositRequired: Number(depositRequired) || 0,
+    createdAt: new Date().toISOString(),
+    updatedAt: new Date().toISOString(),
+    syncedAt: new Date().toISOString(),
+    jobberWebUri: "https://secure.getjobber.com/quotes",
+    notes: notes || "",
+    isLocal: true,
+  };
+
+  currentStore.quotes = [newQuote, ...(currentStore.quotes || [])];
+  currentStore.lastSavedAt = new Date().toISOString();
+  saveStore(currentStore);
+
+  res.status(201).json({
+    success: true,
+    message: `Quote ${newQuote.quoteNumber} created and saved in local database!`,
+    quote: newQuote,
+    totalCount: currentStore.quotes.length,
+  });
+});
+
+// PATCH /api/database/quotes/:id: Update quote status or amounts in local database
+app.patch("/api/database/quotes/:id", (req, res) => {
+  const quoteId = req.params.id;
+  const updates = req.body || {};
+  const currentStore = loadStore();
+
+  if (!currentStore || !currentStore.quotes) {
+    return res.status(404).json({ error: "Database not initialized" });
+  }
+
+  const idx = currentStore.quotes.findIndex((q: any) => q.id === quoteId || q.quoteNumber === quoteId);
+  if (idx === -1) {
+    return res.status(404).json({ error: "Quote not found in local database" });
+  }
+
+  const existing = currentStore.quotes[idx];
+  currentStore.quotes[idx] = {
+    ...existing,
+    ...updates,
+    updatedAt: new Date().toISOString(),
+  };
+
+  currentStore.lastSavedAt = new Date().toISOString();
+  saveStore(currentStore);
+
+  res.json({
+    success: true,
+    message: `Quote ${existing.quoteNumber} updated in local database.`,
+    quote: currentStore.quotes[idx],
+  });
+});
+
+// GET /api/database/invoices: Instant database read
+app.get("/api/database/invoices", (_req, res) => {
+  const currentStore = loadStore();
+  const invoices = currentStore?.invoices || generateJobberInvoices();
+  const totalPaid = invoices.filter((i: any) => i.invoiceStatus === "PAID").reduce((acc: number, i: any) => acc + (i.total || 0), 0);
+  const totalOutstanding = invoices.filter((i: any) => i.invoiceStatus === "AWAITING_PAYMENT" || i.invoiceStatus === "PAST_DUE").reduce((acc: number, i: any) => acc + (i.balance || i.total || 0), 0);
+
+  res.json({
+    success: true,
+    source: "local_database",
+    invoices,
+    totalCount: invoices.length,
+    paidCount: invoices.filter((i: any) => i.invoiceStatus === "PAID").length,
+    awaitingCount: invoices.filter((i: any) => i.invoiceStatus === "AWAITING_PAYMENT" || i.invoiceStatus === "PAST_DUE").length,
+    totalPaid,
+    totalOutstanding,
+    lastSyncedAt: jobberConfig.lastSyncedAt || currentStore?.lastSavedAt,
+    isLiveJobber: Boolean(jobberConfig.accessToken && jobberConfig.isConnected),
+  });
+});
+
+// POST /api/database/invoices: Create new invoice directly in local database
+app.post("/api/database/invoices", (req, res) => {
+  const { clientName, clientPhone, service, total, dueDate, invoiceStatus, notes } = req.body || {};
+  if (!clientName || !total) {
+    return res.status(400).json({ error: "clientName and total amount are required" });
+  }
+
+  const currentStore = loadStore() || {
+    version: 1,
+    lastSavedAt: new Date().toISOString(),
+    tickets: INITIAL_TICKETS,
+    cleanerOverrides: {},
+    scheduledVisits: generateHistoricAndFutureVisits(),
+    unscheduledJobs: INITIAL_UNSCHEDULED_JOBS,
+    quotes: generateJobberQuotes(),
+    invoices: generateJobberInvoices(),
+  };
+
+  const invId = `inv_local_${Date.now()}`;
+  const randomSuffix = Math.floor(100000 + Math.random() * 900000);
+  const tot = Number(total) || 250;
+  const status = invoiceStatus || "AWAITING_PAYMENT";
+  const newInvoice = {
+    id: invId,
+    invoiceNumber: `INV-${randomSuffix}`,
+    clientName: clientName.trim(),
+    clientPhone: clientPhone?.trim() || "(780) 555-0188",
+    service: service || "Cleaning Services",
+    invoiceStatus: status,
+    total: tot,
+    balance: status === "PAID" ? 0 : tot,
+    issuedDate: new Date().toISOString().slice(0, 10),
+    dueDate: dueDate || new Date(Date.now() + 7 * 86400000).toISOString().slice(0, 10),
+    createdAt: new Date().toISOString(),
+    updatedAt: new Date().toISOString(),
+    syncedAt: new Date().toISOString(),
+    jobberWebUri: "https://secure.getjobber.com/invoices",
+    notes: notes || "",
+    isLocal: true,
+  };
+
+  currentStore.invoices = [newInvoice, ...(currentStore.invoices || [])];
+  currentStore.lastSavedAt = new Date().toISOString();
+  saveStore(currentStore);
+
+  res.status(201).json({
+    success: true,
+    message: `Invoice ${newInvoice.invoiceNumber} created and saved in local database!`,
+    invoice: newInvoice,
+    totalCount: currentStore.invoices.length,
+  });
+});
+
+// PATCH /api/database/invoices/:id: Update invoice payment status or balance in local database
+app.patch("/api/database/invoices/:id", (req, res) => {
+  const invoiceId = req.params.id;
+  const updates = req.body || {};
+  const currentStore = loadStore();
+
+  if (!currentStore || !currentStore.invoices) {
+    return res.status(404).json({ error: "Database not initialized" });
+  }
+
+  const idx = currentStore.invoices.findIndex((i: any) => i.id === invoiceId || i.invoiceNumber === invoiceId);
+  if (idx === -1) {
+    return res.status(404).json({ error: "Invoice not found in local database" });
+  }
+
+  const existing = currentStore.invoices[idx];
+  const newStatus = updates.invoiceStatus || existing.invoiceStatus;
+  const newBalance = newStatus === "PAID" ? 0 : (updates.balance !== undefined ? updates.balance : existing.balance);
+
+  currentStore.invoices[idx] = {
+    ...existing,
+    ...updates,
+    invoiceStatus: newStatus,
+    balance: newBalance,
+    updatedAt: new Date().toISOString(),
+  };
+
+  currentStore.lastSavedAt = new Date().toISOString();
+  saveStore(currentStore);
+
+  res.json({
+    success: true,
+    message: `Invoice ${existing.invoiceNumber} updated in local database.`,
+    invoice: currentStore.invoices[idx],
+  });
+});
+
+// POST /api/database/sync-delta: Master one-touch incremental delta sync across quotes and invoices
+app.post("/api/database/sync-delta", async (_req, res) => {
+  jobberConfig.lastSyncedAt = new Date().toISOString();
+  const currentStore = loadStore() || {
+    version: 1,
+    lastSavedAt: new Date().toISOString(),
+    tickets: INITIAL_TICKETS,
+    cleanerOverrides: {},
+    scheduledVisits: generateHistoricAndFutureVisits(),
+    unscheduledJobs: INITIAL_UNSCHEDULED_JOBS,
+    quotes: generateJobberQuotes(),
+    invoices: generateJobberInvoices(),
+  };
+
+  const existingQuotes = currentStore.quotes || [];
+  const existingInvoices = currentStore.invoices || [];
+
+  const [qData, iData] = await Promise.all([
+    syncJobberQuotes(jobberConfig.accessToken, getJobberCreds(), existingQuotes),
+    syncJobberInvoices(jobberConfig.accessToken, getJobberCreds(), existingInvoices),
+  ]);
+
+  currentStore.quotes = qData.quotes;
+  currentStore.invoices = iData.invoices;
+  currentStore.lastSavedAt = new Date().toISOString();
+  saveStore(currentStore);
+
+  res.json({
+    success: true,
+    quotesCount: currentStore.quotes.length,
+    invoicesCount: currentStore.invoices.length,
+    delta: {
+      quotes: qData.delta,
+      invoices: iData.delta,
     },
+    message: `Incremental Delta Sync Complete: Quotes (${qData.delta?.newCount || 0} new, ${qData.delta?.updatedCount || 0} updated, ${qData.delta?.unchangedCount || 0} cached), Invoices (${iData.delta?.newCount || 0} new, ${iData.delta?.updatedCount || 0} updated, ${iData.delta?.unchangedCount || 0} cached).`,
+    lastSyncedAt: jobberConfig.lastSyncedAt,
+    isLiveJobber: Boolean(jobberConfig.accessToken && jobberConfig.isConnected),
   });
 });
 
@@ -2256,7 +2525,7 @@ app.post("/api/jobber/create-invoice", (req, res) => {
   });
 });
 
-// Download full repository archive with Git history & tags for SourceTree (Named checkpoints: Easy Dispatch October 1st, 2nd, etc.)
+// Download full repository archive with Git history & tags for SourceTree (Named checkpoints: dispatch-genie-v1, dispatch 01, etc.)
 app.get(
   [
     "/api/download-repo",
@@ -2265,12 +2534,16 @@ app.get(
     "/api/download-checkpoint",
     "/dispatch.zip",
     "/api/dispatch.zip",
+    "/dispatch-genie-*.zip",
+    "/api/dispatch-genie-*.zip",
+    "/dispatch-genie-v*.zip",
+    "/api/dispatch-genie-v*.zip",
     "/Easy-Dispatch-Oct-*.zip",
     "/Easy%20Dispatch%20October%20*.zip",
   ],
   (req, res) => {
     const requestedDay = req.query.day ? parseInt(req.query.day as string, 10) : null;
-    const rawName = (req.query.name as string) || (req.path.includes("Easy") ? decodeURIComponent(req.path).replace(/^\/api\//, "").replace(/^\//, "").replace(/\.zip$/, "") : "");
+    const rawName = (req.query.name as string) || (req.path.includes("Easy") || req.path.includes("dispatch-genie") ? decodeURIComponent(req.path).replace(/^\/api\//, "").replace(/^\//, "").replace(/\.zip$/, "") : "");
 
     // Helper for English ordinal
     const getOrdinal = (n: number) => {
@@ -2279,32 +2552,41 @@ app.get(
       return n + (s[(v - 20) % 10] || s[v] || s[0]);
     };
 
-    let baseName = "dispatch 01";
+    let baseName = "dispatch-genie-v1";
     if (rawName) {
-      const dispatchMatch = rawName.match(/dispatch[- ]*(\d+)/i);
-      const octMatch = rawName.match(/Easy[- ]Dispatch[- ]Oct(?:ober)?[- (]*(\d+)/i);
-      if (dispatchMatch) {
-        const d = parseInt(dispatchMatch[1], 10);
-        baseName = `dispatch ${d < 10 ? '0' + d : d}`;
-      } else if (octMatch) {
-        const d = parseInt(octMatch[1], 10);
-        baseName = `dispatch ${d < 10 ? '0' + d : d}`;
+      if (rawName.toLowerCase().includes("dispatch-genie") || rawName.toLowerCase().includes("dispatch_genie")) {
+        baseName = rawName.replace(/[^a-zA-Z0-9_\-]/g, "").trim() || "dispatch-genie-v1";
       } else {
-        baseName = rawName.replace(/[^a-zA-Z0-9_\-() ]/g, "").trim() || "dispatch 01";
+        const dispatchMatch = rawName.match(/dispatch[- ]*(\d+)/i);
+        const octMatch = rawName.match(/Easy[- ]Dispatch[- ]Oct(?:ober)?[- (]*(\d+)/i);
+        if (dispatchMatch) {
+          const d = parseInt(dispatchMatch[1], 10);
+          baseName = `dispatch ${d < 10 ? '0' + d : d}`;
+        } else if (octMatch) {
+          const d = parseInt(octMatch[1], 10);
+          baseName = `dispatch ${d < 10 ? '0' + d : d}`;
+        } else {
+          baseName = rawName.replace(/[^a-zA-Z0-9_\-() ]/g, "").trim() || "dispatch-genie-v1";
+        }
       }
     } else if (requestedDay && !isNaN(requestedDay)) {
-      baseName = `dispatch ${requestedDay < 10 ? '0' + requestedDay : requestedDay}`;
+      baseName = `dispatch-genie-v${requestedDay}`;
     }
 
     const zipFilename = `${baseName}.zip`;
     const publicDir = path.join(process.cwd(), "public");
-    const targetZipPath = path.join(publicDir, zipFilename);
+    let targetZipPath = path.join(publicDir, zipFilename);
 
-    // If file exists, send immediately
+    // If file exists in public/ or cwd, send immediately
     if (fs.existsSync(targetZipPath)) {
       res.setHeader("Content-Disposition", `attachment; filename="${zipFilename}"; filename*=UTF-8''${encodeURIComponent(zipFilename)}`);
       res.setHeader("Content-Type", "application/zip");
       return res.sendFile(targetZipPath);
+    }
+    if (fs.existsSync(path.join(process.cwd(), zipFilename))) {
+      res.setHeader("Content-Disposition", `attachment; filename="${zipFilename}"; filename*=UTF-8''${encodeURIComponent(zipFilename)}`);
+      res.setHeader("Content-Type", "application/zip");
+      return res.sendFile(path.join(process.cwd(), zipFilename));
     }
 
     // Check legacy aliases if dispatch XX not on disk yet

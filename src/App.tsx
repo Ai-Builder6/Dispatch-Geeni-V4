@@ -1228,7 +1228,7 @@ export function App() {
               <a
                 href="tel:18338439877"
                 className="hidden md:flex items-center gap-2 px-3 py-1.5 bg-gradient-to-r from-pink-50 to-purple-50 hover:from-pink-100 hover:to-purple-100 border border-pink-200/80 rounded-xl text-xs font-bold text-slate-800 transition-all cursor-pointer shadow-2xs group"
-                title="Tidyups Toll-Free Hotline"
+                title="Dispatch Genie Toll-Free Hotline: 1-833-TIDYUPS (833-843-9877) or Direct Dispatch: (587) 900-7223"
               >
                 <div className="w-6 h-6 rounded-lg bg-gradient-to-tr from-pink-600 to-purple-600 text-white flex items-center justify-center shrink-0 shadow-2xs">
                   <Phone className="w-3.5 h-3.5 text-white" />
@@ -1283,7 +1283,7 @@ export function App() {
             <a
               href="tel:18338439877"
               className="hidden 2xl:flex items-center gap-2 px-2.5 py-1 bg-gradient-to-r from-pink-50 to-purple-50 hover:from-pink-100 hover:to-purple-100 border border-pink-200/80 rounded-xl text-xs font-bold text-slate-800 transition-all cursor-pointer shadow-2xs shrink-0 group"
-              title="Call Tidyups Vanity Line: 1-833-TIDYUPS (833-843-9877) or Direct Dispatch: (587) 900-7223"
+              title="Call Dispatch Genie Vanity Line: 1-833-TIDYUPS (833-843-9877) or Direct Dispatch: (587) 900-7223"
             >
               <div className="w-6 h-6 rounded-lg bg-gradient-to-tr from-pink-600 to-purple-600 text-white flex items-center justify-center shrink-0 shadow-2xs">
                 <Phone className="w-3.5 h-3.5 text-white" />
@@ -1792,6 +1792,7 @@ export function App() {
         ) : activeTopView === 'QUOTES' ? (
           <QuotesView
             quotes={quotesList}
+            onQuotesUpdated={(updated) => setQuotesList(updated)}
             onRefreshQuotes={() => {
               fetch('/api/jobber/sync-quotes', { method: 'POST' })
                 .then((r) => r.json())
@@ -1799,10 +1800,12 @@ export function App() {
                   if (data.quotes) setQuotesList(data.quotes);
                 });
             }}
+            onBackToManagement={() => setActiveTopView('MANAGEMENT')}
           />
         ) : activeTopView === 'INVOICES' ? (
           <InvoicesView
             invoices={invoicesList}
+            onInvoicesUpdated={(updated) => setInvoicesList(updated)}
             onRefreshInvoices={() => {
               fetch('/api/jobber/sync-invoices', { method: 'POST' })
                 .then((r) => r.json())
@@ -1810,6 +1813,7 @@ export function App() {
                   if (data.invoices) setInvoicesList(data.invoices);
                 });
             }}
+            onBackToManagement={() => setActiveTopView('MANAGEMENT')}
           />
         ) : activeTopView === 'LEGAL' ? (
           <LegalPagesView
@@ -2065,12 +2069,12 @@ export function App() {
               <span>Fleet Health: <span className="text-emerald-400 font-bold">Optimal</span></span>
               <span>Cleaners: <span className="text-slate-200 font-mono">15 Active Cleaners</span></span>
               <a
-                href="https://app.tidyupscleaning.com"
+                href="https://dispatchgeeni.com"
                 target="_blank"
                 rel="noopener noreferrer"
                 className="hidden lg:inline text-purple-400 hover:text-purple-300 font-mono font-semibold"
               >
-                app.tidyupscleaning.com
+                dispatchgeeni.com
               </a>
               <span className="hidden xl:inline text-pink-400 font-mono font-bold">1-833-TIDYUPS</span>
               <div className="hidden sm:flex items-center gap-2 border-l border-slate-700 pl-3">

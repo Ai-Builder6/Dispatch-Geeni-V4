@@ -42,7 +42,7 @@ export const JobberSyncModal: React.FC<JobberSyncModalProps> = ({
   tickets,
   onDataUpdated,
 }) => {
-  const DOMAIN_REDIRECT_URI = 'https://app.tidyupscleaning.com/api/jobber/oauth/callback';
+  const DOMAIN_REDIRECT_URI = 'https://dispatchgeeni.com/api/jobber/oauth/callback';
   const previewRedirectUri = typeof window !== 'undefined'
     ? `${window.location.origin.replace(/^http:\/\//i, 'https://')}/api/jobber/oauth/callback`
     : DOMAIN_REDIRECT_URI;

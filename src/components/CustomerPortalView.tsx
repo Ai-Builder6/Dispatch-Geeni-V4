@@ -472,7 +472,7 @@ export const CustomerPortalView: React.FC<CustomerPortalViewProps> = ({
                 <HeartHandshake className="w-6 h-6 text-white" />
               </div>
               <div className="space-y-0.5">
-                <h4 className="font-bold text-sm text-slate-900">The Tidyups 24-Hour Clean Guarantee</h4>
+                <h4 className="font-bold text-sm text-slate-900">The Dispatch Genie 24-Hour Clean Guarantee</h4>
                 <p className="text-xs text-slate-600 leading-relaxed">
                   If your landlord or inspector flags any item on your checklist, notify us within 24 hours. We return and re-clean free of charge.
                 </p>

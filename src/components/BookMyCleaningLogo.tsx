@@ -53,16 +53,16 @@ export const BookMyCleaningLogo: React.FC<LogoProps> = ({
             <span className={`font-extrabold tracking-tight text-sm sm:text-base ${
               theme === 'dark' ? 'text-white' : 'text-slate-900'
             }`}>
-              Book My Cleaning
+              Dispatch Genie
             </span>
             <span className="text-[10px] font-bold px-1.5 py-0.5 rounded-full bg-gradient-to-r from-pink-500/10 to-purple-500/10 text-pink-600 border border-pink-500/20 uppercase tracking-wider">
-              Tidyups
+              Pro
             </span>
           </div>
           <span className={`text-[10px] font-medium tracking-tight ${
             theme === 'dark' ? 'text-slate-400' : 'text-slate-500'
           }`}>
-            Operations &amp; Dispatch Platform
+            dispatchgeeni.com
           </span>
         </div>
       )}

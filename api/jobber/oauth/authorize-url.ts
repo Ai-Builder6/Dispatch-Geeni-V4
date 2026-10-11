@@ -1,12 +1,14 @@
 import type { VercelRequest, VercelResponse } from "@vercel/node";
 
 export default function handler(req: VercelRequest, res: VercelResponse) {
-  const host = (req.headers.host as string) || "app.tidyupscleaning.com";
+  const host = (req.headers.host as string) || "dispatchgeeni.com";
   const proto = (req.headers["x-forwarded-proto"] as string) || "https";
 
   let redirectUri = `${proto}://${host}/api/jobber/oauth/callback`;
   if (req.query.redirectUri && typeof req.query.redirectUri === "string") {
     redirectUri = req.query.redirectUri;
+  } else if (host.includes("dispatchgeeni.com") || host.includes("dispatchgenie.com") || host.includes("distpatchgeeni.com")) {
+    redirectUri = "https://dispatchgeeni.com/api/jobber/oauth/callback";
   } else if (host.includes("tidyupscleaning.com")) {
     redirectUri = "https://app.tidyupscleaning.com/api/jobber/oauth/callback";
   }

@@ -66,7 +66,7 @@ export const QuoModal: React.FC<QuoModalProps> = ({ isOpen, onClose, onJobSelect
   const [editingContactId, setEditingContactId] = useState<string | null>(null);
   const [editNameValue, setEditNameValue] = useState('');
 
-  const prodWebhookUrl = 'https://app.tidyupscleaning.com/api/quo/webhook';
+  const prodWebhookUrl = 'https://dispatchgeeni.com/api/quo/webhook';
   const devWebhookUrl = typeof window !== 'undefined' ? `${window.location.origin}/api/quo/webhook` : prodWebhookUrl;
 
   const fetchQuoStatus = () => {

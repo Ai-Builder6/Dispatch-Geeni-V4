@@ -37,7 +37,7 @@ export default function handler(req: VercelRequest, res: VercelResponse) {
           hasSecret,
           accessToken: "",
           lastSyncedAt: new Date().toISOString(),
-          redirectUri: "https://app.tidyupscleaning.com/api/jobber/oauth/callback",
+          redirectUri: "https://dispatchgeeni.com/api/jobber/oauth/callback",
         },
       });
     }
@@ -62,7 +62,7 @@ export default function handler(req: VercelRequest, res: VercelResponse) {
         hasSecret,
         accessToken: effectiveToken ? `${effectiveToken.slice(0, 8)}...` : "",
         lastSyncedAt: new Date().toISOString(),
-        redirectUri: "https://app.tidyupscleaning.com/api/jobber/oauth/callback",
+        redirectUri: "https://dispatchgeeni.com/api/jobber/oauth/callback",
       },
       mapsApiKey,
       mapId,
@@ -77,7 +77,7 @@ export default function handler(req: VercelRequest, res: VercelResponse) {
     accessToken: token ? `${token.slice(0, 8)}...${token.slice(-4)}` : "",
     lastSyncedAt: new Date().toISOString(),
     environment: "Jobber GraphQL API (v2025-04-16)",
-    redirectUri: "https://app.tidyupscleaning.com/api/jobber/oauth/callback",
+    redirectUri: "https://dispatchgeeni.com/api/jobber/oauth/callback",
     mapsApiKey,
     mapId,
   });

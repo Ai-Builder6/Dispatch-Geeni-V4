@@ -60,17 +60,17 @@ export const LegalPagesView: React.FC<LegalPagesViewProps> = ({
             <BookMyCleaningLogo size={42} withText={false} />
             <div>
               <div className="flex items-center gap-2">
-                <h1 className="text-lg font-extrabold text-slate-900 leading-tight">Book My Cleaning - Tidyups</h1>
+                <h1 className="text-lg font-extrabold text-slate-900 leading-tight">Dispatch Genie</h1>
                 <span className="px-2 py-0.5 rounded-full bg-pink-50 text-pink-700 border border-pink-200 text-[10px] font-bold">
                   Verified Platform
                 </span>
               </div>
               <p className="text-xs text-slate-500 mt-0.5 flex items-center gap-2 flex-wrap">
                 <span className="flex items-center gap-1 font-mono text-purple-700 font-semibold">
-                  <Globe className="w-3 h-3 text-pink-600" /> https://app.tidyupscleaning.com
+                  <Globe className="w-3 h-3 text-pink-600" /> https://dispatchgeeni.com
                 </span>
                 <span>•</span>
-                <span>Edmonton &amp; Greater Area, Alberta</span>
+                <span>Hostinger Connected • Edmonton &amp; Regional Corridors</span>
               </p>
             </div>
           </div>
@@ -166,8 +166,8 @@ export const LegalPagesView: React.FC<LegalPagesViewProps> = ({
                 <h3 className="font-bold text-xs text-slate-800">Operations Email</h3>
                 <p className="text-[11px] text-slate-500 mt-0.5">Booking confirmation &amp; support</p>
                 <div className="mt-2 space-y-0.5 text-xs font-semibold text-slate-800">
-                  <a href="mailto:support@tidyupscleaning.com" className="hover:underline text-emerald-700 font-bold block">
-                    support@tidyupscleaning.com
+                  <a href="mailto:support@dispatchgeeni.com" className="hover:underline text-emerald-700 font-bold block">
+                    support@dispatchgeeni.com
                   </a>
                   <a href="mailto:cleaningserviceyeg@gmail.com" className="hover:underline text-slate-600 text-[11px] block">
                     cleaningserviceyeg@gmail.com
@@ -202,7 +202,7 @@ export const LegalPagesView: React.FC<LegalPagesViewProps> = ({
                   <div>
                     <h4 className="font-bold text-xs">Support Request Dispatched!</h4>
                     <p className="text-[11px] text-emerald-800 mt-0.5">
-                      Your inquiry has been routed to Tidyups Cleaning Service Inc at <code>cleaningserviceyeg@gmail.com</code>. We typically reply within 15–30 minutes during business hours.
+                      Your inquiry has been routed to Dispatch Genie Operations at <code>cleaningserviceyeg@gmail.com</code> (or <code>support@dispatchgeeni.com</code>). We typically reply within 15–30 minutes during business hours.
                     </p>
                   </div>
                 </div>
@@ -331,7 +331,7 @@ export const LegalPagesView: React.FC<LegalPagesViewProps> = ({
               <section>
                 <h3 className="font-bold text-slate-900 text-sm mb-1">1. Scope of Services</h3>
                 <p>
-                  TidyUps Cleaning Service Inc. (&quot;TidyUps&quot;, &quot;we&quot;, &quot;us&quot;) provides residential, commercial, post-renovation, and move-out turnover cleaning services across the Greater Edmonton Area (YEG), including Edmonton, St. Albert, Sherwood Park, Leduc, and Spruce Grove via <code>https://app.tidyupscleaning.com</code>.
+                  Dispatch Genie (&quot;Dispatch Genie&quot;, &quot;we&quot;, &quot;us&quot;) provides smart field service scheduling, live operations dispatch, and customer booking management across the Greater Edmonton Area (YEG) and connected regional corridors via <code>https://dispatchgeeni.com</code>.
                 </p>
               </section>
 
@@ -373,7 +373,7 @@ export const LegalPagesView: React.FC<LegalPagesViewProps> = ({
               <section>
                 <h3 className="font-bold text-slate-900 text-sm mb-1">7. Liability &amp; Insurance</h3>
                 <p>
-                  TidyUps maintains full commercial general liability insurance and WCB Alberta coverage. We take the utmost care with your property; however, we are not liable for pre-existing wear and tear, loose fixtures, or unsecured fragile antiques exceeding $500 in value that were not disclosed in writing prior to service.
+                  Dispatch Genie maintains full commercial general liability insurance and WCB Alberta coverage. We take the utmost care with your property; however, we are not liable for pre-existing wear and tear, loose fixtures, or unsecured fragile antiques exceeding $500 in value that were not disclosed in writing prior to service.
                 </p>
               </section>
             </div>
@@ -399,7 +399,7 @@ export const LegalPagesView: React.FC<LegalPagesViewProps> = ({
               <section>
                 <h3 className="font-bold text-slate-900 text-sm mb-1">1. Information We Collect</h3>
                 <p>
-                  When you book a cleaning service on <code>https://app.tidyupscleaning.com</code>, submit a voice request, or interact with our dispatch console, we collect:
+                  When you book a cleaning service on <code>https://dispatchgeeni.com</code>, submit a voice request, or interact with our dispatch console, we collect:
                 </p>
                 <ul className="list-disc list-inside mt-1 space-y-1 text-slate-600">
                   <li><strong>Contact Details:</strong> Full name, phone number, email address.</li>
@@ -447,9 +447,10 @@ export const LegalPagesView: React.FC<LegalPagesViewProps> = ({
                   For inquiries regarding your personal data, data correction, or removal requests under Canadian privacy law, please contact:
                 </p>
                 <div className="p-3 bg-slate-50 border border-slate-200 rounded-xl mt-2 text-slate-800 space-y-1">
-                  <div><strong>TidyUps Cleaning Service Inc. — Privacy Officer</strong></div>
+                  <div><strong>Dispatch Genie — Privacy &amp; Operations Office</strong></div>
                   <div>8306 Chappelle Way SW, Edmonton, AB T6W 4L3</div>
-                  <div>Email: <a href="mailto:support@tidyupscleaning.com" className="text-blue-600 underline font-semibold">support@tidyupscleaning.com</a> (Alt: cleaningserviceyeg@gmail.com)</div>
+                  <div>Website: <a href="https://dispatchgeeni.com" target="_blank" rel="noopener noreferrer" className="text-purple-600 underline font-semibold">https://dispatchgeeni.com</a> (Hosted at Hostinger)</div>
+                  <div>Email: <a href="mailto:support@dispatchgeeni.com" className="text-blue-600 underline font-semibold">support@dispatchgeeni.com</a> (Alt: cleaningserviceyeg@gmail.com)</div>
                   <div>Toll-Free Vanity Line: <a href="tel:18338439877" className="font-bold text-purple-700">1-833-TIDYUPS (833-843-9877)</a></div>
                   <div>Direct Dispatch: (587) 900-7223 / (587) 742-2500</div>
                 </div>

@@ -29,7 +29,7 @@ function getBaseUrl(req: Request): string {
     return envUrl.replace(/\/$/, "");
   }
   const proto = req.headers["x-forwarded-proto"] || "https";
-  const host = req.headers["x-forwarded-host"] || req.headers.host || "app.tidyupscleaning.com";
+  const host = req.headers["x-forwarded-host"] || req.headers.host || "dispatchgeeni.com";
   return `${proto}://${host}`;
 }
 
@@ -59,12 +59,14 @@ app.get("/api/health", (_req: Request, res: Response) => {
 
 // GET /api/jobber/oauth/authorize-url
 app.get("/api/jobber/oauth/authorize-url", (req: Request, res: Response) => {
-  const host = (req.headers.host as string) || "app.tidyupscleaning.com";
+  const host = (req.headers.host as string) || "dispatchgeeni.com";
   const proto = (req.headers["x-forwarded-proto"] as string) || "https";
 
   let redirectUri = `${proto}://${host}/api/jobber/oauth/callback`;
   if (req.query.redirectUri && typeof req.query.redirectUri === "string") {
     redirectUri = req.query.redirectUri;
+  } else if (host.includes("dispatchgeeni.com") || host.includes("dispatchgenie.com") || host.includes("distpatchgeeni.com")) {
+    redirectUri = "https://dispatchgeeni.com/api/jobber/oauth/callback";
   } else if (host.includes("tidyupscleaning.com")) {
     redirectUri = "https://app.tidyupscleaning.com/api/jobber/oauth/callback";
   }
@@ -97,7 +99,7 @@ app.get(["/api/jobber/oauth/callback", "/api/jobber/oauth/callback/"], async (re
   const errorDescription = (req.query.error_description as string) || "";
   const stateParam = (req.query.state as string) || "";
 
-  let redirectUri = "https://app.tidyupscleaning.com/api/jobber/oauth/callback";
+  let redirectUri = "https://dispatchgeeni.com/api/jobber/oauth/callback";
   if (stateParam) {
     try {
       const decoded = JSON.parse(Buffer.from(stateParam, "base64url").toString("utf-8"));

@@ -18,8 +18,8 @@ export const PWAInstallButton: React.FC = () => {
         <button
           onClick={install}
           className="min-h-[34px] sm:min-h-[36px] landscape:max-md:min-h-[32px] px-2.5 sm:px-3 py-1 sm:py-1.5 rounded-xl bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white text-xs font-bold flex items-center gap-1.5 transition-all shadow-xs cursor-pointer flex-shrink-0 animate-pulse"
-          title="Install TidyUps App on your phone or computer"
-          aria-label="Install TidyUps App"
+          title="Install Dispatch Genie App on your phone or computer"
+          aria-label="Install Dispatch Genie App"
         >
           <Download className="w-3.5 h-3.5 shrink-0" />
           <span className="hidden sm:inline">Install App</span>
@@ -32,7 +32,7 @@ export const PWAInstallButton: React.FC = () => {
         <button
           onClick={() => setShowIOSGuide(true)}
           className="min-h-[34px] sm:min-h-[36px] landscape:max-md:min-h-[32px] px-2.5 sm:px-3 py-1 sm:py-1.5 rounded-xl bg-blue-50 hover:bg-blue-100 text-blue-700 border border-blue-200 text-xs font-bold flex items-center gap-1.5 transition-all shadow-2xs cursor-pointer flex-shrink-0"
-          title="Add TidyUps App to iOS Home Screen"
+          title="Add Dispatch Genie App to iOS Home Screen"
           aria-label="Add to iPhone Home Screen"
         >
           <Smartphone className="w-3.5 h-3.5 shrink-0 text-blue-600" />
@@ -96,7 +96,7 @@ export const PWAInstallButton: React.FC = () => {
               <div className="flex items-start gap-3 p-3 bg-emerald-50 rounded-xl border border-emerald-200 text-emerald-900">
                 <CheckCircle2 className="w-5 h-5 text-emerald-600 shrink-0 mt-0.5" />
                 <p className="text-[11px]">
-                  TidyUps will open as a full-screen, standalone app on your mobile home screen without any browser address bar!
+                  Dispatch Genie will open as a full-screen, standalone app on your mobile home screen without any browser address bar!
                 </p>
               </div>
             </div>

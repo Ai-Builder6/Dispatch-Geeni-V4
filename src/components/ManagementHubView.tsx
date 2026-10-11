@@ -100,12 +100,12 @@ export const ManagementHubView: React.FC<ManagementHubViewProps> = ({
                 <h3 className="font-black text-lg text-white">Quotes Pipeline</h3>
                 {quotesCount > 0 && (
                   <span className="px-2.5 py-0.5 rounded-full text-xs font-mono font-bold bg-amber-950 text-amber-300 border border-amber-800">
-                    {quotesCount} Quotes
+                    ⚡ {quotesCount} in Local DB
                   </span>
                 )}
               </div>
               <p className="text-xs text-slate-400 mt-1 leading-relaxed">
-                Review client quotes, track approval statuses, draft new quotes, and sync estimates directly with Jobber.
+                Fast local database copy loads in 0ms. Incremental Jobber delta sync only pulls modified quotes, preserving your entire pipeline.
               </p>
             </div>
           </div>
@@ -114,7 +114,7 @@ export const ManagementHubView: React.FC<ManagementHubViewProps> = ({
             onClick={onNavigateToQuotes}
             className="w-full py-2.5 px-4 bg-amber-600/90 hover:bg-amber-600 text-white rounded-xl text-xs font-black transition-all flex items-center justify-center gap-1.5 cursor-pointer shadow-md group-hover:translate-x-0.5"
           >
-            <span>Open Quotes Pipeline</span>
+            <span>Open Quotes Pipeline (Local DB)</span>
             <ArrowRight className="w-4 h-4" />
           </button>
         </div>
@@ -130,12 +130,12 @@ export const ManagementHubView: React.FC<ManagementHubViewProps> = ({
                 <h3 className="font-black text-lg text-white">Invoices &amp; Billing</h3>
                 {invoicesCount > 0 && (
                   <span className="px-2.5 py-0.5 rounded-full text-xs font-mono font-bold bg-emerald-950 text-emerald-300 border border-emerald-800">
-                    {invoicesCount} Invoices
+                    ⚡ {invoicesCount} in Local DB
                   </span>
                 )}
               </div>
               <p className="text-xs text-slate-400 mt-1 leading-relaxed">
-                Track paid and unpaid balances, due dates, client billing history, payment methods, and Jobber invoice states.
+                Real-time billing ledger cached in database. Tracks paid and due balances with fast incremental delta sync from Jobber.
               </p>
             </div>
           </div>
@@ -144,7 +144,7 @@ export const ManagementHubView: React.FC<ManagementHubViewProps> = ({
             onClick={onNavigateToInvoices}
             className="w-full py-2.5 px-4 bg-emerald-600/90 hover:bg-emerald-600 text-white rounded-xl text-xs font-black transition-all flex items-center justify-center gap-1.5 cursor-pointer shadow-md group-hover:translate-x-0.5"
           >
-            <span>Open Invoices &amp; Billing</span>
+            <span>Open Invoices &amp; Billing (Local DB)</span>
             <ArrowRight className="w-4 h-4" />
           </button>
         </div>

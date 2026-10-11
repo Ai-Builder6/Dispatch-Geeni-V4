@@ -12,7 +12,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
   const stateParam = (req.query.state as string) || "";
 
   // Derive redirectUri: priority to state payload, fallback to custom domain
-  let redirectUri = "https://app.tidyupscleaning.com/api/jobber/oauth/callback";
+  let redirectUri = "https://dispatchgeeni.com/api/jobber/oauth/callback";
   if (stateParam) {
     try {
       const decoded = JSON.parse(Buffer.from(stateParam, "base64url").toString("utf-8"));

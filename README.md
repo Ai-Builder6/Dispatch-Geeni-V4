@@ -1,14 +1,14 @@
-# TidyUps Cleaning Service — Dispatch & Operations Platform
+# Dispatch Genie — Smart Field Service Operations & Dispatch Platform
 
-**TidyUps Cleaning Service Inc. — Live Production Dispatch Console**  
-Target Production Domain: [https://app.tidyupscleaning.com](https://app.tidyupscleaning.com)  
+**Dispatch Genie — Live Operations Console & Dispatch Board**  
+Target Production Domain: [https://dispatchgeeni.com](https://dispatchgeeni.com) (Connected at Hostinger)  
 Primary Service Territory: Edmonton, Alberta (YEG) and Surrounding Regional Corridors  
-Executive Contact & Admin: `cleaningserviceyeg@gmail.com`
+Executive Contact & Admin: `cleaningserviceyeg@gmail.com` • `support@dispatchgeeni.com`
 
 ---
 
 ## 🚀 Production Platform Overview
-`app.tidyupscleaning.com` is the live central operations console, territory dispatch board, and booking management system for TidyUps Cleaning Service Inc.
+`dispatchgeeni.com` is the live central operations console, territory dispatch board, and booking management system for Dispatch Genie.
 
 - **15 Mobile Cleaners & Solo/Team Units**: Tracking real home hubs in Edmonton (Chappelle, Charlesworth, Keheewin, Oliver, Clareview, Ambleside, Mill Woods, Queen Mary, Secord, Callingwood, Dechene, Westwood, Lorelei, The Hamptons, Jasper Park).
 - **Core Cleaning Services**: Standard Cleaning, Deep Cleaning, and Move-Out Cleaning.
@@ -26,22 +26,22 @@ Executive Contact & Admin: `cleaningserviceyeg@gmail.com`
 
 ## 🌐 Deep Link Navigation Routes
 
-All deep links are active directly on `https://app.tidyupscleaning.com`:
+All deep links are active directly on `https://dispatchgeeni.com`:
 
 | Route / Hash | View Destination | Primary Features |
 |---|---|---|
-| `https://app.tidyupscleaning.com/` | Interactive Live Map | Territory pins, fleet routing, job visits, van hubs |
-| `https://app.tidyupscleaning.com/book` | Customer Booking Portal | Public estimate requests, pricing calculator |
-| `https://app.tidyupscleaning.com/management` | Management Hub | Quotes, invoices, staff roster, Firestore sync |
-| `https://app.tidyupscleaning.com/clients` | Clients Database | Client records, contact history, lead verdicts |
-| `https://app.tidyupscleaning.com/quotes` | Quotes Pipeline | Estimates, approved quotes, Jobber sync |
-| `https://app.tidyupscleaning.com/invoices` | Invoices & Billing | Due balances, payment status, Jobber invoicing |
-| `https://app.tidyupscleaning.com/jobs` | Scheduled Calendar | Monthly/weekly visits, cleaner assignments |
-| `https://app.tidyupscleaning.com/unscheduled` | Unscheduled Queue | Pending job requests, one-click approvals |
-| `https://app.tidyupscleaning.com/staff` | Staff Roster Modal | CSV spreadsheet sync, archive & role management |
-| `https://app.tidyupscleaning.com/support` | Support Desk | Operations policies, satisfaction guarantee |
-| `https://app.tidyupscleaning.com/t&c` | Terms & Conditions | Customer agreements, deposit clauses |
-| `https://app.tidyupscleaning.com/privacy-policy` | Privacy Policy | PIPEDA & Alberta PIPA compliance disclosures |
+| `https://dispatchgeeni.com/` | Interactive Live Map | Territory pins, fleet routing, job visits, van hubs |
+| `https://dispatchgeeni.com/book` | Customer Booking Portal | Public estimate requests, pricing calculator |
+| `https://dispatchgeeni.com/management` | Management Hub | Quotes, invoices, staff roster, Firestore sync |
+| `https://dispatchgeeni.com/clients` | Clients Database | Client records, contact history, lead verdicts |
+| `https://dispatchgeeni.com/quotes` | Quotes Pipeline | Estimates, approved quotes, Jobber sync |
+| `https://dispatchgeeni.com/invoices` | Invoices & Billing | Due balances, payment status, Jobber invoicing |
+| `https://dispatchgeeni.com/jobs` | Scheduled Calendar | Monthly/weekly visits, cleaner assignments |
+| `https://dispatchgeeni.com/unscheduled` | Unscheduled Queue | Pending job requests, one-click approvals |
+| `https://dispatchgeeni.com/staff` | Staff Roster Modal | CSV spreadsheet sync, archive & role management |
+| `https://dispatchgeeni.com/support` | Support Desk | Operations policies, satisfaction guarantee |
+| `https://dispatchgeeni.com/t&c` | Terms & Conditions | Customer agreements, deposit clauses |
+| `https://dispatchgeeni.com/privacy-policy` | Privacy Policy | PIPEDA & Alberta PIPA compliance disclosures |
 
 ---
 
@@ -87,20 +87,20 @@ This application includes official **Jobber OAuth 2.0 two-way connection support
 - **App Name**: TidyUps Cleaning Service Inc
 - **OAuth Callback / Redirect URI**:
   ```
-  https://app.tidyupscleaning.com/api/jobber/oauth/callback
+  https://dispatchgeeni.com/api/jobber/oauth/callback
   ```
-- **App Base URL (`APP_BASE_URL`)**: `https://app.tidyupscleaning.com`
-  *(This is simply your custom domain URL. It tells Jobber where to redirect back after login.)*
+- **App Base URL (`APP_BASE_URL`)**: `https://dispatchgeeni.com`
+  *(This is your custom domain URL at Hostinger. It tells Jobber where to redirect back after login.)*
 - **Jobber Client ID**: `27966135-e33e-4c2e-8dc3-ad7ba06dabb8`
 - **Jobber Client Secret**: Securely saved and configured on your server instance.
 
 ### Step-by-Step Authorization:
-1. In the top navigation bar of `https://app.tidyupscleaning.com`, click the **Jobber Sync** button.
+1. In the top navigation bar of `https://dispatchgeeni.com`, click the **Jobber Sync** button.
 2. Select **Custom Domain (Recommended)** as your redirect mode.
 3. Click **Open Jobber in New Tab (Direct) →** (or copy the direct authorization link).
 4. On the Jobber webpage, log in with your Jobber business credentials.
 5. On the permissions screen, scroll to the bottom and click the green **"Allow Access"** button.
-6. Jobber redirects to `https://app.tidyupscleaning.com/api/jobber/oauth/callback`, exchanges the authorization code for your access token, saves the credentials, and automatically returns you to the Dispatch Board with a green "Connected to Jobber!" confirmation!
+6. Jobber redirects to `https://dispatchgeeni.com/api/jobber/oauth/callback`, exchanges the authorization code for your access token, saves the credentials, and automatically returns you to the Dispatch Board with a green "Connected to Jobber!" confirmation!
 
 ### Direct Token Method (Instant Alternative):
 If you prefer not to use OAuth, you can also generate a **Personal Access Token** in your [Jobber Developer Center](https://developer.getjobber.com) and paste it into the **Direct Personal Access Token** field in the modal. Click **Test & Verify Token** to immediately connect.
@@ -122,4 +122,4 @@ If you prefer not to use OAuth, you can also generate a **Personal Access Token*
 ---
 
 ## 📄 License & Confidentiality
-Property of TidyUps Cleaning Service Inc. (`cleaningserviceyeg@gmail.com`). All rights reserved. Live platform hosted at [https://app.tidyupscleaning.com](https://app.tidyupscleaning.com).
+Property of Dispatch Genie (`support@dispatchgeeni.com`, `cleaningserviceyeg@gmail.com`). All rights reserved. Live platform hosted at [https://dispatchgeeni.com](https://dispatchgeeni.com).

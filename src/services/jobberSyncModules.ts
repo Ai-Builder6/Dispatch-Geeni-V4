@@ -163,6 +163,8 @@ export interface JobberVisit {
   jobberWebUri: string;
   callTranscripts?: any[];
   notes?: string;
+  updatedAt?: string;
+  syncedAt?: string;
 }
 
 export interface JobberClient {
@@ -188,10 +190,13 @@ export interface JobberQuote {
   total: number;
   depositRequired: number;
   createdAt: string;
+  updatedAt?: string;
+  syncedAt?: string;
   scheduledDate?: string;
   scheduledTime?: string;
   jobberWebUri: string;
   notes?: string;
+  isLocal?: boolean;
   lineItems?: Array<{ description: string; quantity: number; unitPrice: number; total: number }>;
 }
 
@@ -207,10 +212,22 @@ export interface JobberInvoice {
   balance: number;
   issuedDate: string;
   dueDate: string;
+  updatedAt?: string;
+  syncedAt?: string;
   scheduledTime?: string;
   jobberWebUri: string;
   notes?: string;
+  isLocal?: boolean;
   lineItems?: Array<{ description: string; quantity: number; unitPrice: number; total: number }>;
+}
+
+export interface SyncDeltaStats {
+  totalCount: number;
+  newCount: number;
+  updatedCount: number;
+  unchangedCount: number;
+  durationMs: number;
+  syncedAt: string;
 }
 
 export interface JobberPushResult {
@@ -253,6 +270,11 @@ export interface ComprehensiveSyncSummary {
     autoPushedCount: number;
     status: "ready";
   };
+  delta?: {
+    quotes?: SyncDeltaStats;
+    invoices?: SyncDeltaStats;
+    calendar?: SyncDeltaStats;
+  };
   lastSyncedAt: string;
   jobberAccount: string;
 }
@@ -264,93 +286,117 @@ export interface JobberCredentials {
 }
 
 /**
- * 1. jobberCalendarSync: Pulls scheduled visits out of Jobber and maps them to our 2 cleaning crews
+ * 1. jobberCalendarSync: Pulls scheduled visits out of Jobber and merges incrementally into existing database visits
  */
-export async function syncJobberCalendar(accessToken?: string, credentials?: JobberCredentials): Promise<{
+export async function syncJobberCalendar(
+  accessToken?: string,
+  credentials?: JobberCredentials,
+  existingVisits: JobberVisit[] = []
+): Promise<{
   visits: JobberVisit[];
   syncedVisitsCount: number;
   assignedToCrew1: number;
   assignedToCrew2: number;
+  delta?: SyncDeltaStats;
+  isLiveJobber?: boolean;
 }> {
+  const startTime = Date.now();
   if (accessToken && !accessToken.startsWith("jobber_oauth")) {
     try {
-      const allVisits: JobberVisit[] = [];
-      let cursor: string | null = null;
-      let hasMore = true;
-
-      while (hasMore) {
-        const afterClause = cursor ? `, after: "${cursor}"` : "";
-        const query = `
-          query SyncCalendarVisits {
-            visits(
-              filter: {
-                startAt: {
-                  after: "2026-09-01T00:00:00Z",
-                  before: "2026-11-01T23:59:59Z"
+      const query = `
+        query SyncCalendarVisits {
+          visits(
+            filter: {
+              startAt: {
+                after: "2026-09-01T00:00:00Z",
+                before: "2026-11-01T23:59:59Z"
+              }
+            }
+            first: 50
+          ) {
+            totalCount
+            nodes {
+              id
+              title
+              startAt
+              endAt
+              completedAt
+              client {
+                name
+                phones {
+                  number
                 }
               }
-              first: 35${afterClause}
-            ) {
-              totalCount
-              pageInfo {
-                hasNextPage
-                endCursor
+              property {
+                address {
+                  street
+                  city
+                  province
+                  postalCode
+                }
               }
-              nodes {
+              assignedUsers {
+                nodes {
+                  name {
+                    full
+                  }
+                }
+              }
+              job {
                 id
+                jobNumber
                 title
-                startAt
-                endAt
-                completedAt
-                client {
-                  name
-                  phones {
-                    number
-                  }
-                }
-                property {
-                  address {
-                    street
-                    city
-                    province
-                    postalCode
-                  }
-                }
-                assignedUsers {
-                  nodes {
-                    name {
-                      full
-                    }
-                  }
-                }
-                job {
-                  id
-                  jobNumber
-                  title
-                }
               }
             }
           }
-        `;
-        const data = await jobberGraphql<any>(accessToken, query, undefined, credentials);
-        const nodes = data?.visits?.nodes || [];
+        }
+      `;
+      const data = await jobberGraphql<any>(accessToken, query, undefined, credentials);
+      const nodes = data?.visits?.nodes || [];
 
-        for (let idx = 0; idx < nodes.length; idx++) {
-          const node = nodes[idx];
-          const clientName = node.client?.name || "Jobber Client";
-          const clientPhone = node.client?.phones?.[0]?.number || "(780) 718-5092";
-          const addr = node.property?.address;
-          const serviceAddress = addr ? `${addr.street || ""}, ${addr.city || "Edmonton"}, ${addr.province || "AB"}` : "Edmonton, AB";
-          const assigned = (node.assignedUsers?.nodes || []).map((u: any) => u.name?.full || "Staff");
-          
-          let serviceType: JobberVisit["serviceType"] = "Standard Cleaning";
-          const titleLower = `${node.title || ""} ${node.job?.title || ""}`.toLowerCase();
-          if (titleLower.includes("deep") || titleLower.includes("scrub")) serviceType = "Deep Cleaning";
-          else if (titleLower.includes("move") || titleLower.includes("turnover") || titleLower.includes("vacate")) serviceType = "Move-Out Cleaning";
+      // Incremental delta merge with existing database visits
+      const visitsMap = new Map<string, JobberVisit>();
+      for (const v of existingVisits) {
+        visitsMap.set(v.id || v.visitNumber, { ...v });
+      }
 
-          allVisits.push({
+      let newCount = 0;
+      let updatedCount = 0;
+      let unchangedCount = 0;
+
+      for (let idx = 0; idx < nodes.length; idx++) {
+        const node = nodes[idx];
+        const clientName = node.client?.name || "Jobber Client";
+        const clientPhone = node.client?.phones?.[0]?.number || "(780) 718-5092";
+        const addr = node.property?.address;
+        const serviceAddress = addr ? `${addr.street || ""}, ${addr.city || "Edmonton"}, ${addr.province || "AB"}` : "Edmonton, AB";
+        const assigned = (node.assignedUsers?.nodes || []).map((u: any) => u.name?.full || "Staff");
+        
+        let serviceType: JobberVisit["serviceType"] = "Standard Cleaning";
+        const titleLower = `${node.title || ""} ${node.job?.title || ""}`.toLowerCase();
+        if (titleLower.includes("deep") || titleLower.includes("scrub")) serviceType = "Deep Cleaning";
+        else if (titleLower.includes("move") || titleLower.includes("turnover") || titleLower.includes("vacate")) serviceType = "Move-Out Cleaning";
+
+        const visitStatus: JobberVisit["status"] = node.completedAt ? "COMPLETED" : "SCHEDULED";
+        const visitNumber = `VISIT-${node.id.replace(/\D/g, '').slice(-5) || (visitsMap.size + 1)}`;
+        const key = node.id || visitNumber;
+
+        if (visitsMap.has(key)) {
+          const existing = visitsMap.get(key)!;
+          const hasChanged = existing.status !== visitStatus || existing.serviceType !== serviceType;
+          if (hasChanged) {
+            existing.status = visitStatus;
+            existing.serviceType = serviceType;
+            existing.updatedAt = new Date().toISOString();
+            existing.syncedAt = new Date().toISOString();
+            updatedCount++;
+          } else {
+            unchangedCount++;
+          }
+        } else {
+          visitsMap.set(key, {
             id: node.id,
-            visitNumber: `VISIT-${node.id.replace(/\D/g, '').slice(-5) || (allVisits.length + 1)}`,
+            visitNumber,
             title: node.title || `${clientName} - ${serviceType}`,
             clientName,
             clientPhone,
@@ -359,40 +405,54 @@ export async function syncJobberCalendar(accessToken?: string, credentials?: Job
             endAt: node.endAt || new Date(Date.now() + 3600000).toISOString(),
             assignedCleaners: assigned.length > 0 ? assigned : ["Joel MBATCHOU", "Melissa Clarke"],
             serviceType,
-            status: node.completedAt ? "COMPLETED" : "SCHEDULED",
-            jobberWebUri: `https://secure.getjobber.com/visits/${node.id.replace(/\D/g, '') || allVisits.length}`,
+            status: visitStatus,
+            jobberWebUri: `https://secure.getjobber.com/visits/${node.id.replace(/\D/g, '') || visitsMap.size}`,
+            syncedAt: new Date().toISOString(),
           });
+          newCount++;
         }
-
-        hasMore = Boolean(data?.visits?.pageInfo?.hasNextPage);
-        cursor = data?.visits?.pageInfo?.endCursor || null;
-        if (hasMore) await new Promise((r) => setTimeout(r, 1500));
       }
 
-      if (allVisits.length > 0) {
-        const crew1 = allVisits.filter(v => v.assignedCleaners.includes("Joel MBATCHOU") || v.assignedCleaners.includes("Melissa Clarke")).length;
-        const crew2 = allVisits.length - crew1;
+      const mergedVisits = Array.from(visitsMap.values());
+      const crew1 = mergedVisits.filter(v => v.assignedCleaners.includes("Joel MBATCHOU") || v.assignedCleaners.includes("Melissa Clarke")).length;
+      const crew2 = mergedVisits.length - crew1;
 
-        return {
-          visits: allVisits,
-          syncedVisitsCount: allVisits.length,
-          assignedToCrew1: crew1,
-          assignedToCrew2: crew2,
-        };
-      }
+      return {
+        visits: mergedVisits,
+        syncedVisitsCount: mergedVisits.length,
+        assignedToCrew1: crew1,
+        assignedToCrew2: crew2,
+        delta: {
+          totalCount: mergedVisits.length,
+          newCount,
+          updatedCount,
+          unchangedCount: unchangedCount + (mergedVisits.length - nodes.length),
+          durationMs: Date.now() - startTime,
+          syncedAt: new Date().toISOString(),
+        },
+        isLiveJobber: true,
+      };
     } catch (err: any) {
       console.warn("Live Jobber calendar fetch fallback note:", err.message);
     }
   }
 
-  // Clean baseline: Return empty array when account is not yet connected or has 0 visits
-  const baselineVisits: JobberVisit[] = [];
-
+  // Fast database fallback: return existing visits cached in local database
+  const crew1 = existingVisits.filter(v => v.assignedCleaners.includes("Joel MBATCHOU") || v.assignedCleaners.includes("Melissa Clarke")).length;
   return {
-    visits: baselineVisits,
-    syncedVisitsCount: 0,
-    assignedToCrew1: 0,
-    assignedToCrew2: 0,
+    visits: existingVisits,
+    syncedVisitsCount: existingVisits.length,
+    assignedToCrew1: crew1,
+    assignedToCrew2: existingVisits.length - crew1,
+    delta: {
+      totalCount: existingVisits.length,
+      newCount: 0,
+      updatedCount: 0,
+      unchangedCount: existingVisits.length,
+      durationMs: Date.now() - startTime,
+      syncedAt: new Date().toISOString(),
+    },
+    isLiveJobber: false,
   };
 }
 
@@ -463,191 +523,259 @@ export async function syncJobberClients(accessToken?: string, credentials?: Jobb
 }
 
 /**
- * 3. jobberQuoteSync: Pulls quotes and pipeline standings
+ * 3. jobberQuoteSync: Pulls quotes and pipeline standings with incremental delta merging into local database
  */
-export async function syncJobberQuotes(accessToken?: string, credentials?: JobberCredentials): Promise<{
+export async function syncJobberQuotes(
+  accessToken?: string,
+  credentials?: JobberCredentials,
+  existingQuotes: JobberQuote[] = []
+): Promise<{
   quotes: JobberQuote[];
   syncedQuotesCount: number;
   approvedCount: number;
   awaitingResponseCount: number;
+  delta?: SyncDeltaStats;
+  isLiveJobber?: boolean;
 }> {
+  const startTime = Date.now();
   if (accessToken && !accessToken.startsWith("jobber_oauth")) {
     try {
-      const allQuotes: JobberQuote[] = [];
-      let cursor: string | null = null;
-      let hasMore = true;
-
-      while (hasMore) {
-        const afterClause = cursor ? `, after: "${cursor}"` : "";
-        const query = `
-          query SyncQuotes {
-            quotes(
-              filter: {
-                createdAt: {
-                  after: "2026-09-01T00:00:00Z"
-                }
-              }
-              first: 35${afterClause}
-            ) {
-              totalCount
-              pageInfo {
-                hasNextPage
-                endCursor
-              }
-              nodes {
-                id
-                quoteNumber
-                quoteStatus
-                amounts {
-                  subtotal
-                  total
-                  depositAmount
-                }
-                client {
-                  name
-                  phones {
-                    number
-                  }
-                }
-                createdAt
+      const query = `
+        query SyncQuotes {
+          quotes(
+            filter: {
+              createdAt: {
+                after: "2026-09-01T00:00:00Z"
               }
             }
+            first: 50
+          ) {
+            totalCount
+            nodes {
+              id
+              quoteNumber
+              quoteStatus
+              amounts {
+                subtotal
+                total
+                depositAmount
+              }
+              client {
+                name
+                phones {
+                  number
+                }
+              }
+              createdAt
+            }
           }
-        `;
-        const data = await jobberGraphql<any>(accessToken, query, undefined, credentials);
-        const nodes = data?.quotes?.nodes || [];
+        }
+      `;
+      const data = await jobberGraphql<any>(accessToken, query, undefined, credentials);
+      const nodes = data?.quotes?.nodes || [];
 
-        for (const node of nodes) {
-          let status: JobberQuote["quoteStatus"] = "APPROVED";
-          const rawStatus = (node.quoteStatus || "").toLowerCase();
-          if (rawStatus.includes("await") || rawStatus.includes("sent") || rawStatus.includes("pend")) {
-            status = "AWAITING_RESPONSE";
-          } else if (rawStatus.includes("convert")) {
-            status = "CONVERTED";
-          } else if (rawStatus.includes("change")) {
-            status = "CHANGES_REQUESTED";
-          } else if (rawStatus.includes("draft")) {
-            status = "DRAFT";
+      // Incremental delta merge with existing database quotes
+      const quotesMap = new Map<string, JobberQuote>();
+      for (const q of existingQuotes) {
+        quotesMap.set(q.id || q.quoteNumber, { ...q });
+      }
+
+      let newCount = 0;
+      let updatedCount = 0;
+      let unchangedCount = 0;
+
+      for (const node of nodes) {
+        let status: JobberQuote["quoteStatus"] = "APPROVED";
+        const rawStatus = (node.quoteStatus || "").toLowerCase();
+        if (rawStatus.includes("await") || rawStatus.includes("sent") || rawStatus.includes("pend")) {
+          status = "AWAITING_RESPONSE";
+        } else if (rawStatus.includes("convert")) {
+          status = "CONVERTED";
+        } else if (rawStatus.includes("change")) {
+          status = "CHANGES_REQUESTED";
+        } else if (rawStatus.includes("draft")) {
+          status = "DRAFT";
+        }
+
+        const quoteNumber = `QT-${node.quoteNumber || node.id.replace(/\D/g, '')}`;
+        const key = node.id || quoteNumber;
+        const total = node.amounts?.total || 380;
+        const depositRequired = node.amounts?.depositAmount || 0;
+        const clientName = node.client?.name || "Customer";
+
+        if (quotesMap.has(key)) {
+          const existing = quotesMap.get(key)!;
+          const hasChanged = existing.quoteStatus !== status || existing.total !== total || existing.depositRequired !== depositRequired;
+          if (hasChanged) {
+            existing.quoteStatus = status;
+            existing.total = total;
+            existing.depositRequired = depositRequired;
+            existing.updatedAt = new Date().toISOString();
+            existing.syncedAt = new Date().toISOString();
+            updatedCount++;
+          } else {
+            unchangedCount++;
           }
-
-          allQuotes.push({
+        } else {
+          quotesMap.set(key, {
             id: node.id,
-            quoteNumber: `QT-${node.quoteNumber || node.id.replace(/\D/g, '')}`,
-            clientName: node.client?.name || "Customer",
+            quoteNumber,
+            clientName,
             clientPhone: node.client?.phones?.[0]?.number || "(780) 718-5092",
             service: "Residential Deep & Standard Cleaning",
             quoteStatus: status,
-            total: node.amounts?.total || 380,
-            depositRequired: node.amounts?.depositAmount || 0,
+            total,
+            depositRequired,
             createdAt: node.createdAt || new Date().toISOString(),
             jobberWebUri: `https://secure.getjobber.com/quotes/${node.id.replace(/\D/g, '')}`,
+            syncedAt: new Date().toISOString(),
           });
+          newCount++;
         }
-
-        hasMore = Boolean(data?.quotes?.pageInfo?.hasNextPage);
-        cursor = data?.quotes?.pageInfo?.endCursor || null;
-        if (hasMore) await new Promise((r) => setTimeout(r, 1500));
       }
 
-      if (allQuotes.length > 0) {
-        const approved = allQuotes.filter(q => q.quoteStatus === "APPROVED" || q.quoteStatus === "CONVERTED").length;
-        const awaiting = allQuotes.filter(q => q.quoteStatus === "AWAITING_RESPONSE").length;
-        return {
-          quotes: allQuotes,
-          syncedQuotesCount: allQuotes.length,
-          approvedCount: approved,
-          awaitingResponseCount: awaiting,
-        };
-      }
+      const mergedQuotes = Array.from(quotesMap.values());
+      const approved = mergedQuotes.filter(q => q.quoteStatus === "APPROVED" || q.quoteStatus === "CONVERTED").length;
+      const awaiting = mergedQuotes.filter(q => q.quoteStatus === "AWAITING_RESPONSE").length;
+
+      return {
+        quotes: mergedQuotes,
+        syncedQuotesCount: mergedQuotes.length,
+        approvedCount: approved,
+        awaitingResponseCount: awaiting,
+        delta: {
+          totalCount: mergedQuotes.length,
+          newCount,
+          updatedCount,
+          unchangedCount: unchangedCount + (mergedQuotes.length - nodes.length),
+          durationMs: Date.now() - startTime,
+          syncedAt: new Date().toISOString(),
+        },
+        isLiveJobber: true,
+      };
     } catch (err: any) {
       console.warn("Live Jobber quote sync fallback note:", err.message);
     }
   }
 
-  const baselineQuotes: JobberQuote[] = [];
+  // Fast database fallback: return existing quotes cached in local database
+  const approved = existingQuotes.filter(q => q.quoteStatus === "APPROVED" || q.quoteStatus === "CONVERTED").length;
+  const awaiting = existingQuotes.filter(q => q.quoteStatus === "AWAITING_RESPONSE").length;
 
   return {
-    quotes: baselineQuotes,
-    syncedQuotesCount: 0,
-    approvedCount: 0,
-    awaitingResponseCount: 0,
+    quotes: existingQuotes,
+    syncedQuotesCount: existingQuotes.length,
+    approvedCount: approved,
+    awaitingResponseCount: awaiting,
+    delta: {
+      totalCount: existingQuotes.length,
+      newCount: 0,
+      updatedCount: 0,
+      unchangedCount: existingQuotes.length,
+      durationMs: Date.now() - startTime,
+      syncedAt: new Date().toISOString(),
+    },
+    isLiveJobber: false,
   };
 }
 
 /**
- * 4. jobberInvoiceSync: Pulls invoice balances and payment status
+ * 4. jobberInvoiceSync: Pulls invoice balances and payment status with incremental delta merging into local database
  */
-export async function syncJobberInvoices(accessToken?: string, credentials?: JobberCredentials): Promise<{
+export async function syncJobberInvoices(
+  accessToken?: string,
+  credentials?: JobberCredentials,
+  existingInvoices: JobberInvoice[] = []
+): Promise<{
   invoices: JobberInvoice[];
   syncedInvoicesCount: number;
   paidCount: number;
   awaitingPaymentCount: number;
   outstandingBalance: number;
+  delta?: SyncDeltaStats;
+  isLiveJobber?: boolean;
 }> {
+  const startTime = Date.now();
   if (accessToken && !accessToken.startsWith("jobber_oauth")) {
     try {
-      const allInvoices: JobberInvoice[] = [];
-      let cursor: string | null = null;
-      let hasMore = true;
-
-      while (hasMore) {
-        const afterClause = cursor ? `, after: "${cursor}"` : "";
-        const query = `
-          query SyncInvoices {
-            invoices(
-              filter: {
-                createdAt: {
-                  after: "2026-09-01T00:00:00Z"
-                }
+      const query = `
+        query SyncInvoices {
+          invoices(
+            filter: {
+              createdAt: {
+                after: "2026-09-01T00:00:00Z"
               }
-              first: 35${afterClause}
-            ) {
-              totalCount
-              pageInfo {
-                hasNextPage
-                endCursor
-              }
-              nodes {
-                id
-                invoiceNumber
-                invoiceStatus
-                total
-                createdAt
-                issuedDate
-                dueDate
-                subject
-                client {
-                  name
-                  phones {
-                    number
-                  }
+            }
+            first: 50
+          ) {
+            totalCount
+            nodes {
+              id
+              invoiceNumber
+              invoiceStatus
+              total
+              createdAt
+              issuedDate
+              dueDate
+              subject
+              client {
+                name
+                phones {
+                  number
                 }
               }
             }
           }
-        `;
-        const data = await jobberGraphql<any>(accessToken, query, undefined, credentials);
-        const nodes = data?.invoices?.nodes || [];
+        }
+      `;
+      const data = await jobberGraphql<any>(accessToken, query, undefined, credentials);
+      const nodes = data?.invoices?.nodes || [];
 
-        for (const node of nodes) {
-          let status: JobberInvoice["invoiceStatus"] = "PAID";
-          const rawStatus = (node.invoiceStatus || "").toLowerCase();
-          if (rawStatus.includes("await") || rawStatus.includes("unpaid") || rawStatus.includes("sent")) {
-            status = "AWAITING_PAYMENT";
-          } else if (rawStatus.includes("past") || rawStatus.includes("overdue")) {
-            status = "PAST_DUE" as any;
-          } else if (rawStatus.includes("draft")) {
-            status = "DRAFT";
-          } else if (rawStatus.includes("bad")) {
-            status = "BAD_DEBT";
+      // Incremental delta merge with existing database invoices
+      const invoicesMap = new Map<string, JobberInvoice>();
+      for (const inv of existingInvoices) {
+        invoicesMap.set(inv.id || inv.invoiceNumber, { ...inv });
+      }
+
+      let newCount = 0;
+      let updatedCount = 0;
+      let unchangedCount = 0;
+
+      for (const node of nodes) {
+        let status: JobberInvoice["invoiceStatus"] = "PAID";
+        const rawStatus = (node.invoiceStatus || "").toLowerCase();
+        if (rawStatus.includes("await") || rawStatus.includes("unpaid") || rawStatus.includes("sent")) {
+          status = "AWAITING_PAYMENT";
+        } else if (rawStatus.includes("past") || rawStatus.includes("overdue")) {
+          status = "PAST_DUE" as any;
+        } else if (rawStatus.includes("draft")) {
+          status = "DRAFT";
+        } else if (rawStatus.includes("bad")) {
+          status = "BAD_DEBT";
+        }
+
+        const tot = typeof node.total === "number" ? node.total : parseFloat(node.total) || 0;
+        const bal = status === "PAID" ? 0 : tot;
+        const invoiceNumber = `INV-${node.invoiceNumber || node.id.replace(/\D/g, '')}`;
+        const key = node.id || invoiceNumber;
+
+        if (invoicesMap.has(key)) {
+          const existing = invoicesMap.get(key)!;
+          const hasChanged = existing.invoiceStatus !== status || existing.total !== tot || existing.balance !== bal;
+          if (hasChanged) {
+            existing.invoiceStatus = status;
+            existing.total = tot;
+            existing.balance = bal;
+            existing.updatedAt = new Date().toISOString();
+            existing.syncedAt = new Date().toISOString();
+            updatedCount++;
+          } else {
+            unchangedCount++;
           }
-
-          const tot = typeof node.total === "number" ? node.total : parseFloat(node.total) || 0;
-          const bal = status === "PAID" ? 0 : tot;
-
-          allInvoices.push({
+        } else {
+          invoicesMap.set(key, {
             id: node.id,
-            invoiceNumber: `INV-${node.invoiceNumber || node.id.replace(/\D/g, '')}`,
+            invoiceNumber,
             clientName: node.client?.name || "Customer",
             clientPhone: node.client?.phones?.[0]?.number || "(780) 718-5092",
             service: node.subject || "Cleaning Services",
@@ -657,40 +785,58 @@ export async function syncJobberInvoices(accessToken?: string, credentials?: Job
             issuedDate: node.issuedDate ? node.issuedDate.slice(0, 10) : node.createdAt.slice(0, 10),
             dueDate: node.dueDate ? node.dueDate.slice(0, 10) : node.createdAt.slice(0, 10),
             jobberWebUri: `https://secure.getjobber.com/invoices/${node.id.replace(/\D/g, '')}`,
+            syncedAt: new Date().toISOString(),
           });
+          newCount++;
         }
-
-        hasMore = Boolean(data?.invoices?.pageInfo?.hasNextPage);
-        cursor = data?.invoices?.pageInfo?.endCursor || null;
-        if (hasMore) await new Promise((r) => setTimeout(r, 1500));
       }
 
-      if (allInvoices.length > 0) {
-        const paid = allInvoices.filter(i => i.invoiceStatus === "PAID").length;
-        const awaiting = allInvoices.filter(i => i.invoiceStatus === "AWAITING_PAYMENT" || (i.invoiceStatus as any) === "PAST_DUE").length;
-        const balance = allInvoices.reduce((acc, i) => acc + (i.balance || 0), 0);
+      const mergedInvoices = Array.from(invoicesMap.values());
+      const paid = mergedInvoices.filter(i => i.invoiceStatus === "PAID").length;
+      const awaiting = mergedInvoices.filter(i => i.invoiceStatus === "AWAITING_PAYMENT" || (i.invoiceStatus as any) === "PAST_DUE").length;
+      const balance = mergedInvoices.reduce((acc, i) => acc + (i.balance || 0), 0);
 
-        return {
-          invoices: allInvoices,
-          syncedInvoicesCount: allInvoices.length,
-          paidCount: paid,
-          awaitingPaymentCount: awaiting,
-          outstandingBalance: balance,
-        };
-      }
+      return {
+        invoices: mergedInvoices,
+        syncedInvoicesCount: mergedInvoices.length,
+        paidCount: paid,
+        awaitingPaymentCount: awaiting,
+        outstandingBalance: balance,
+        delta: {
+          totalCount: mergedInvoices.length,
+          newCount,
+          updatedCount,
+          unchangedCount: unchangedCount + (mergedInvoices.length - nodes.length),
+          durationMs: Date.now() - startTime,
+          syncedAt: new Date().toISOString(),
+        },
+        isLiveJobber: true,
+      };
     } catch (err: any) {
       console.warn("Live Jobber invoice sync fallback note:", err.message);
     }
   }
 
-  const baselineInvoices: JobberInvoice[] = [];
+  // Fast database fallback: return existing invoices cached in local database
+  const paid = existingInvoices.filter(i => i.invoiceStatus === "PAID").length;
+  const awaiting = existingInvoices.filter(i => i.invoiceStatus === "AWAITING_PAYMENT" || (i.invoiceStatus as any) === "PAST_DUE").length;
+  const balance = existingInvoices.reduce((acc, i) => acc + (i.balance || 0), 0);
 
   return {
-    invoices: baselineInvoices,
-    syncedInvoicesCount: 0,
-    paidCount: 0,
-    awaitingPaymentCount: 0,
-    outstandingBalance: 0,
+    invoices: existingInvoices,
+    syncedInvoicesCount: existingInvoices.length,
+    paidCount: paid,
+    awaitingPaymentCount: awaiting,
+    outstandingBalance: balance,
+    delta: {
+      totalCount: existingInvoices.length,
+      newCount: 0,
+      updatedCount: 0,
+      unchangedCount: existingInvoices.length,
+      durationMs: Date.now() - startTime,
+      syncedAt: new Date().toISOString(),
+    },
+    isLiveJobber: false,
   };
 }
 
@@ -714,14 +860,18 @@ export async function pushBookingToJobber(ticket: any, accessToken?: string): Pr
 }
 
 /**
- * Master runner: Executes all 5 Jobber sync modules in sequence
+ * Master runner: Executes all 5 Jobber sync modules in sequence with incremental delta merge
  */
-export async function runComprehensiveJobberSync(accessToken?: string): Promise<ComprehensiveSyncSummary> {
+export async function runComprehensiveJobberSync(
+  accessToken?: string,
+  credentials?: JobberCredentials,
+  existingStore?: any
+): Promise<ComprehensiveSyncSummary> {
   const [cal, cli, qts, inv] = await Promise.all([
-    syncJobberCalendar(accessToken),
-    syncJobberClients(accessToken),
-    syncJobberQuotes(accessToken),
-    syncJobberInvoices(accessToken),
+    syncJobberCalendar(accessToken, credentials, existingStore?.scheduledVisits || []),
+    syncJobberClients(accessToken, credentials),
+    syncJobberQuotes(accessToken, credentials, existingStore?.quotes || []),
+    syncJobberInvoices(accessToken, credentials, existingStore?.invoices || []),
   ]);
 
   return {
@@ -751,9 +901,14 @@ export async function runComprehensiveJobberSync(accessToken?: string): Promise<
       status: "synced",
     },
     push: {
-      activeQueueCount: 0,
+      activeQueueCount: existingStore?.tickets?.length || 0,
       autoPushedCount: 14,
       status: "ready",
+    },
+    delta: {
+      quotes: qts.delta,
+      invoices: inv.delta,
+      calendar: cal.delta,
     },
     lastSyncedAt: new Date().toISOString(),
     jobberAccount: "Tidyups Cleaning Service Inc (Jobber)",
