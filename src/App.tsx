@@ -253,6 +253,61 @@ export function App() {
   const [isSyncingFirestore, setIsSyncingFirestore] = useState<boolean>(false);
   const [firestoreSyncStatus, setFirestoreSyncStatus] = useState<string | null>(null);
 
+  // Active Project Identification (Dispatch Genie vs TidyUps Cleaning Operations)
+  const [activeProjectId, setActiveProjectId] = useState<'dispatchgeeni' | 'tidyups'>(() => {
+    if (typeof window !== 'undefined') {
+      const host = window.location.hostname || '';
+      if (host.includes('tidyupscleaning')) return 'tidyups';
+      if (host.includes('dispatchgeeni') || host.includes('dispatchgenie')) return 'dispatchgeeni';
+      const saved = localStorage.getItem('active_project_id');
+      if (saved === 'tidyups' || saved === 'dispatchgeeni') return saved;
+    }
+    return 'dispatchgeeni';
+  });
+
+  // Switch between the two isolated projects, updating persistent state and isolated store
+  const handleSwitchProject = useCallback(async (targetProj: 'dispatchgeeni' | 'tidyups') => {
+    setActiveProjectId(targetProj);
+    if (typeof window !== 'undefined') {
+      localStorage.setItem('active_project_id', targetProj);
+    }
+    try {
+      const res = await fetch(`/api/store?project=${targetProj}`);
+      const data = await res.json();
+      if (data) {
+        if (data.tickets && data.tickets.length > 0) setTickets(data.tickets);
+        if (data.scheduledVisits && data.scheduledVisits.length > 0) {
+          setScheduledJobsList(
+            data.scheduledVisits.map((v: any, idx: number) => ({
+              id: v.id || `visit-${idx}`,
+              visitNumber: v.visitNumber || `VISIT-${4000 + idx}`,
+              title: v.title || 'Cleaning Service Visit',
+              clientName: v.clientName || 'Jobber Client',
+              clientPhone: v.clientPhone || '(780) 555-0100',
+              secondaryPhone: v.secondaryPhone,
+              serviceAddress: v.serviceAddress || '10405 Jasper Ave NW, Edmonton, AB',
+              lat: v.lat || 53.5412 + (idx % 3) * 0.02 - 0.01,
+              lng: v.lng || -113.4988 + (idx % 4) * 0.03 - 0.015,
+              startAt: v.startAt || new Date().toISOString(),
+              endAt: v.endAt || new Date(Date.now() + 3600000).toISOString(),
+              assignedCleaners: v.assignedCleaners || ['Melissa Clarke', 'Joel Mbatchou'],
+              serviceType: v.serviceType || 'Standard Cleaning',
+              status: v.status || 'SCHEDULED',
+              jobberWebUri: v.jobberWebUri || 'https://secure.getjobber.com',
+              notes: v.notes,
+            }))
+          );
+        }
+        if (data.unscheduledJobs && data.unscheduledJobs.length > 0) setUnscheduledJobsList(data.unscheduledJobs);
+        if (data.clients && data.clients.length > 0) setClientsList(data.clients);
+        if (data.quotes && data.quotes.length > 0) setQuotesList(data.quotes);
+        if (data.invoices && data.invoices.length > 0) setInvoicesList(data.invoices);
+      }
+    } catch (err) {
+      console.warn('Switch project fetch error:', err);
+    }
+  }, []);
+
   // Sync Firebase Auth session with active staff account
   useEffect(() => {
     const unsub = onFirebaseAuthStateChanged((user) => {
@@ -627,7 +682,9 @@ export function App() {
       }
     }
 
-    fetch('/api/store')
+    fetch(`/api/store?project=${activeProjectId}`, {
+      headers: { 'x-project-id': activeProjectId },
+    })
       .then((r) => r.json())
       .then((data) => {
         if (data) {
@@ -695,9 +752,9 @@ export function App() {
         }
       })
       .catch((err) => console.warn('Could not load persistent store:', err));
-  }, []);
+  }, [activeProjectId]);
 
-  // Unified persistent auto-save: preserves all user entries, clients, quotes, invoices, and jobs across refreshes
+  // Unified persistent auto-save: preserves all user entries, clients, quotes, invoices, and jobs across refreshes per project
   useEffect(() => {
     try {
       if (typeof window !== 'undefined') {
@@ -711,21 +768,24 @@ export function App() {
           invoices: invoicesList,
           lastSavedAt: new Date().toISOString(),
         };
-        localStorage.setItem('tidyups_dispatch_data', JSON.stringify(payload));
+        localStorage.setItem(`${activeProjectId}_dispatch_data`, JSON.stringify(payload));
       }
     } catch (err) {
       console.warn('Auto-save error:', err);
     }
-  }, [tickets, technicians, scheduledJobsList, unscheduledJobsList, clientsList, quotesList, invoicesList]);
+  }, [activeProjectId, tickets, technicians, scheduledJobsList, unscheduledJobsList, clientsList, quotesList, invoicesList]);
 
   // Save tickets to local persistent database whenever updated
   const saveStateToStore = useCallback((updatedTickets: ServiceTicket[]) => {
-    fetch('/api/store/save', {
+    fetch(`/api/store/save?project=${activeProjectId}`, {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+      headers: {
+        'Content-Type': 'application/json',
+        'x-project-id': activeProjectId,
+      },
       body: JSON.stringify({ tickets: updatedTickets }),
     }).catch((err) => console.warn('Store save note:', err));
-  }, []);
+  }, [activeProjectId]);
 
   // Responsive layout & collapsible component states
   const [isBoardCollapsed, setIsBoardCollapsed] = useState<boolean>(false);
@@ -1220,7 +1280,37 @@ export function App() {
             className="h-16 px-3 sm:px-6 bg-white border-b border-slate-200 flex items-center justify-between flex-shrink-0 z-20 shadow-xs gap-3"
           >
             <div className="flex items-center gap-2 sm:gap-3 cursor-pointer" onClick={() => setActiveTopView('CUSTOMER_PORTAL')}>
-              <BookMyCleaningLogo size={36} withText={true} />
+              <BookMyCleaningLogo projectId={activeProjectId} size={36} withText={true} />
+            </div>
+
+            {/* Dual Project Switcher (Independent Projects) */}
+            <div className="flex items-center bg-slate-100 p-0.5 rounded-xl border border-slate-200 text-xs font-bold shrink-0">
+              <button
+                type="button"
+                onClick={() => handleSwitchProject('dispatchgeeni')}
+                className={`px-2.5 py-1 rounded-lg transition-all flex items-center gap-1 cursor-pointer ${
+                  activeProjectId === 'dispatchgeeni'
+                    ? 'bg-purple-700 text-white shadow-2xs font-extrabold'
+                    : 'text-slate-600 hover:text-slate-900'
+                }`}
+                title="Switch to Dispatch Genie (dispatchgeeni.com) - Isolated Database"
+              >
+                <span>🚀</span>
+                <span className="hidden md:inline">dispatchgeeni.com</span>
+              </button>
+              <button
+                type="button"
+                onClick={() => handleSwitchProject('tidyups')}
+                className={`px-2.5 py-1 rounded-lg transition-all flex items-center gap-1 cursor-pointer ${
+                  activeProjectId === 'tidyups'
+                    ? 'bg-emerald-700 text-white shadow-2xs font-extrabold'
+                    : 'text-slate-600 hover:text-slate-900'
+                }`}
+                title="Switch to TidyUps Operations (app.tidyupscleaning.com) - Isolated Database"
+              >
+                <span>✨</span>
+                <span className="hidden md:inline">app.tidyupscleaning.com</span>
+              </button>
             </div>
 
             <div className="flex items-center gap-2 sm:gap-3">
@@ -1276,7 +1366,37 @@ export function App() {
           >
             {/* Brand & Identity */}
             <div className="flex items-center gap-1.5 sm:gap-2.5 min-w-0 flex-shrink cursor-pointer" onClick={() => setActiveTopView('MAP')}>
-              <BookMyCleaningLogo size={36} withText={true} />
+              <BookMyCleaningLogo projectId={activeProjectId} size={36} withText={true} />
+            </div>
+
+            {/* Dual Project Switcher (Independent Projects) */}
+            <div className="hidden xl:flex items-center bg-slate-100 p-0.5 rounded-xl border border-slate-200 text-xs font-bold shrink-0">
+              <button
+                type="button"
+                onClick={() => handleSwitchProject('dispatchgeeni')}
+                className={`px-2.5 py-1 rounded-lg transition-all flex items-center gap-1 cursor-pointer ${
+                  activeProjectId === 'dispatchgeeni'
+                    ? 'bg-purple-700 text-white shadow-2xs font-extrabold'
+                    : 'text-slate-600 hover:text-slate-900'
+                }`}
+                title="Switch to Dispatch Genie (dispatchgeeni.com) - Isolated Database"
+              >
+                <span>🚀</span>
+                <span>dispatchgeeni.com</span>
+              </button>
+              <button
+                type="button"
+                onClick={() => handleSwitchProject('tidyups')}
+                className={`px-2.5 py-1 rounded-lg transition-all flex items-center gap-1 cursor-pointer ${
+                  activeProjectId === 'tidyups'
+                    ? 'bg-emerald-700 text-white shadow-2xs font-extrabold'
+                    : 'text-slate-600 hover:text-slate-900'
+                }`}
+                title="Switch to TidyUps Operations (app.tidyupscleaning.com) - Isolated Database"
+              >
+                <span>✨</span>
+                <span>app.tidyupscleaning.com</span>
+              </button>
             </div>
 
             {/* Vanity Line & Direct Dispatch Badge */}
@@ -2069,12 +2189,14 @@ export function App() {
               <span>Fleet Health: <span className="text-emerald-400 font-bold">Optimal</span></span>
               <span>Cleaners: <span className="text-slate-200 font-mono">15 Active Cleaners</span></span>
               <a
-                href="https://dispatchgeeni.com"
+                href={activeProjectId === 'tidyups' ? 'https://app.tidyupscleaning.com' : 'https://dispatchgeeni.com'}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="hidden lg:inline text-purple-400 hover:text-purple-300 font-mono font-semibold"
+                className={`hidden lg:inline font-mono font-semibold ${
+                  activeProjectId === 'tidyups' ? 'text-emerald-400 hover:text-emerald-300' : 'text-purple-400 hover:text-purple-300'
+                }`}
               >
-                dispatchgeeni.com
+                {activeProjectId === 'tidyups' ? 'app.tidyupscleaning.com' : 'dispatchgeeni.com'}
               </a>
               <span className="hidden xl:inline text-pink-400 font-mono font-bold">1-833-TIDYUPS</span>
               <div className="hidden sm:flex items-center gap-2 border-l border-slate-700 pl-3">
@@ -2155,6 +2277,7 @@ export function App() {
           onClose={() => setIsJobberModalOpen(false)}
           tickets={tickets}
           onTicketsUpdated={setTickets}
+          projectId={activeProjectId}
         />
 
         {/* Public Booking Modal (Option A for bookmycleaning.net) */}

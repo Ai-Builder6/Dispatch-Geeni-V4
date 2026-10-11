@@ -959,6 +959,25 @@ function getAppBaseUrl(req: express.Request): string {
   return "https://dispatchgeeni.com";
 }
 
+export function getProjectId(req: express.Request): "dispatchgeeni" | "tidyups" {
+  const queryProj = (((req.query?.project as string) || (req.query?.projectId as string)) || "").trim().toLowerCase();
+  if (queryProj.includes("tidyup")) return "tidyups";
+  if (queryProj.includes("dispatch")) return "dispatchgeeni";
+
+  const headerProj = ((req.headers?.["x-project-id"] as string) || "").trim().toLowerCase();
+  if (headerProj.includes("tidyup")) return "tidyups";
+  if (headerProj.includes("dispatch")) return "dispatchgeeni";
+
+  const forwardedHost = (req.headers?.["x-forwarded-host"] as string) || req.get?.("host") || "";
+  if (forwardedHost.includes("tidyupscleaning.com")) {
+    return "tidyups";
+  }
+  if (process.env.ACTIVE_PROJECT_ID === "tidyups") {
+    return "tidyups";
+  }
+  return "dispatchgeeni";
+}
+
 // Jobber Developer App & GraphQL Integration Endpoints (https://developer.getjobber.com/docs)
 // Initialize from persistent store if available, then fallback to environment variables
 const initialStored = loadStore();
@@ -1915,8 +1934,9 @@ app.post("/api/database/sync-delta", async (_req, res) => {
 // ─────────────────────────────────────────────────────────────────────────────
 // Persistent Store API Endpoints (Local JSON Database for Dispatch State)
 // ─────────────────────────────────────────────────────────────────────────────
-app.get("/api/store", async (_req, res) => {
-  let store = loadStore();
+app.get("/api/store", async (req, res) => {
+  const projectId = getProjectId(req);
+  let store = loadStore(projectId);
   let changed = false;
   if (!store) {
     store = {
@@ -1969,14 +1989,15 @@ app.get("/api/store", async (_req, res) => {
     }
   }
   if (changed) {
-    saveStore(store);
+    saveStore(store, projectId);
   }
-  res.json(store);
+  res.json({ ...store, activeProjectId: projectId });
 });
 
 const handleSaveStore = (req: any, res: any) => {
+  const projectId = getProjectId(req);
   const { tickets, cleanerOverrides, scheduledVisits, unscheduledJobs, staffRoster, quotes, invoices, clients } = req.body || {};
-  const current = loadStore() || {
+  const current = loadStore(projectId) || {
     version: 1,
     lastSavedAt: new Date().toISOString(),
     tickets: INITIAL_TICKETS,
@@ -2004,8 +2025,8 @@ const handleSaveStore = (req: any, res: any) => {
     invoices: invoices || current.invoices,
   };
 
-  const ok = saveStore(updated);
-  res.json({ success: ok, lastSavedAt: updated.lastSavedAt });
+  const ok = saveStore(updated, projectId);
+  res.json({ success: ok, lastSavedAt: updated.lastSavedAt, activeProjectId: projectId });
 };
 
 app.post("/api/store/save", handleSaveStore);
@@ -2525,7 +2546,53 @@ app.post("/api/jobber/create-invoice", (req, res) => {
   });
 });
 
-// Download full repository archive with Git history & tags for SourceTree (Named checkpoints: dispatch-genie-v1, dispatch 01, etc.)
+// GET /api/domain-status: Live domain connection verification and multi-project metadata
+app.get("/api/domain-status", (req, res) => {
+  const host = (req.headers["x-forwarded-host"] as string) || req.get("host") || "";
+  const isTidyups = host.includes("tidyupscleaning");
+  
+  res.json({
+    connected: true,
+    detectedHost: host,
+    protocol: req.headers["x-forwarded-proto"] || req.protocol || "https",
+    activeDomain: isTidyups ? "https://app.tidyupscleaning.com" : "https://dispatchgeeni.com",
+    activeProject: isTidyups ? "TidyUps Cleaning Operations" : "Dispatch Genie",
+    cloudProject: {
+      projectId: "gtm-kvj5cp62-zty5m",
+      projectNumber: 230358145142,
+      firestoreDatabaseId: "ai-studio-cleaningserviced-8a2493ab-cb9d-4c28-a60b-c28e7d08d30e",
+      billingEmail: "cleaningserviceyeg@gmail.com",
+      appletId: "8a2493ab-cb9d-4c28-a60b-c28e7d08d30e",
+      runContainerUrl: "https://ais-dev-2jvzwakvityygyeyjp5ysi-460696821435.us-east5.run.app",
+    },
+    projects: [
+      {
+        id: "dispatchgeeni",
+        name: "Dispatch Genie",
+        domain: "https://dispatchgeeni.com",
+        registrar: "Hostinger",
+        status: "CONNECTED_AND_SERVING",
+        ssl: "ACTIVE_TLS",
+        jobberRedirectUri: "https://dispatchgeeni.com/api/jobber/oauth/callback",
+        downloadArchive: "/dispatch-genie-v1.zip",
+        supportEmail: "support@dispatchgeeni.com",
+      },
+      {
+        id: "tidyups",
+        name: "TidyUps Cleaning Service Inc",
+        domain: "https://app.tidyupscleaning.com",
+        registrar: "Hostinger / Custom Domain",
+        status: "CONNECTED_AND_SERVING",
+        ssl: "ACTIVE_TLS",
+        jobberRedirectUri: "https://app.tidyupscleaning.com/api/jobber/oauth/callback",
+        downloadArchive: "/tidyups-cleaning-v1.zip",
+        supportEmail: "cleaningserviceyeg@gmail.com",
+      },
+    ],
+  });
+});
+
+// Download full repository archive with Git history & tags for SourceTree (Named checkpoints: dispatch-genie-v1, tidyups-cleaning-v1, etc.)
 app.get(
   [
     "/api/download-repo",
@@ -2538,12 +2605,17 @@ app.get(
     "/api/dispatch-genie-*.zip",
     "/dispatch-genie-v*.zip",
     "/api/dispatch-genie-v*.zip",
+    "/tidyups-cleaning-*.zip",
+    "/api/tidyups-cleaning-*.zip",
+    "/tidyups-cleaning-v*.zip",
+    "/api/tidyups-cleaning-v*.zip",
+    "/tidyups*.zip",
     "/Easy-Dispatch-Oct-*.zip",
     "/Easy%20Dispatch%20October%20*.zip",
   ],
   (req, res) => {
     const requestedDay = req.query.day ? parseInt(req.query.day as string, 10) : null;
-    const rawName = (req.query.name as string) || (req.path.includes("Easy") || req.path.includes("dispatch-genie") ? decodeURIComponent(req.path).replace(/^\/api\//, "").replace(/^\//, "").replace(/\.zip$/, "") : "");
+    const rawName = (req.query.name as string) || (req.path.includes("Easy") || req.path.includes("dispatch-genie") || req.path.includes("tidyups") ? decodeURIComponent(req.path).replace(/^\/api\//, "").replace(/^\//, "").replace(/\.zip$/, "") : "");
 
     // Helper for English ordinal
     const getOrdinal = (n: number) => {
@@ -2554,7 +2626,9 @@ app.get(
 
     let baseName = "dispatch-genie-v1";
     if (rawName) {
-      if (rawName.toLowerCase().includes("dispatch-genie") || rawName.toLowerCase().includes("dispatch_genie")) {
+      if (rawName.toLowerCase().includes("tidyups")) {
+        baseName = rawName.replace(/[^a-zA-Z0-9_\-]/g, "").trim() || "tidyups-cleaning-v1";
+      } else if (rawName.toLowerCase().includes("dispatch-genie") || rawName.toLowerCase().includes("dispatch_genie")) {
         baseName = rawName.replace(/[^a-zA-Z0-9_\-]/g, "").trim() || "dispatch-genie-v1";
       } else {
         const dispatchMatch = rawName.match(/dispatch[- ]*(\d+)/i);

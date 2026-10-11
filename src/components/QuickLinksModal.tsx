@@ -363,7 +363,7 @@ export const QuickLinksModal: React.FC<QuickLinksModalProps> = ({
             </a>
           </div>
 
-          {/* Download Repository ZIP for SourceTree / Git with Named Daily Checkpoints */}
+          {/* Dual Independent Projects & Standalone Archive Downloads */}
           <div className="p-4 rounded-2xl bg-indigo-50 border border-indigo-200 flex flex-col gap-3 text-xs">
             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
               <div className="flex items-center gap-2.5">
@@ -372,58 +372,89 @@ export const QuickLinksModal: React.FC<QuickLinksModalProps> = ({
                 </div>
                 <div>
                   <p className="font-extrabold text-indigo-950 flex items-center gap-2 flex-wrap">
-                    <span>Dispatch Genie Checkpoint Archives (.ZIP)</span>
-                    <span className="px-2 py-0.5 rounded text-[10px] font-mono bg-purple-200 text-purple-950 font-bold border border-purple-300">
-                      dispatch-genie-v1.zip
+                    <span>Two Separate Standalone Projects &amp; Archives</span>
+                    <span className="px-2 py-0.5 rounded text-[10px] font-mono bg-emerald-200 text-emerald-950 font-bold border border-emerald-300">
+                      Isolated Databases
                     </span>
                   </p>
                   <p className="text-[11px] text-indigo-700 mt-0.5 leading-relaxed">
-                    Full codebase archive with 15 Jobber team members, Edmonton territory route dispatch, fast local database caching, and real Jobber data. Every archive automatically extracts into its own dedicated folder (e.g. <code>dispatch-genie-v1/</code>, <code>dispatch-genie-v2/</code>, etc.) so each checkpoint creates a clean new folder without overwriting.
+                    The codebase is decoupled into two complete, independent projects with separate persistent stores and distinct Jobber OAuth configurations.
                   </p>
                 </div>
               </div>
             </div>
 
-            {/* Daily Version Checkpoints Action Buttons */}
-            <div className="flex items-center gap-2 flex-wrap pt-1 border-t border-indigo-200/60">
+            {/* Project 1: dispatchgeeni.com */}
+            <div className="p-3 bg-white/90 rounded-xl border border-purple-200 flex flex-col sm:flex-row sm:items-center justify-between gap-2.5 shadow-2xs">
+              <div className="flex flex-col">
+                <div className="flex items-center gap-2">
+                  <span className="text-sm">🚀</span>
+                  <span className="font-extrabold text-purple-950 text-xs">Project 1: Dispatch Genie</span>
+                  <span className="px-1.5 py-0.5 rounded text-[10px] font-mono bg-purple-100 text-purple-800 font-bold">
+                    dispatchgeeni.com
+                  </span>
+                </div>
+                <span className="text-[10px] text-slate-500 mt-0.5 font-mono">
+                  Store: data/dispatch_geeni_store.json • Jobber: https://dispatchgeeni.com/api/jobber/oauth/callback
+                </span>
+              </div>
               <a
                 href="/dispatch-genie-v1.zip"
                 download="dispatch-genie-v1.zip"
-                className="px-3.5 py-2 bg-gradient-to-r from-pink-600 to-purple-600 hover:opacity-95 text-white rounded-xl font-bold flex items-center gap-1.5 shadow-xs transition-all cursor-pointer shrink-0 active:scale-95 text-xs"
-                title="Download dispatch-genie-v1.zip (Primary Production Snapshot)"
+                className="px-3.5 py-1.5 bg-gradient-to-r from-purple-700 to-pink-600 hover:opacity-95 text-white rounded-xl font-bold flex items-center gap-1.5 shadow-xs transition-all cursor-pointer shrink-0 active:scale-95 text-xs self-start sm:self-auto"
+                title="Download dispatch-genie-v1.zip standalone project archive"
               >
                 <Download className="w-3.5 h-3.5" />
-                <span>dispatch-genie-v1 (Today)</span>
+                <span>dispatch-genie-v1.zip</span>
               </a>
+            </div>
 
+            {/* Project 2: app.tidyupscleaning.com */}
+            <div className="p-3 bg-white/90 rounded-xl border border-emerald-200 flex flex-col sm:flex-row sm:items-center justify-between gap-2.5 shadow-2xs">
+              <div className="flex flex-col">
+                <div className="flex items-center gap-2">
+                  <span className="text-sm">✨</span>
+                  <span className="font-extrabold text-emerald-950 text-xs">Project 2: TidyUps Cleaning Operations</span>
+                  <span className="px-1.5 py-0.5 rounded text-[10px] font-mono bg-emerald-100 text-emerald-800 font-bold">
+                    app.tidyupscleaning.com
+                  </span>
+                </div>
+                <span className="text-[10px] text-slate-500 mt-0.5 font-mono">
+                  Store: data/tidyups_cleaning_store.json • Jobber: https://app.tidyupscleaning.com/api/jobber/oauth/callback
+                </span>
+              </div>
+              <a
+                href="/tidyups-cleaning-v1.zip"
+                download="tidyups-cleaning-v1.zip"
+                className="px-3.5 py-1.5 bg-gradient-to-r from-emerald-600 to-teal-700 hover:opacity-95 text-white rounded-xl font-bold flex items-center gap-1.5 shadow-xs transition-all cursor-pointer shrink-0 active:scale-95 text-xs self-start sm:self-auto"
+                title="Download tidyups-cleaning-v1.zip standalone project archive"
+              >
+                <Download className="w-3.5 h-3.5" />
+                <span>tidyups-cleaning-v1.zip</span>
+              </a>
+            </div>
+
+            {/* Daily Version Checkpoints Action Buttons */}
+            <div className="flex items-center gap-2 flex-wrap pt-1 border-t border-indigo-200/60">
+              <span className="text-[10px] font-bold text-indigo-900 uppercase tracking-wider">Next Checkpoints:</span>
               <a
                 href="/api/download-zip?name=dispatch-genie-v2"
                 download="dispatch-genie-v2.zip"
-                className="px-3 py-2 bg-white hover:bg-indigo-100 text-indigo-800 border border-indigo-300 rounded-xl font-bold flex items-center gap-1.5 transition-all cursor-pointer text-xs active:scale-95"
+                className="px-2.5 py-1 bg-white hover:bg-indigo-100 text-indigo-800 border border-indigo-300 rounded-lg font-bold flex items-center gap-1 transition-all cursor-pointer text-[11px] active:scale-95"
                 title="Generate dispatch-genie-v2 archive"
               >
-                <Download className="w-3.5 h-3.5 text-indigo-600" />
-                <span>dispatch-genie-v2 (Day 2)</span>
+                <Download className="w-3 h-3 text-indigo-600" />
+                <span>dispatch-genie-v2</span>
               </a>
 
               <a
-                href="/api/download-zip?name=dispatch-genie-v3"
-                download="dispatch-genie-v3.zip"
-                className="px-3 py-2 bg-white hover:bg-indigo-100 text-indigo-800 border border-indigo-300 rounded-xl font-bold flex items-center gap-1.5 transition-all cursor-pointer text-xs active:scale-95"
-                title="Generate dispatch-genie-v3 archive"
+                href="/api/download-zip?name=tidyups-cleaning-v2"
+                download="tidyups-cleaning-v2.zip"
+                className="px-2.5 py-1 bg-white hover:bg-emerald-100 text-emerald-800 border border-emerald-300 rounded-lg font-bold flex items-center gap-1 transition-all cursor-pointer text-[11px] active:scale-95"
+                title="Generate tidyups-cleaning-v2 archive"
               >
-                <Download className="w-3.5 h-3.5 text-indigo-600" />
-                <span>dispatch-genie-v3 (Day 3)</span>
-              </a>
-
-              <a
-                href="/api/download-zip?name=dispatch-genie-v4"
-                download="dispatch-genie-v4.zip"
-                className="px-3 py-2 bg-white hover:bg-indigo-100 text-indigo-800 border border-indigo-300 rounded-xl font-bold flex items-center gap-1.5 transition-all cursor-pointer text-xs active:scale-95"
-                title="Generate dispatch-genie-v4 archive"
-              >
-                <Download className="w-3.5 h-3.5 text-indigo-600" />
-                <span>dispatch-genie-v4</span>
+                <Download className="w-3 h-3 text-emerald-600" />
+                <span>tidyups-cleaning-v2</span>
               </a>
             </div>
           </div>

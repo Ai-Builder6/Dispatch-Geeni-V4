@@ -34,6 +34,7 @@ interface JobberSyncModalProps {
   tickets: ServiceTicket[];
   onTicketsUpdated?: (tickets: ServiceTicket[]) => void;
   onDataUpdated?: () => void;
+  projectId?: 'dispatchgeeni' | 'tidyups';
 }
 
 export const JobberSyncModal: React.FC<JobberSyncModalProps> = ({
@@ -41,8 +42,18 @@ export const JobberSyncModal: React.FC<JobberSyncModalProps> = ({
   onClose,
   tickets,
   onDataUpdated,
+  projectId = 'dispatchgeeni',
 }) => {
-  const DOMAIN_REDIRECT_URI = 'https://dispatchgeeni.com/api/jobber/oauth/callback';
+  const [activeProjectTab, setActiveProjectTab] = useState<'dispatchgeeni' | 'tidyups'>(projectId);
+
+  useEffect(() => {
+    setActiveProjectTab(projectId);
+  }, [projectId]);
+
+  const DOMAIN_REDIRECT_URI = activeProjectTab === 'tidyups'
+    ? 'https://app.tidyupscleaning.com/api/jobber/oauth/callback'
+    : 'https://dispatchgeeni.com/api/jobber/oauth/callback';
+
   const previewRedirectUri = typeof window !== 'undefined'
     ? `${window.location.origin.replace(/^http:\/\//i, 'https://')}/api/jobber/oauth/callback`
     : DOMAIN_REDIRECT_URI;
@@ -611,28 +622,57 @@ export const JobberSyncModal: React.FC<JobberSyncModalProps> = ({
                     </button>
                   </div>
 
-                  {/* Quick Selectors for Production Domain vs Preview */}
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 text-xs">
+                  {/* Quick Selectors for Production Domains vs Preview */}
+                  <div className="grid grid-cols-1 sm:grid-cols-3 gap-2 text-xs">
                     <button
                       type="button"
-                      onClick={() => setRedirectUri(DOMAIN_REDIRECT_URI)}
+                      onClick={() => {
+                        setActiveProjectTab('dispatchgeeni');
+                        setRedirectUri('https://dispatchgeeni.com/api/jobber/oauth/callback');
+                      }}
                       className={`p-2.5 rounded-lg border text-left transition-all cursor-pointer flex flex-col justify-between ${
-                        redirectUri === DOMAIN_REDIRECT_URI
-                          ? 'bg-blue-600 text-white border-blue-700 shadow-2xs font-semibold'
-                          : 'bg-white text-slate-700 border-slate-200 hover:border-blue-300'
+                        redirectUri === 'https://dispatchgeeni.com/api/jobber/oauth/callback'
+                          ? 'bg-purple-700 text-white border-purple-800 shadow-2xs font-semibold'
+                          : 'bg-white text-slate-700 border-slate-200 hover:border-purple-300'
                       }`}
                     >
                       <div className="flex items-center justify-between">
                         <span className="font-bold flex items-center gap-1">
                           <Globe className="w-3 h-3" />
-                          <span>Custom Domain (Recommended)</span>
+                          <span>dispatchgeeni.com</span>
                         </span>
-                        {redirectUri === DOMAIN_REDIRECT_URI && (
+                        {redirectUri === 'https://dispatchgeeni.com/api/jobber/oauth/callback' && (
                           <span className="text-[10px] bg-white/20 px-1.5 py-0.5 rounded font-mono">ACTIVE</span>
                         )}
                       </div>
                       <div className="font-mono text-[10px] break-all mt-1 opacity-90">
-                        {DOMAIN_REDIRECT_URI}
+                        https://dispatchgeeni.com/api/jobber/oauth/callback
+                      </div>
+                    </button>
+
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setActiveProjectTab('tidyups');
+                        setRedirectUri('https://app.tidyupscleaning.com/api/jobber/oauth/callback');
+                      }}
+                      className={`p-2.5 rounded-lg border text-left transition-all cursor-pointer flex flex-col justify-between ${
+                        redirectUri === 'https://app.tidyupscleaning.com/api/jobber/oauth/callback'
+                          ? 'bg-emerald-700 text-white border-emerald-800 shadow-2xs font-semibold'
+                          : 'bg-white text-slate-700 border-slate-200 hover:border-emerald-300'
+                      }`}
+                    >
+                      <div className="flex items-center justify-between">
+                        <span className="font-bold flex items-center gap-1">
+                          <Globe className="w-3 h-3" />
+                          <span>app.tidyupscleaning.com</span>
+                        </span>
+                        {redirectUri === 'https://app.tidyupscleaning.com/api/jobber/oauth/callback' && (
+                          <span className="text-[10px] bg-white/20 px-1.5 py-0.5 rounded font-mono">ACTIVE</span>
+                        )}
+                      </div>
+                      <div className="font-mono text-[10px] break-all mt-1 opacity-90">
+                        https://app.tidyupscleaning.com/api/jobber/oauth/callback
                       </div>
                     </button>
 
@@ -648,7 +688,7 @@ export const JobberSyncModal: React.FC<JobberSyncModalProps> = ({
                       <div className="flex items-center justify-between">
                         <span className="font-bold flex items-center gap-1">
                           <ExternalLink className="w-3 h-3" />
-                          <span>AI Studio Preview Container</span>
+                          <span>Preview Container</span>
                         </span>
                         {redirectUri === previewRedirectUri && (
                           <span className="text-[10px] bg-white/20 px-1.5 py-0.5 rounded font-mono">ACTIVE</span>
