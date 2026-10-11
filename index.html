@@ -1,0 +1,57 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <script>
+      // Suppress Vite HMR WebSocket notices in proxied iframe environments
+      window.addEventListener('unhandledrejection', function(event) {
+        if (event && event.reason && String(event.reason.message || event.reason).includes('WebSocket closed without opened')) {
+          event.preventDefault();
+        }
+      });
+    </script>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+    <meta name="theme-color" content="#ec4899" />
+    <meta name="mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="default" />
+    <meta name="apple-mobile-web-app-title" content="TidyUps Dispatch" />
+    <link rel="icon" type="image/svg+xml" href="/icon.svg" />
+    <link rel="apple-touch-icon" href="/icon.svg" />
+    <title>Cleaning Service Dispatch Board</title>
+    <meta name="description" content="Interactive regional territory dispatch board for 2 mobile cleaning vans and 3 core cleaning services (Standard, Deep, Move-Out) with voice dictation booking intake, Edmonton route optimization, and Jobber backend sync." />
+    <link rel="canonical" href="https://app.tidyupscleaning.com" />
+    <meta property="og:site_name" content="TidyUps Cleaning Service" />
+    <meta property="og:title" content="Cleaning Service Dispatch Board" />
+    <meta property="og:description" content="Interactive regional territory dispatch board for 2 mobile cleaning vans and 3 core cleaning services (Standard, Deep, Move-Out) with voice dictation booking intake, Edmonton route optimization, and Jobber backend sync." />
+    <meta property="og:url" content="https://app.tidyupscleaning.com" />
+    <meta property="og:type" content="website" />
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:title" content="Cleaning Service Dispatch Board" />
+    <meta name="twitter:description" content="Interactive regional territory dispatch board for 2 mobile cleaning vans and 3 core cleaning services (Standard, Deep, Move-Out) with voice dictation booking intake, Edmonton route optimization, and Jobber backend sync." />
+    <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@type": "WebApplication",
+      "name": "Cleaning Service Dispatch Board",
+      "url": "https://app.tidyupscleaning.com",
+      "applicationCategory": "BusinessApplication",
+      "operatingSystem": "All",
+      "description": "Interactive regional territory dispatch board for 2 mobile cleaning vans and 3 core cleaning services (Standard, Deep, Move-Out) with voice dictation booking intake, Edmonton route optimization, and Jobber backend sync.",
+      "offers": {
+        "@type": "Offer",
+        "price": "0",
+        "priceCurrency": "CAD"
+      }
+    }
+    </script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+  </head>
+  <body class="bg-slate-50 text-slate-900 font-sans antialiased overflow-hidden select-none">
+    <div id="root"></div>
+    <script type="module" src="/src/main.tsx"></script>
+  </body>
+</html>
+
