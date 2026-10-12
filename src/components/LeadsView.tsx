@@ -26,18 +26,56 @@ import {
   MessageSquare,
   ChevronRight,
   ExternalLink,
-  ClipboardPaste
+  ClipboardPaste,
+  ArrowUpDown,
+  ArrowUp,
+  ArrowDown,
+  Clock,
+  ShieldAlert,
+  ShieldCheck
 } from 'lucide-react';
 import { AdLeadItem, LeadSource, LeadStatus } from '../types/lead';
 import { getCustomerIntelligence } from '../services/customerIntelligenceService';
 import { CustomerIntelligenceBadge } from './CustomerIntelligenceBadge';
 import { QuickQuoteModal } from './QuickQuoteModal';
+import { TwilioSpamShieldModal } from './TwilioSpamShieldModal';
+
+export type LeadSortOrder = 'NEWEST' | 'OLDEST' | 'NAME_ASC' | 'STATUS';
+
+export const formatLeadDate = (dateStr?: string) => {
+  if (!dateStr) return { formatted: 'Unknown', relative: '' };
+  const d = new Date(dateStr);
+  if (isNaN(d.getTime())) return { formatted: dateStr, relative: '' };
+
+  const now = new Date('2026-10-11T18:00:00-06:00').getTime();
+  const diffMs = now - d.getTime();
+  const diffMins = Math.max(0, Math.floor(diffMs / 60000));
+  const diffHours = Math.floor(diffMins / 60);
+  const diffDays = Math.floor(diffHours / 24);
+
+  let relative = '';
+  if (diffMins < 5) relative = 'Just now';
+  else if (diffMins < 60) relative = `${diffMins}m ago`;
+  else if (diffHours < 24) relative = `${diffHours}h ago`;
+  else if (diffDays === 1) relative = 'Yesterday';
+  else relative = `${diffDays}d ago`;
+
+  const formatted = d.toLocaleDateString('en-US', {
+    month: 'short',
+    day: 'numeric',
+    hour: 'numeric',
+    minute: '2-digit',
+  });
+
+  return { formatted, relative };
+};
 
 interface LeadsViewProps {
   leads: AdLeadItem[];
   onLeadsUpdated?: (leads: AdLeadItem[]) => void;
   onConvertLeadToJob?: (lead: AdLeadItem) => void;
   onOpenQuickQuote?: (lead?: AdLeadItem) => void;
+  onOpenSpamShield?: (preFillNumber?: string) => void;
   calls?: any[];
   visits?: any[];
   clients?: any[];
@@ -49,6 +87,7 @@ export const LeadsView: React.FC<LeadsViewProps> = ({
   onLeadsUpdated,
   onConvertLeadToJob,
   onOpenQuickQuote,
+  onOpenSpamShield,
   calls = [],
   visits = [],
   clients = [],
@@ -57,6 +96,7 @@ export const LeadsView: React.FC<LeadsViewProps> = ({
   const [leadsList, setLeadsList] = useState<AdLeadItem[]>(initialLeads);
   const [statusFilter, setStatusFilter] = useState<LeadStatus>('New');
   const [sourceFilter, setSourceFilter] = useState<LeadSource>('All sources');
+  const [sortOrder, setSortOrder] = useState<LeadSortOrder>('NEWEST');
   const [viewMode, setViewMode] = useState<'LIST' | 'TABLE' | 'MAP'>('TABLE');
   const [searchQuery, setSearchQuery] = useState('');
   const [isSyncing, setIsSyncing] = useState(false);
@@ -71,6 +111,19 @@ export const LeadsView: React.FC<LeadsViewProps> = ({
   // Quick Quote Modal state
   const [selectedLeadForQuote, setSelectedLeadForQuote] = useState<AdLeadItem | null>(null);
   const [isQuickQuoteModalOpen, setIsQuickQuoteModalOpen] = useState(false);
+
+  // Twilio Spam Shield local state fallback
+  const [isLocalSpamShieldOpen, setIsLocalSpamShieldOpen] = useState(false);
+  const [spamShieldNumber, setSpamShieldNumber] = useState('');
+
+  const handleOpenSpamShield = (num?: string) => {
+    if (onOpenSpamShield) {
+      onOpenSpamShield(num);
+    } else {
+      setSpamShieldNumber(num || '');
+      setIsLocalSpamShieldOpen(true);
+    }
+  };
 
   // Paste a Lead Modal
   const [isPasteLeadOpen, setIsPasteLeadOpen] = useState(false);
@@ -167,9 +220,9 @@ export const LeadsView: React.FC<LeadsViewProps> = ({
     setIsPasteLeadOpen(false);
   };
 
-  // Filtered Leads
+  // Filtered & Sorted Leads
   const filteredLeads = useMemo(() => {
-    return leadsList.filter((lead) => {
+    const filtered = leadsList.filter((lead) => {
       // Status filter
       if (statusFilter !== 'All' && lead.status !== statusFilter) return false;
 
@@ -197,7 +250,28 @@ export const LeadsView: React.FC<LeadsViewProps> = ({
 
       return true;
     });
-  }, [leadsList, statusFilter, sourceFilter, searchQuery]);
+
+    // Sorting: Newest first (most recent) vs Oldest first (long ago), Name, Status
+    return [...filtered].sort((a, b) => {
+      if (sortOrder === 'NEWEST') {
+        const timeA = a.dateReceived ? new Date(a.dateReceived).getTime() : 0;
+        const timeB = b.dateReceived ? new Date(b.dateReceived).getTime() : 0;
+        return timeB - timeA;
+      }
+      if (sortOrder === 'OLDEST') {
+        const timeA = a.dateReceived ? new Date(a.dateReceived).getTime() : 0;
+        const timeB = b.dateReceived ? new Date(b.dateReceived).getTime() : 0;
+        return timeA - timeB;
+      }
+      if (sortOrder === 'NAME_ASC') {
+        return a.customerName.localeCompare(b.customerName);
+      }
+      if (sortOrder === 'STATUS') {
+        return a.status.localeCompare(b.status);
+      }
+      return 0;
+    });
+  }, [leadsList, statusFilter, sourceFilter, searchQuery, sortOrder]);
 
   const missingPhoneCount = useMemo(() => {
     return leadsList.filter((l) => l.status === 'New' && (!l.phone || l.missingPhone)).length;
@@ -234,7 +308,16 @@ export const LeadsView: React.FC<LeadsViewProps> = ({
         </div>
 
         {/* Top Right Buttons matching Screenshot 1 */}
-        <div className="flex items-center gap-2.5 shrink-0">
+        <div className="flex items-center gap-2.5 shrink-0 flex-wrap">
+          <button
+            onClick={() => handleOpenSpamShield()}
+            className="px-3.5 py-2 bg-[#1b1e2b] hover:bg-rose-950/40 text-rose-300 border border-rose-900/60 rounded-xl text-xs font-bold transition-all shadow-sm flex items-center gap-1.5 cursor-pointer"
+            title="Block international country codes, repetitive rotating numbers, and spam"
+          >
+            <ShieldAlert className="w-3.5 h-3.5 text-rose-400" />
+            <span>Twilio Spam Shield</span>
+          </button>
+
           <button
             onClick={handleSyncNow}
             disabled={isSyncing}
@@ -329,8 +412,25 @@ export const LeadsView: React.FC<LeadsViewProps> = ({
             })}
           </div>
 
-          {/* Right Controls: Search & View Toggle (List, Table, Map) */}
-          <div className="flex items-center gap-2">
+          {/* Right Controls: Sort, Search & View Toggle (List, Table, Map) */}
+          <div className="flex items-center gap-2 flex-wrap">
+            {/* Sort Selector: Most Recent vs Long Ago */}
+            <div className="flex items-center gap-1.5 bg-[#151824] border border-slate-800 rounded-xl px-2.5 py-1.5 text-xs text-slate-300">
+              <ArrowUpDown className="w-3.5 h-3.5 text-pink-400 shrink-0" />
+              <label className="text-[10px] uppercase font-bold text-slate-500 hidden sm:inline">Sort:</label>
+              <select
+                value={sortOrder}
+                onChange={(e) => setSortOrder(e.target.value as LeadSortOrder)}
+                className="bg-transparent text-white text-xs font-bold focus:outline-none cursor-pointer"
+                title="Sort leads by date received or customer name"
+              >
+                <option value="NEWEST" className="bg-[#151824] text-white">🕒 Newest first (Most recent)</option>
+                <option value="OLDEST" className="bg-[#151824] text-white">⏳ Oldest first (Long ago)</option>
+                <option value="NAME_ASC" className="bg-[#151824] text-white">🔤 Name (A - Z)</option>
+                <option value="STATUS" className="bg-[#151824] text-white">📊 Lead Status</option>
+              </select>
+            </div>
+
             <div className="relative">
               <Search className="w-3.5 h-3.5 text-slate-500 absolute left-3 top-1/2 -translate-y-1/2" />
               <input
@@ -338,7 +438,7 @@ export const LeadsView: React.FC<LeadsViewProps> = ({
                 placeholder="Search leads..."
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                className="pl-8 pr-3 py-1.5 bg-[#151824] border border-slate-800 text-xs text-white placeholder-slate-500 rounded-xl focus:outline-none focus:border-pink-500 w-44 sm:w-56"
+                className="pl-8 pr-3 py-1.5 bg-[#151824] border border-slate-800 text-xs text-white placeholder-slate-500 rounded-xl focus:outline-none focus:border-pink-500 w-36 sm:w-48"
               />
             </div>
 
@@ -429,6 +529,23 @@ export const LeadsView: React.FC<LeadsViewProps> = ({
               <thead className="bg-[#171b29] border-b border-slate-800 text-slate-400 font-semibold uppercase tracking-wider text-[10px]">
                 <tr>
                   <th className="py-3 px-4">Lead / Customer</th>
+                  <th className="py-3 px-4">
+                    <button
+                      onClick={() => setSortOrder(sortOrder === 'NEWEST' ? 'OLDEST' : 'NEWEST')}
+                      className="flex items-center gap-1.5 hover:text-white transition-colors cursor-pointer group"
+                      title="Click to toggle Newest vs Oldest"
+                    >
+                      <Clock className="w-3.5 h-3.5 text-pink-400 group-hover:scale-110 transition-transform" />
+                      <span>Date &amp; Time Received</span>
+                      {sortOrder === 'NEWEST' ? (
+                        <ArrowDown className="w-3 h-3 text-pink-400" />
+                      ) : sortOrder === 'OLDEST' ? (
+                        <ArrowUp className="w-3 h-3 text-pink-400" />
+                      ) : (
+                        <ArrowUpDown className="w-3 h-3 text-slate-500" />
+                      )}
+                    </button>
+                  </th>
                   <th className="py-3 px-4">Phone &amp; Caller ID</th>
                   <th className="py-3 px-4">Service Requested</th>
                   <th className="py-3 px-4">Address / City</th>
@@ -440,7 +557,7 @@ export const LeadsView: React.FC<LeadsViewProps> = ({
               <tbody className="divide-y divide-slate-800/60">
                 {filteredLeads.length === 0 ? (
                   <tr>
-                    <td colSpan={7} className="py-8 text-center text-slate-500">
+                    <td colSpan={8} className="py-8 text-center text-slate-500">
                       No leads match current filters.
                     </td>
                   </tr>
@@ -448,6 +565,7 @@ export const LeadsView: React.FC<LeadsViewProps> = ({
                   filteredLeads.map((lead) => {
                     const intel = getCustomerIntelligence(lead.phone, lead.customerName, { calls, visits, clients });
                     const isCopied = copiedPhoneMap[lead.id];
+                    const dateInfo = formatLeadDate(lead.dateReceived);
 
                     return (
                       <tr key={lead.id} className="hover:bg-[#161a29]/60 transition-colors">
@@ -462,6 +580,19 @@ export const LeadsView: React.FC<LeadsViewProps> = ({
                           )}
                         </td>
 
+                        {/* Date & Time Received */}
+                        <td className="py-3.5 px-4 whitespace-nowrap">
+                          <div className="font-semibold text-white flex items-center gap-1.5" title={lead.dateReceived || ''}>
+                            <span>{dateInfo.formatted}</span>
+                          </div>
+                          {dateInfo.relative && (
+                            <span className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-[10px] font-mono font-bold bg-[#1d2235] text-pink-300 mt-0.5 border border-pink-500/20">
+                              <Clock className="w-2.5 h-2.5 text-pink-400" />
+                              <span>{dateInfo.relative}</span>
+                            </span>
+                          )}
+                        </td>
+
                         {/* Phone */}
                         <td className="py-3.5 px-4">
                           {lead.phone ? (
@@ -473,6 +604,13 @@ export const LeadsView: React.FC<LeadsViewProps> = ({
                                 title="Copy phone"
                               >
                                 {isCopied ? <Check className="w-3 h-3 text-emerald-400" /> : <Copy className="w-3 h-3" />}
+                              </button>
+                              <button
+                                onClick={() => handleOpenSpamShield(lead.phone)}
+                                className="p-1 text-slate-600 hover:text-rose-400 cursor-pointer transition-colors"
+                                title="Block this caller in Twilio Spam Shield"
+                              >
+                                <ShieldAlert className="w-3 h-3" />
                               </button>
                             </div>
                           ) : (
@@ -580,6 +718,8 @@ export const LeadsView: React.FC<LeadsViewProps> = ({
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
           {filteredLeads.map((lead) => {
             const intel = getCustomerIntelligence(lead.phone, lead.customerName, { calls, visits, clients });
+            const dateInfo = formatLeadDate(lead.dateReceived);
+
             return (
               <div
                 key={lead.id}
@@ -608,7 +748,25 @@ export const LeadsView: React.FC<LeadsViewProps> = ({
 
                   <div className="text-xs text-slate-300 space-y-1 mt-2">
                     <p className="font-semibold text-slate-200">{lead.serviceRequested}</p>
-                    {lead.phone && <p className="font-mono text-slate-400">📞 {lead.phone}</p>}
+                    
+                    {/* Date Received Badge */}
+                    <div className="flex items-center gap-1.5 text-[11px] text-pink-300 font-mono py-0.5">
+                      <Clock className="w-3 h-3 text-pink-400 shrink-0" />
+                      <span>Received: {dateInfo.relative ? `${dateInfo.relative} (${dateInfo.formatted})` : dateInfo.formatted}</span>
+                    </div>
+
+                    {lead.phone && (
+                      <div className="flex items-center gap-1.5 font-mono text-slate-400">
+                        <span>📞 {lead.phone}</span>
+                        <button
+                          onClick={() => handleOpenSpamShield(lead.phone)}
+                          className="p-0.5 text-slate-600 hover:text-rose-400 cursor-pointer"
+                          title="Block in Twilio Spam Shield"
+                        >
+                          <ShieldAlert className="w-3 h-3" />
+                        </button>
+                      </div>
+                    )}
                     <p className="text-slate-400 flex items-center gap-1">
                       <MapPin className="w-3 h-3 text-slate-500 shrink-0" />
                       <span>{lead.address}, {lead.city}</span>
@@ -771,6 +929,16 @@ export const LeadsView: React.FC<LeadsViewProps> = ({
             </div>
           </div>
         </div>
+      )}
+
+      {/* 10. Twilio Spam Shield & Call Blocker Modal */}
+      {isLocalSpamShieldOpen && (
+        <TwilioSpamShieldModal
+          isOpen={isLocalSpamShieldOpen}
+          onClose={() => setIsLocalSpamShieldOpen(false)}
+          projectId={projectId}
+          preFillNumber={spamShieldNumber}
+        />
       )}
     </div>
   );

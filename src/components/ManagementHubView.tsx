@@ -21,7 +21,8 @@ import {
   MapPin,
   Phone,
   User,
-  Navigation
+  Navigation,
+  ShieldAlert
 } from 'lucide-react';
 import { Technician } from '../types/dispatch';
 
@@ -31,6 +32,7 @@ interface ManagementHubViewProps {
   onOpenStaffRoster: () => void;
   onOpenJobberSync: () => void;
   onOpenQuoModal: () => void;
+  onOpenSpamShield?: () => void;
   onNavigateToLegal: (tab: 'SUPPORT' | 'TERMS' | 'PRIVACY') => void;
   onNavigateToCustomerPortal: () => void;
   quotesCount?: number;
@@ -49,6 +51,7 @@ export const ManagementHubView: React.FC<ManagementHubViewProps> = ({
   onOpenStaffRoster,
   onOpenJobberSync,
   onOpenQuoModal,
+  onOpenSpamShield,
   onNavigateToLegal,
   onNavigateToCustomerPortal,
   quotesCount = 0,
@@ -196,6 +199,37 @@ export const ManagementHubView: React.FC<ManagementHubViewProps> = ({
             className="w-full py-2.5 px-4 bg-pink-600/90 hover:bg-pink-600 text-white rounded-xl text-xs font-black transition-all flex items-center justify-center gap-1.5 cursor-pointer shadow-md group-hover:translate-x-0.5"
           >
             <span>Open Quo Voice Desk</span>
+            <ArrowRight className="w-4 h-4" />
+          </button>
+        </div>
+
+        {/* Twilio Spam Shield & Call Blocker */}
+        <div className="bg-[#151923] border border-slate-800 hover:border-rose-500/50 rounded-3xl p-5 sm:p-6 flex flex-col justify-between space-y-4 shadow-xl transition-all group">
+          <div className="space-y-3">
+            <div className="w-12 h-12 rounded-2xl bg-rose-500/20 text-rose-400 border border-rose-500/30 flex items-center justify-center">
+              <ShieldAlert className="w-6 h-6" />
+            </div>
+            <div>
+              <div className="flex items-center justify-between">
+                <h3 className="font-black text-lg text-white">Twilio Spam Shield</h3>
+                <span className="px-2.5 py-0.5 rounded-full text-xs font-mono font-bold bg-rose-950 text-rose-300 border border-rose-800">
+                  Live TwiML
+                </span>
+              </div>
+              <p className="text-xs text-slate-400 mt-1 leading-relaxed">
+                Block country codes, repetitive rotating numbers (prefixes &amp; wildcards), and robocalls. Returns instant busy tone before phones ring.
+              </p>
+            </div>
+          </div>
+
+          <button
+            onClick={() => {
+              if (onOpenSpamShield) onOpenSpamShield();
+              else onOpenQuoModal();
+            }}
+            className="w-full py-2.5 px-4 bg-rose-600/90 hover:bg-rose-600 text-white rounded-xl text-xs font-black transition-all flex items-center justify-center gap-1.5 cursor-pointer shadow-md group-hover:translate-x-0.5"
+          >
+            <span>Open Twilio Spam Shield</span>
             <ArrowRight className="w-4 h-4" />
           </button>
         </div>

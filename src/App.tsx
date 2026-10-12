@@ -39,6 +39,7 @@ import { InvoicesView } from './components/InvoicesView';
 import { LeadsView } from './components/LeadsView';
 import { QuickQuoteView } from './components/QuickQuoteView';
 import { QuickQuoteModal } from './components/QuickQuoteModal';
+import { TwilioSpamShieldModal } from './components/TwilioSpamShieldModal';
 import { AdLeadItem } from './types/lead';
 import { INITIAL_AD_LEADS } from './data/adLeadsData';
 import { LegalPagesView, LegalPageType } from './components/LegalPagesView';
@@ -108,6 +109,7 @@ import {
   LogOut,
   Calculator,
   Flame,
+  ShieldAlert,
 } from 'lucide-react';
 
 // Helper to identify and strip any legacy simulation/mock data items
@@ -249,6 +251,13 @@ export function App() {
   });
   const [isQuickQuoteModalOpen, setIsQuickQuoteModalOpen] = useState<boolean>(false);
   const [selectedLeadForQuickQuote, setSelectedLeadForQuickQuote] = useState<AdLeadItem | null>(null);
+  const [isSpamShieldModalOpen, setIsSpamShieldModalOpen] = useState<boolean>(false);
+  const [spamShieldNumber, setSpamShieldNumber] = useState<string>('');
+
+  const handleOpenSpamShield = (num?: string) => {
+    setSpamShieldNumber(num || '');
+    setIsSpamShieldModalOpen(true);
+  };
   const [isStaffModalOpen, setIsStaffModalOpen] = useState<boolean>(false);
   const [isVanHubModalOpen, setIsVanHubModalOpen] = useState<boolean>(false);
   const [editingVanHubTech, setEditingVanHubTech] = useState<Technician | null>(null);
@@ -1802,6 +1811,21 @@ export function App() {
                 </button>
               )}
 
+              {/* Twilio Spam Shield & Call Blocker Button */}
+              {permissions.canAccessQuoPhoneConfig && (
+                <button
+                  id="topbar-spam-shield-btn"
+                  onClick={() => handleOpenSpamShield()}
+                  className="min-h-[34px] sm:min-h-[36px] landscape:max-md:min-h-[32px] px-2.5 sm:px-3 py-1 sm:py-1.5 rounded-xl bg-rose-50 hover:bg-rose-100 text-rose-800 border border-rose-300 text-xs font-bold flex items-center gap-1.5 transition-all shadow-2xs whitespace-nowrap cursor-pointer flex-shrink-0"
+                  title="Twilio Spam Shield: Block country codes, rotating numbers & robocalls"
+                  aria-label="Open Twilio Spam Shield"
+                >
+                  <ShieldAlert className="w-3.5 h-3.5 text-rose-600 shrink-0" aria-hidden="true" />
+                  <span className="hidden sm:inline">Spam Shield</span>
+                  <span className="sm:hidden">Shield</span>
+                </button>
+              )}
+
               {/* PWA Mobile & Web App Installation Button */}
               <PWAInstallButton />
 
@@ -1874,8 +1898,18 @@ export function App() {
           </header>
         )}
 
-        {/* View Switching: Customer Portal, Address Radar, Scheduled Jobs, Quotes, Invoices, or Main Dispatch Map */}
-        {activeTopView === 'CUSTOMER_PORTAL' ? (
+        {/* Unauthenticated public visitors are strictly restricted to the Customer Booking Portal or Support/Legal */}
+        {!isStaffAuthenticated && activeTopView !== 'LEGAL' ? (
+          <CustomerPortalView
+            onBookingSubmitted={(ticket) => {
+              setTickets((prev) => [ticket, ...prev]);
+              saveStateToStore([ticket, ...tickets]);
+            }}
+            onNavigateToMap={() => setIsRoleModalOpen(true)}
+            onOpenPhoneModal={() => setIsQuoModalOpen(true)}
+            onOpenStaffLogin={() => setIsRoleModalOpen(true)}
+          />
+        ) : activeTopView === 'CUSTOMER_PORTAL' ? (
           <CustomerPortalView
             onBookingSubmitted={(ticket) => {
               setTickets((prev) => [ticket, ...prev]);
@@ -1989,6 +2023,7 @@ export function App() {
             onOpenStaffRoster={() => setIsStaffModalOpen(true)}
             onOpenJobberSync={() => setIsJobberModalOpen(true)}
             onOpenQuoModal={() => setIsQuoModalOpen(true)}
+            onOpenSpamShield={handleOpenSpamShield}
             onNavigateToLegal={(tab) => {
               setActiveLegalTab(tab);
               setActiveTopView('LEGAL');
@@ -2059,6 +2094,7 @@ export function App() {
               setSelectedLeadForQuickQuote(lead || null);
               setIsQuickQuoteModalOpen(true);
             }}
+            onOpenSpamShield={handleOpenSpamShield}
             calls={quoCallsList}
             visits={scheduledJobsList}
             clients={clientsList}
@@ -2492,6 +2528,7 @@ export function App() {
           onOpenNewTicket={() => setIsNewTicketModalOpen(true)}
           onOpenTeamChat={() => setIsChatOpen(true)}
           onOpenQuoPhone={() => setIsQuoModalOpen(true)}
+          onOpenSpamShield={handleOpenSpamShield}
           onOpenStaffRoster={() => setIsStaffModalOpen(true)}
           onOpenQuickReplies={() => setIsQuickRepliesOpen(true)}
           staffCount={staffList.length}
@@ -2531,6 +2568,14 @@ export function App() {
           currentUser={currentUser}
           selectedRecipient={chatRecipient}
           onSelectRecipient={setChatRecipient}
+        />
+
+        {/* Twilio Spam Shield & Call Blocker Modal */}
+        <TwilioSpamShieldModal
+          isOpen={isSpamShieldModalOpen}
+          onClose={() => setIsSpamShieldModalOpen(false)}
+          projectId={activeProjectId}
+          preFillNumber={spamShieldNumber}
         />
 
         {/* Role Selector & Login Switcher Modal */}

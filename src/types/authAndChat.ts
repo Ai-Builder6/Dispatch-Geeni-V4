@@ -11,6 +11,7 @@ export interface AppUser {
   assignedVan?: string;
   title: string;
   pin?: string;
+  password?: string;
 }
 
 export interface ChatMessage {

@@ -25,10 +25,12 @@ import {
   Sparkles,
   Link as LinkIcon,
   Calendar,
-  Tag
+  Tag,
+  ShieldAlert
 } from 'lucide-react';
 import { getCustomerIntelligence } from '../services/customerIntelligenceService';
 import { CustomerIntelligenceBadge } from './CustomerIntelligenceBadge';
+import { TwilioSpamShieldModal } from './TwilioSpamShieldModal';
 
 interface QuoModalProps {
   isOpen: boolean;
@@ -102,6 +104,10 @@ export const QuoModal: React.FC<QuoModalProps> = ({
   // Inline editing contact
   const [editingContactId, setEditingContactId] = useState<string | null>(null);
   const [editNameValue, setEditNameValue] = useState('');
+
+  // Twilio Spam Shield & Call Blocker modal state
+  const [isSpamShieldModalOpen, setIsSpamShieldModalOpen] = useState(false);
+  const [spamBlockNumber, setSpamBlockNumber] = useState('');
 
   const prodWebhookUrl = 'https://dispatchgeeni.com/api/quo/webhook';
   const devWebhookUrl = typeof window !== 'undefined' ? `${window.location.origin}/api/quo/webhook` : prodWebhookUrl;
@@ -455,6 +461,19 @@ export const QuoModal: React.FC<QuoModalProps> = ({
             <Hash className="w-3.5 h-3.5" />
             <span>Phone Lines &amp; Webhook Config</span>
           </button>
+
+          <button
+            type="button"
+            onClick={() => {
+              setSpamBlockNumber('');
+              setIsSpamShieldModalOpen(true);
+            }}
+            className="py-1.5 px-3 bg-rose-50 hover:bg-rose-100 text-rose-700 border border-rose-200 rounded-lg text-xs font-bold transition-all flex items-center gap-1.5 cursor-pointer ml-auto my-auto"
+            title="Manage blocked country codes, rotating number prefixes, and spam blacklists"
+          >
+            <ShieldAlert className="w-3.5 h-3.5 text-rose-600" />
+            <span>Twilio Spam Shield</span>
+          </button>
         </div>
 
         {/* Content Body */}
@@ -631,6 +650,19 @@ export const QuoModal: React.FC<QuoModalProps> = ({
                           >
                             <FileText className="w-3 h-3" />
                             <span>Create Quote</span>
+                          </button>
+
+                          <button
+                            type="button"
+                            onClick={() => {
+                              setSpamBlockNumber(call.callerPhone || '');
+                              setIsSpamShieldModalOpen(true);
+                            }}
+                            className="px-2 py-1 bg-rose-50 hover:bg-rose-100 text-rose-700 border border-rose-200 rounded-lg text-xs font-bold transition-all shadow-2xs flex items-center gap-1 cursor-pointer active:scale-95"
+                            title="Block caller or its rotating prefix in Twilio Spam Shield"
+                          >
+                            <ShieldAlert className="w-3 h-3 text-rose-600" />
+                            <span>Block Spam</span>
                           </button>
                         </div>
                       </div>
@@ -1083,6 +1115,16 @@ export const QuoModal: React.FC<QuoModalProps> = ({
             </form>
           </div>
         </div>
+      )}
+
+      {/* Twilio Spam Shield & Call Blocker Modal */}
+      {isSpamShieldModalOpen && (
+        <TwilioSpamShieldModal
+          isOpen={isSpamShieldModalOpen}
+          onClose={() => setIsSpamShieldModalOpen(false)}
+          projectId={projectId}
+          preFillNumber={spamBlockNumber}
+        />
       )}
     </div>
   );

@@ -52,6 +52,16 @@ export interface AppPersistentStore {
   quoCallLogs?: any[];
   adLeads?: any[];
   chatMessages?: any[];
+  spamShieldConfig?: {
+    enabled: boolean;
+    blockAllNonNorthAmerica: boolean;
+    blockedCountryCodes: string[];
+    blockedPrefixes: string[];
+    blockedNumbers: string[];
+    blockRobocallFloods: boolean;
+    rejectionAction: 'busy' | 'reject';
+  };
+  blockedCallsHistory?: any[];
   jobberConfig?: {
     isConnected: boolean;
     accountName: string;

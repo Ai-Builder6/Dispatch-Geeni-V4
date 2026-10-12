@@ -1874,8 +1874,18 @@ export function App() {
           </header>
         )}
 
-        {/* View Switching: Customer Portal, Address Radar, Scheduled Jobs, Quotes, Invoices, or Main Dispatch Map */}
-        {activeTopView === 'CUSTOMER_PORTAL' ? (
+        {/* Unauthenticated public visitors are strictly restricted to the Customer Booking Portal or Support/Legal */}
+        {!isStaffAuthenticated && activeTopView !== 'LEGAL' ? (
+          <CustomerPortalView
+            onBookingSubmitted={(ticket) => {
+              setTickets((prev) => [ticket, ...prev]);
+              saveStateToStore([ticket, ...tickets]);
+            }}
+            onNavigateToMap={() => setIsRoleModalOpen(true)}
+            onOpenPhoneModal={() => setIsQuoModalOpen(true)}
+            onOpenStaffLogin={() => setIsRoleModalOpen(true)}
+          />
+        ) : activeTopView === 'CUSTOMER_PORTAL' ? (
           <CustomerPortalView
             onBookingSubmitted={(ticket) => {
               setTickets((prev) => [ticket, ...prev]);

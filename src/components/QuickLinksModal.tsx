@@ -21,7 +21,8 @@ import {
   FileSpreadsheet,
   Compass,
   Calculator,
-  Flame
+  Flame,
+  ShieldAlert
 } from 'lucide-react';
 import { JOBBER_TEAM_MEMBERS } from '../data/jobberCalendarData';
 
@@ -32,6 +33,7 @@ interface QuickLinksModalProps {
   onOpenNewTicket?: () => void;
   onOpenTeamChat?: () => void;
   onOpenQuoPhone?: () => void;
+  onOpenSpamShield?: () => void;
   onOpenStaffRoster?: () => void;
   onOpenQuickReplies?: () => void;
   staffCount?: number;
@@ -46,6 +48,7 @@ export const QuickLinksModal: React.FC<QuickLinksModalProps> = ({
   onOpenNewTicket,
   onOpenTeamChat,
   onOpenQuoPhone,
+  onOpenSpamShield,
   onOpenStaffRoster,
   onOpenQuickReplies,
   staffCount = 15,
@@ -271,6 +274,34 @@ export const QuickLinksModal: React.FC<QuickLinksModalProps> = ({
                   </div>
                 </div>
                 <ChevronRight className="w-4 h-4 text-fuchsia-400 group-hover:translate-x-0.5 transition-transform shrink-0 mt-1" />
+              </button>
+
+              {/* Twilio Spam Shield & Call Blocker */}
+              <button
+                onClick={() => {
+                  if (onOpenSpamShield) onOpenSpamShield();
+                  else if (onOpenQuoPhone) onOpenQuoPhone();
+                  onClose();
+                }}
+                className="p-3.5 rounded-2xl border border-rose-200 bg-rose-50/50 hover:bg-rose-100/60 transition-all text-left flex items-start justify-between gap-3 group cursor-pointer"
+              >
+                <div className="flex items-start gap-3">
+                  <div className="w-9 h-9 rounded-xl bg-gradient-to-tr from-rose-600 to-red-600 text-white flex items-center justify-center shrink-0 shadow-xs">
+                    <ShieldAlert className="w-5 h-5" />
+                  </div>
+                  <div>
+                    <h4 className="text-xs font-extrabold text-slate-900 group-hover:text-rose-700 transition-colors flex items-center gap-1.5">
+                      <span>Twilio Spam Shield</span>
+                      <span className="px-1.5 py-0.2 rounded text-[10px] font-mono bg-rose-200 text-rose-900 font-bold">
+                        Live Filter
+                      </span>
+                    </h4>
+                    <p className="text-[11px] text-slate-500 mt-0.5">
+                      Block foreign country codes, rotating numbers &amp; robocalls
+                    </p>
+                  </div>
+                </div>
+                <ChevronRight className="w-4 h-4 text-rose-400 group-hover:translate-x-0.5 transition-transform shrink-0 mt-1" />
               </button>
             </div>
           </div>

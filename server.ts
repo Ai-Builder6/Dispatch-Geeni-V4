@@ -4055,6 +4055,327 @@ app.post("/api/jobber/sync-contacts", async (_req, res) => {
   });
 });
 
+// ─────────────────────────────────────────────────────────────────────────────
+// Twilio & Quo Inbound Voice Spam Shield, Country Code & Number Blocker
+// ─────────────────────────────────────────────────────────────────────────────
+const DEFAULT_SPAM_SHIELD_CONFIG = {
+  enabled: true,
+  blockAllNonNorthAmerica: true, // Only allows +1 (Canada & US)
+  blockedCountryCodes: ["+44", "+91", "+234", "+86", "+7", "+37", "+20", "+33"],
+  blockedPrefixes: ["1800*", "1888*", "1877*", "1844*", "1855*", "1866*"],
+  blockedNumbers: ["+18005550199", "+18885550123"],
+  blockRobocallFloods: true,
+  rejectionAction: "busy" as const,
+};
+
+const INITIAL_BLOCKED_CALLS_HISTORY = [
+  {
+    id: "blk-101",
+    timestamp: "2026-10-11T17:42:00-06:00",
+    callerNumber: "+44 20 7946 0919",
+    callerName: "Unknown International",
+    countryCode: "+44",
+    reason: "Blocked International Country Code: +44 (United Kingdom)",
+  },
+  {
+    id: "blk-102",
+    timestamp: "2026-10-11T16:15:00-06:00",
+    callerNumber: "+1 (800) 492-0199",
+    callerName: "Toll-Free Robocaller",
+    countryCode: "+1",
+    reason: "Matched Blocked Prefix Pattern: 1800*",
+  },
+  {
+    id: "blk-103",
+    timestamp: "2026-10-11T14:30:00-06:00",
+    callerNumber: "+91 98200 12345",
+    callerName: "Offshore Call Center",
+    countryCode: "+91",
+    reason: "Blocked Country Code: +91 (India)",
+  },
+  {
+    id: "blk-104",
+    timestamp: "2026-10-11T11:05:00-06:00",
+    callerNumber: "+1 (844) 932-8819",
+    callerName: "Automated Telemarketer",
+    countryCode: "+1",
+    reason: "Matched Blocked Prefix Pattern: 1844*",
+  },
+];
+
+function evaluateSpamCallRule(fromRaw: string, config: any): { isBlocked: boolean; reason?: string; countryCode?: string } {
+  if (!config || !config.enabled) return { isBlocked: false };
+
+  const raw = (fromRaw || "").trim();
+  const digits = raw.replace(/\D/g, "");
+
+  // Detect Country Code
+  let detectedCountry = "+1";
+  if (raw.startsWith("+")) {
+    const afterPlus = raw.slice(1);
+    if (!afterPlus.startsWith("1")) {
+      const match = afterPlus.match(/^(\d{1,3})/);
+      if (match) detectedCountry = `+${match[1]}`;
+    }
+  } else if (digits.length > 10 && !digits.startsWith("1")) {
+    const match = digits.match(/^(\d{1,3})/);
+    if (match) detectedCountry = `+${match[1]}`;
+  }
+
+  // 1. Block All Non-North America rule
+  if (config.blockAllNonNorthAmerica && detectedCountry !== "+1") {
+    return {
+      isBlocked: true,
+      countryCode: detectedCountry,
+      reason: `Blocked International Country Code: ${detectedCountry} (Only +1 Canada & US Allowed)`,
+    };
+  }
+
+  // 2. Specific Blocked Country Codes list
+  if (config.blockedCountryCodes && config.blockedCountryCodes.includes(detectedCountry)) {
+    return {
+      isBlocked: true,
+      countryCode: detectedCountry,
+      reason: `Blocked Country Code in blacklist: ${detectedCountry}`,
+    };
+  }
+
+  // 3. Exact Blacklisted Numbers
+  const normalizedFromDigits = digits.length === 11 && digits.startsWith("1") ? digits.slice(1) : digits;
+  const isBlacklisted = (config.blockedNumbers || []).some((bNum: string) => {
+    const bDigits = bNum.replace(/\D/g, "");
+    const normalizedBDigits = bDigits.length === 11 && bDigits.startsWith("1") ? bDigits.slice(1) : bDigits;
+    return (normalizedFromDigits && normalizedFromDigits === normalizedBDigits) || raw === bNum;
+  });
+
+  if (isBlacklisted) {
+    return {
+      isBlocked: true,
+      countryCode: detectedCountry,
+      reason: `Blacklisted phone number: ${raw}`,
+    };
+  }
+
+  // 4. Prefix / Wildcard Patterns (e.g. "1800*", "1888*", "800*", "780999*")
+  const isPrefixMatched = (config.blockedPrefixes || []).some((prefixPattern: string) => {
+    const cleanPattern = prefixPattern.replace(/\*/g, "").replace(/\D/g, "");
+    if (!cleanPattern) return false;
+    return digits.startsWith(cleanPattern) || (normalizedFromDigits && normalizedFromDigits.startsWith(cleanPattern));
+  });
+
+  if (isPrefixMatched) {
+    return {
+      isBlocked: true,
+      countryCode: detectedCountry,
+      reason: `Matched blocked prefix pattern (robocall / rotating numbers)`,
+    };
+  }
+
+  return { isBlocked: false };
+}
+
+// GET spam shield settings & blocked history
+app.get("/api/twilio/spam-shield", (req, res) => {
+  const projectId = getProjectId(req);
+  const store = loadStore(projectId);
+  const config = store?.spamShieldConfig || DEFAULT_SPAM_SHIELD_CONFIG;
+  const history = store?.blockedCallsHistory || INITIAL_BLOCKED_CALLS_HISTORY;
+  res.json({
+    success: true,
+    config,
+    blockedCallsCount: history.length,
+    history,
+  });
+});
+
+// POST update spam shield configuration
+app.post("/api/twilio/spam-shield", (req, res) => {
+  const projectId = getProjectId(req);
+  const store = loadStore(projectId);
+  if (!store) return res.status(500).json({ error: "Store not loaded" });
+
+  const incomingConfig = req.body?.config || {};
+  store.spamShieldConfig = {
+    ...(store.spamShieldConfig || DEFAULT_SPAM_SHIELD_CONFIG),
+    ...incomingConfig,
+  };
+  store.lastSavedAt = new Date().toISOString();
+  saveStore(store, projectId);
+
+  res.json({
+    success: true,
+    message: "Twilio & Quo Spam Shield configuration updated!",
+    config: store.spamShieldConfig,
+  });
+});
+
+// POST block specific number or prefix pattern
+app.post("/api/twilio/block-number", (req, res) => {
+  const projectId = getProjectId(req);
+  const store = loadStore(projectId);
+  if (!store) return res.status(500).json({ error: "Store not loaded" });
+
+  const { number, reason, type = "number" } = req.body || {};
+  if (!number) return res.status(400).json({ error: "Number is required" });
+
+  if (!store.spamShieldConfig) store.spamShieldConfig = { ...DEFAULT_SPAM_SHIELD_CONFIG };
+  if (!store.blockedCallsHistory) store.blockedCallsHistory = [...INITIAL_BLOCKED_CALLS_HISTORY];
+
+  if (type === "prefix") {
+    if (!store.spamShieldConfig.blockedPrefixes.includes(number)) {
+      store.spamShieldConfig.blockedPrefixes.push(number);
+    }
+  } else if (type === "country") {
+    if (!store.spamShieldConfig.blockedCountryCodes.includes(number)) {
+      store.spamShieldConfig.blockedCountryCodes.push(number);
+    }
+  } else {
+    if (!store.spamShieldConfig.blockedNumbers.includes(number)) {
+      store.spamShieldConfig.blockedNumbers.push(number);
+    }
+  }
+
+  // Also record a block log item
+  store.blockedCallsHistory.unshift({
+    id: `blk-${Date.now().toString(36)}`,
+    timestamp: new Date().toISOString(),
+    callerNumber: number,
+    callerName: reason || "Manual Blacklist",
+    countryCode: number.startsWith("+") ? number.slice(0, 3) : "+1",
+    reason: reason || `Manually blocked by dispatcher (${type})`,
+  });
+
+  store.lastSavedAt = new Date().toISOString();
+  saveStore(store, projectId);
+
+  res.json({
+    success: true,
+    message: `Successfully blocked ${number}! Future calls will be rejected automatically.`,
+    config: store.spamShieldConfig,
+    history: store.blockedCallsHistory,
+  });
+});
+
+// POST unblock number
+app.post("/api/twilio/unblock-number", (req, res) => {
+  const projectId = getProjectId(req);
+  const store = loadStore(projectId);
+  if (!store) return res.status(500).json({ error: "Store not loaded" });
+
+  const { number, type = "number" } = req.body || {};
+  if (!store.spamShieldConfig) store.spamShieldConfig = { ...DEFAULT_SPAM_SHIELD_CONFIG };
+
+  if (type === "prefix") {
+    store.spamShieldConfig.blockedPrefixes = store.spamShieldConfig.blockedPrefixes.filter((p: string) => p !== number);
+  } else if (type === "country") {
+    store.spamShieldConfig.blockedCountryCodes = store.spamShieldConfig.blockedCountryCodes.filter((c: string) => c !== number);
+  } else {
+    store.spamShieldConfig.blockedNumbers = store.spamShieldConfig.blockedNumbers.filter((n: string) => n !== number);
+  }
+
+  store.lastSavedAt = new Date().toISOString();
+  saveStore(store, projectId);
+
+  res.json({
+    success: true,
+    message: `Unblocked ${number}.`,
+    config: store.spamShieldConfig,
+  });
+});
+
+// POST test / evaluate a phone number against spam shield rules
+app.post("/api/twilio/test-number", (req, res) => {
+  const projectId = getProjectId(req);
+  const store = loadStore(projectId);
+  const config = store?.spamShieldConfig || DEFAULT_SPAM_SHIELD_CONFIG;
+
+  const { number } = req.body || {};
+  if (!number) return res.status(400).json({ error: "Phone number is required to test" });
+
+  const evaluation = evaluateSpamCallRule(String(number), config);
+  const rejectionAction = config.rejectionAction || "busy";
+  const twimlPreview = evaluation.isBlocked
+    ? `<?xml version="1.0" encoding="UTF-8"?>\n<Response>\n  <Reject reason="${rejectionAction}"/>\n</Response>`
+    : `<?xml version="1.0" encoding="UTF-8"?>\n<Response>\n  <Say voice="alice">Connecting to Dispatch Genie...</Say>\n  <Dial>+15879007223</Dial>\n</Response>`;
+
+  res.json({
+    success: true,
+    number,
+    isBlocked: evaluation.isBlocked,
+    reason: evaluation.reason || "Allowed caller — passes all filter rules",
+    countryCode: evaluation.countryCode || "+1",
+    action: evaluation.isBlocked ? `Rejected (${rejectionAction})` : "Connected to Dispatch",
+    twimlPreview,
+  });
+});
+
+// POST clear blocked history log
+app.post("/api/twilio/clear-history", (req, res) => {
+  const projectId = getProjectId(req);
+  const store = loadStore(projectId);
+  if (!store) return res.status(500).json({ error: "Store not loaded" });
+
+  store.blockedCallsHistory = [];
+  store.lastSavedAt = new Date().toISOString();
+  saveStore(store, projectId);
+
+  res.json({
+    success: true,
+    message: "Blocked call history cleared.",
+    history: [],
+  });
+});
+
+// Inbound Twilio Voice Webhook (POST & GET) with TwiML generation
+const handleTwilioVoiceWebhook = (req: express.Request, res: express.Response) => {
+  const projectId = getProjectId(req);
+  const store = loadStore(projectId);
+  const config = store?.spamShieldConfig || DEFAULT_SPAM_SHIELD_CONFIG;
+
+  const fromNumber = req.body?.From || req.query?.From || req.body?.Caller || req.query?.Caller || "Unknown";
+  const callerCity = req.body?.FromCity || req.query?.FromCity || "";
+  const callerCountry = req.body?.FromCountry || req.query?.FromCountry || "";
+
+  const check = evaluateSpamCallRule(String(fromNumber), config);
+
+  res.setHeader("Content-Type", "text/xml");
+
+  if (check.isBlocked) {
+    // Log the rejected spam call
+    if (store) {
+      if (!store.blockedCallsHistory) store.blockedCallsHistory = [...INITIAL_BLOCKED_CALLS_HISTORY];
+      store.blockedCallsHistory.unshift({
+        id: `blk-${Date.now().toString(36)}`,
+        timestamp: new Date().toISOString(),
+        callerNumber: String(fromNumber),
+        callerName: callerCity ? `${callerCity}, ${callerCountry}` : "Inbound Robocaller",
+        countryCode: check.countryCode || callerCountry || "+1",
+        reason: check.reason || "Rejected by Spam Shield rules",
+      });
+      store.lastSavedAt = new Date().toISOString();
+      saveStore(store, projectId);
+    }
+
+    const action = config.rejectionAction || "busy";
+    const twiml = `<?xml version="1.0" encoding="UTF-8"?>
+<Response>
+  <Reject reason="${action}"/>
+</Response>`;
+    return res.send(twiml);
+  }
+
+  // Allowed legitimate caller: Forward to Dispatch Line
+  const twiml = `<?xml version="1.0" encoding="UTF-8"?>
+<Response>
+  <Say voice="alice">Thank you for calling Dispatch Genie. Connecting you now.</Say>
+  <Dial timeout="25" callerId="+18338439877">+15879007223</Dial>
+</Response>`;
+  return res.send(twiml);
+};
+
+app.post("/api/twilio/voice", handleTwilioVoiceWebhook);
+app.get("/api/twilio/voice", handleTwilioVoiceWebhook);
+
 // In-memory cache for printable manifests to ensure zero URL bloat
 const manifestCache = new Map<string, any>();
 
