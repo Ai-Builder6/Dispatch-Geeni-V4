@@ -1912,9 +1912,16 @@ export function App() {
         ) : activeTopView === 'QUOTES' ? (
           <QuotesView
             quotes={quotesList}
+            projectId={activeProjectId}
             onQuotesUpdated={(updated) => setQuotesList(updated)}
+            onVisitCreated={(newVisit) => {
+              setScheduledJobsList((prev) => [newVisit, ...prev]);
+            }}
             onRefreshQuotes={() => {
-              fetch('/api/jobber/sync-quotes', { method: 'POST' })
+              fetch(`/api/jobber/sync-quotes?project=${activeProjectId}`, {
+                method: 'POST',
+                headers: { 'x-project-id': activeProjectId },
+              })
                 .then((r) => r.json())
                 .then((data) => {
                   if (data.quotes) setQuotesList(data.quotes);
@@ -1927,7 +1934,10 @@ export function App() {
             invoices={invoicesList}
             onInvoicesUpdated={(updated) => setInvoicesList(updated)}
             onRefreshInvoices={() => {
-              fetch('/api/jobber/sync-invoices', { method: 'POST' })
+              fetch(`/api/jobber/sync-invoices?project=${activeProjectId}`, {
+                method: 'POST',
+                headers: { 'x-project-id': activeProjectId },
+              })
                 .then((r) => r.json())
                 .then((data) => {
                   if (data.invoices) setInvoicesList(data.invoices);

@@ -23,6 +23,7 @@ interface InvoicesViewProps {
   onInvoicesUpdated?: (invoices: JobberInvoice[]) => void;
   onRefreshInvoices?: () => void;
   onBackToManagement?: () => void;
+  projectId?: 'dispatchgeeni' | 'tidyups';
 }
 
 export const InvoicesView: React.FC<InvoicesViewProps> = ({
@@ -30,6 +31,7 @@ export const InvoicesView: React.FC<InvoicesViewProps> = ({
   onInvoicesUpdated,
   onRefreshInvoices,
   onBackToManagement,
+  projectId = 'dispatchgeeni',
 }) => {
   const [search, setSearch] = useState('');
   const [statusFilter, setStatusFilter] = useState<string>('ALL');
@@ -89,7 +91,10 @@ export const InvoicesView: React.FC<InvoicesViewProps> = ({
     setIsSyncing(true);
     setSyncFeedback(null);
     try {
-      const res = await fetch('/api/jobber/sync-invoices', { method: 'POST' });
+      const res = await fetch(`/api/jobber/sync-invoices?project=${projectId}`, {
+        method: 'POST',
+        headers: { 'x-project-id': projectId },
+      });
       const data = await res.json();
       if (data.success) {
         if (data.invoices && onInvoicesUpdated) {
@@ -113,9 +118,9 @@ export const InvoicesView: React.FC<InvoicesViewProps> = ({
   const handleStatusChange = async (invoice: JobberInvoice, newStatus: JobberInvoice['invoiceStatus']) => {
     const newBal = newStatus === 'PAID' ? 0 : invoice.total;
     try {
-      const res = await fetch(`/api/database/invoices/${encodeURIComponent(invoice.id)}`, {
+      const res = await fetch(`/api/database/invoices/${encodeURIComponent(invoice.id)}?project=${projectId}`, {
         method: 'PATCH',
-        headers: { 'Content-Type': 'application/json' },
+        headers: { 'Content-Type': 'application/json', 'x-project-id': projectId },
         body: JSON.stringify({ invoiceStatus: newStatus, balance: newBal }),
       });
       const data = await res.json();
@@ -138,9 +143,9 @@ export const InvoicesView: React.FC<InvoicesViewProps> = ({
     setIsSubmittingInvoice(true);
 
     try {
-      const res = await fetch('/api/database/invoices', {
+      const res = await fetch(`/api/database/invoices?project=${projectId}`, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: { 'Content-Type': 'application/json', 'x-project-id': projectId },
         body: JSON.stringify({
           clientName: newClientName.trim(),
           clientPhone: newClientPhone.trim() || '(780) 555-0188',

@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "lastSavedAt": "2026-10-11T19:45:13.987Z",
+  "lastSavedAt": "2026-10-12T00:07:28.311Z",
   "tickets": [],
   "cleanerOverrides": {
     "cleaner-1": {
@@ -20,6 +20,28 @@
     }
   },
   "scheduledVisits": [
+    {
+      "id": "vis-mv4htb90-4q1x",
+      "visitNumber": "VISIT-4730",
+      "title": "Sarah Connor Live Quote Test - Residential Deep Clean",
+      "clientName": "Sarah Connor Live Quote Test",
+      "clientPhone": "(780) 555-0144",
+      "serviceAddress": "Edmonton, AB",
+      "lat": 53.4938355797773,
+      "lng": -113.52979616902547,
+      "startAt": "2026-10-15T11:00:00-06:00",
+      "endAt": "2026-10-15T13:30:00-06:00",
+      "assignedCleaners": [
+        "Cindy Guay"
+      ],
+      "serviceType": "Residential Deep Clean",
+      "status": "SCHEDULED",
+      "quoteNumber": "QT-9921",
+      "quoteTotal": 350,
+      "quoteStatus": "CONVERTED",
+      "jobberWebUri": "https://secure.getjobber.com/quotes",
+      "notes": "Converted from approved Jobber quote QT-9921. Assigned to Cindy Guay."
+    },
     {
       "id": "Z2lkOi8vSm9iYmVyL1Zpc2l0LzIzMDUyOTg4Nzk=",
       "visitNumber": "VISIT-91204",
@@ -1989,6 +2011,26 @@
     }
   ],
   "quotes": [
+    {
+      "id": "quote_local_1791763644063",
+      "quoteNumber": "QT-9921",
+      "clientName": "Sarah Connor Live Quote Test",
+      "clientPhone": "(780) 555-0144",
+      "clientEmail": "",
+      "service": "Residential Deep Clean",
+      "quoteStatus": "CONVERTED",
+      "total": 350,
+      "depositRequired": 50,
+      "createdAt": "2026-10-12T00:07:24.063Z",
+      "updatedAt": "2026-10-12T00:07:24.063Z",
+      "syncedAt": "2026-10-12T00:07:24.063Z",
+      "jobberWebUri": "https://secure.getjobber.com/quotes",
+      "notes": "Live quote sync test",
+      "isLocal": true,
+      "convertedToJobId": "vis-mv4htb90-4q1x",
+      "convertedToVisitNumber": "VISIT-4730",
+      "scheduledDate": "2026-10-15"
+    },
     {
       "id": "quote_local_1791743360097",
       "quoteNumber": "QT-3492",

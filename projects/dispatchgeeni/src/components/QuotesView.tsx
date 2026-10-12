@@ -24,6 +24,8 @@ interface QuotesViewProps {
   onQuotesUpdated?: (quotes: JobberQuote[]) => void;
   onRefreshQuotes?: () => void;
   onBackToManagement?: () => void;
+  onVisitCreated?: (newVisit: any) => void;
+  projectId?: 'dispatchgeeni' | 'tidyups';
 }
 
 export const QuotesView: React.FC<QuotesViewProps> = ({
@@ -31,6 +33,8 @@ export const QuotesView: React.FC<QuotesViewProps> = ({
   onQuotesUpdated,
   onRefreshQuotes,
   onBackToManagement,
+  onVisitCreated,
+  projectId = 'dispatchgeeni',
 }) => {
   const [search, setSearch] = useState('');
   const [statusFilter, setStatusFilter] = useState<string>('ALL');
@@ -81,7 +85,10 @@ export const QuotesView: React.FC<QuotesViewProps> = ({
     setIsSyncing(true);
     setSyncFeedback(null);
     try {
-      const res = await fetch('/api/jobber/sync-quotes', { method: 'POST' });
+      const res = await fetch(`/api/jobber/sync-quotes?project=${projectId}`, {
+        method: 'POST',
+        headers: { 'x-project-id': projectId },
+      });
       const data = await res.json();
       if (data.success) {
         if (data.quotes && onQuotesUpdated) {
@@ -104,9 +111,9 @@ export const QuotesView: React.FC<QuotesViewProps> = ({
 
   const handleStatusChange = async (quote: JobberQuote, newStatus: JobberQuote['quoteStatus']) => {
     try {
-      const res = await fetch(`/api/database/quotes/${encodeURIComponent(quote.id)}`, {
+      const res = await fetch(`/api/database/quotes/${encodeURIComponent(quote.id)}?project=${projectId}`, {
         method: 'PATCH',
-        headers: { 'Content-Type': 'application/json' },
+        headers: { 'Content-Type': 'application/json', 'x-project-id': projectId },
         body: JSON.stringify({ quoteStatus: newStatus }),
       });
       const data = await res.json();
@@ -121,15 +128,50 @@ export const QuotesView: React.FC<QuotesViewProps> = ({
     }
   };
 
+  const handleConvertToJob = async (quote: JobberQuote) => {
+    try {
+      setSyncFeedback(`Converting quote ${quote.quoteNumber} into dispatched job visit...`);
+      const res = await fetch(`/api/jobber/convert-quote?project=${projectId}`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'x-project-id': projectId },
+        body: JSON.stringify({
+          quoteId: quote.id,
+          scheduledDate: quote.scheduledDate || new Date().toISOString().slice(0, 10),
+          scheduledTime: '10:00',
+          assignedCleaners: ['Cindy Guay'],
+        }),
+      });
+      const data = await res.json();
+      if (data.success) {
+        if (data.quotes && onQuotesUpdated) {
+          onQuotesUpdated(data.quotes);
+        } else if (onQuotesUpdated) {
+          onQuotesUpdated(
+            quotes.map((q) => (q.id === quote.id ? { ...q, quoteStatus: 'CONVERTED', updatedAt: new Date().toISOString() } : q))
+          );
+        }
+        if (onVisitCreated && data.newVisit) {
+          onVisitCreated(data.newVisit);
+        }
+        setSyncFeedback(`✓ ${data.message || `Quote ${quote.quoteNumber} converted to Job and dispatched!`}`);
+      } else {
+        await handleStatusChange(quote, 'CONVERTED');
+      }
+    } catch (err) {
+      console.warn('Convert quote error:', err);
+      await handleStatusChange(quote, 'CONVERTED');
+    }
+  };
+
   const handleCreateQuote = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!newClientName.trim() || !newTotal) return;
     setIsSubmittingQuote(true);
 
     try {
-      const res = await fetch('/api/database/quotes', {
+      const res = await fetch(`/api/database/quotes?project=${projectId}`, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: { 'Content-Type': 'application/json', 'x-project-id': projectId },
         body: JSON.stringify({
           clientName: newClientName.trim(),
           clientPhone: newClientPhone.trim() || '(780) 555-0199',
@@ -378,8 +420,9 @@ export const QuotesView: React.FC<QuotesViewProps> = ({
                     )}
                     {q.quoteStatus !== 'CONVERTED' && (
                       <button
-                        onClick={() => handleStatusChange(q, 'CONVERTED')}
+                        onClick={() => handleConvertToJob(q)}
                         className="px-2 py-1 bg-purple-50 hover:bg-purple-100 text-purple-700 border border-purple-200 rounded text-[10px] font-bold transition-all cursor-pointer"
+                        title="Convert approved quote into scheduled visit on calendar & Jobber"
                       >
                         Convert to Job
                       </button>
