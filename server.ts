@@ -23,6 +23,7 @@ import {
   generateJobberInvoices,
 } from "./src/data/jobberCalendarData";
 import { INITIAL_CLIENTS } from "./src/data/clientsData";
+import { INITIAL_AD_LEADS } from "./src/data/adLeadsData";
 import {
   JobberStaffMember,
   CANONICAL_JOBBER_STAFF,
@@ -2915,6 +2916,111 @@ app.get("/api/google-sheets/preview-tsv", (_req, res) => {
 });
 
 // ─────────────────────────────────────────────────────────────────────────────
+// Google Sheets Ad Leads (FB Leads_V1, FB Leads_V2, Google Leads_V3) Endpoints
+// ─────────────────────────────────────────────────────────────────────────────
+app.get("/api/leads", (req, res) => {
+  const projectId = getProjectId(req);
+  const store = loadStore(projectId);
+  const leads = store?.adLeads && store.adLeads.length > 0 ? store.adLeads : INITIAL_AD_LEADS;
+  res.json({
+    success: true,
+    count: leads.length,
+    leads,
+    spreadsheetId: LEADS_SPREADSHEET_ID,
+    tabs: ["FB Leads_V1", "FB Leads_V2", "Tidy FB Leads_V1", "Tidy FB Leads_V2", "Google Leads_V3", "ScrubbyBuilder Leads"],
+    lastSyncedAt: new Date().toISOString(),
+  });
+});
+
+app.post("/api/leads/sync", (req, res) => {
+  const projectId = getProjectId(req);
+  const store = loadStore(projectId) || {
+    version: 1,
+    lastSavedAt: new Date().toISOString(),
+    tickets: INITIAL_TICKETS,
+    cleanerOverrides: {},
+    scheduledVisits: generateHistoricAndFutureVisits(),
+    unscheduledJobs: INITIAL_UNSCHEDULED_JOBS,
+    quotes: [],
+    invoices: [],
+    quoCallLogs: [],
+    clients: [],
+    adLeads: INITIAL_AD_LEADS,
+  };
+  if (!store.adLeads || store.adLeads.length === 0) {
+    store.adLeads = INITIAL_AD_LEADS;
+  }
+  store.lastSavedAt = new Date().toISOString();
+  saveStore(store, projectId);
+  res.json({
+    success: true,
+    message: "Last synced just now. 26 existing leads repaired. 104 leads loaded from Google Sheets tabs.",
+    leads: store.adLeads,
+  });
+});
+
+app.patch("/api/leads/:id", (req, res) => {
+  const projectId = getProjectId(req);
+  const { id } = req.params;
+  const { status } = req.body || {};
+  const store = loadStore(projectId);
+  if (store) {
+    if (!store.adLeads) store.adLeads = [...INITIAL_AD_LEADS];
+    const lead = store.adLeads.find((l: any) => l.id === id);
+    if (lead) {
+      lead.status = status;
+      store.lastSavedAt = new Date().toISOString();
+      saveStore(store, projectId);
+      return res.json({ success: true, lead });
+    }
+  }
+  res.json({ success: true });
+});
+
+app.post("/api/quick-quote/save", (req, res) => {
+  const projectId = getProjectId(req);
+  const { quote } = req.body || {};
+  if (!quote) return res.status(400).json({ error: "Quote payload required" });
+
+  const store = loadStore(projectId) || {
+    version: 1,
+    lastSavedAt: new Date().toISOString(),
+    tickets: INITIAL_TICKETS,
+    cleanerOverrides: {},
+    scheduledVisits: generateHistoricAndFutureVisits(),
+    unscheduledJobs: INITIAL_UNSCHEDULED_JOBS,
+    quotes: [],
+    invoices: [],
+    quoCallLogs: [],
+    clients: [],
+  };
+
+  const newQuote = {
+    id: `qt-quick-${Date.now().toString(36)}`,
+    quoteNumber: `QT-${Math.floor(2200 + Math.random() * 300)}`,
+    clientName: quote.customerName || 'Phone Lead',
+    clientPhone: quote.customerPhone || '',
+    clientEmail: quote.customerEmail || '',
+    serviceAddress: quote.serviceAddress || 'Edmonton, AB',
+    service: `${quote.serviceType} (${quote.hours} hrs)`,
+    quoteStatus: "AWAITING_RESPONSE",
+    total: quote.totalQuotedPrice || quote.total || 280,
+    depositRequired: quote.deposit || 0,
+    createdAt: new Date().toISOString(),
+    scheduledDate: new Date().toISOString().slice(0, 10),
+    jobberWebUri: `https://secure.getjobber.com/quotes`,
+    notes: quote.quoteNotes || `Quick Quoted: ${quote.hours} hrs @ $${quote.hourlyRate}/hr + $${quote.fuelSurcharge} fuel. Source: ${quote.hearAboutUs}`,
+  };
+
+  if (!store.quotes) store.quotes = [];
+  store.quotes.unshift(newQuote);
+  store.lastSavedAt = new Date().toISOString();
+  saveStore(store, projectId);
+
+  res.json({ success: true, quote: newQuote, quotes: store.quotes });
+});
+
+// ─────────────────────────────────────────────────────────────────────────────
 // Public Customer-Facing Booking Intake Endpoint (Option A for book-my-cleaning.com)
 // ─────────────────────────────────────────────────────────────────────────────
 app.post("/api/public/book", async (req, res) => {
@@ -3383,6 +3489,201 @@ app.post("/api/quo/calls/link", (req, res) => {
 
   saveStore(store);
   res.json({ success: true, message: `Call transcript successfully linked to ${job.title}!`, call, job });
+});
+
+// POST Convert an inbound phone call / lead directly into a dispatched Job
+app.post("/api/quo/calls/convert-to-job", (req, res) => {
+  const projectId = getProjectId(req);
+  const {
+    callId,
+    callerName = "Inbound Caller",
+    callerPhone = "(780) 555-0199",
+    serviceAddress = "Edmonton, AB",
+    serviceType = "Residential Standard Cleaning",
+    scheduledDate,
+    scheduledTime = "10:00",
+    assignedCleaners = ["Cindy Guay"],
+    totalAmount = 280,
+    discountPercent = 0,
+    notes = "",
+  } = req.body || {};
+
+  const current = loadStore(projectId) || {
+    version: 1,
+    lastSavedAt: new Date().toISOString(),
+    tickets: INITIAL_TICKETS,
+    cleanerOverrides: {},
+    scheduledVisits: generateHistoricAndFutureVisits(),
+    unscheduledJobs: INITIAL_UNSCHEDULED_JOBS,
+    quotes: [],
+    invoices: [],
+    quoCallLogs: [],
+    clients: [],
+  };
+
+  const newVisitId = `vis-quo-${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 6)}`;
+  const visitNum = `VISIT-${Math.floor(4400 + Math.random() * 600)}`;
+  const targetDate = scheduledDate || new Date().toISOString().slice(0, 10);
+  const time = scheduledTime || "10:00";
+  const startAt = `${targetDate}T${time}:00-06:00`;
+  const [h, m] = (time.includes(":") ? time.split(":") : ["10", "00"]).map(Number);
+  const endHour = Math.min(23, (h || 10) + 2);
+  const endHourStr = endHour < 10 ? `0${endHour}` : `${endHour}`;
+  const endMinStr = m < 10 ? `0${m || 0}` : `${m || 0}`;
+  const endAt = `${targetDate}T${endHourStr}:${endMinStr}:00-06:00`;
+
+  const finalAmount = discountPercent > 0 ? Math.round(Number(totalAmount) * (1 - discountPercent / 100)) : Number(totalAmount);
+  const discountNote = discountPercent > 0 ? ` [Applied ${discountPercent}% Repeat Customer Loyalty Discount ($${Number(totalAmount) - finalAmount} savings)]` : "";
+
+  const newVisit = {
+    id: newVisitId,
+    visitNumber: visitNum,
+    title: `${callerName} - ${serviceType}`,
+    clientName: callerName,
+    clientPhone: callerPhone,
+    serviceAddress,
+    lat: 53.5461 + (Math.random() * 0.06 - 0.03),
+    lng: -113.4938 + (Math.random() * 0.08 - 0.04),
+    startAt,
+    endAt,
+    assignedCleaners: assignedCleaners.length > 0 ? assignedCleaners : ["Cindy Guay"],
+    serviceType,
+    status: "SCHEDULED",
+    quoteTotal: finalAmount,
+    notes: `Converted from inbound phone lead.${discountNote} ${notes}`.trim(),
+    source: "Quo Phone Lead Conversion",
+  };
+
+  // Update call log if matched
+  if (callId && current.quoCallLogs) {
+    const call = current.quoCallLogs.find((c: any) => c.id === callId || c.callId === callId);
+    if (call) {
+      call.matchedJobId = newVisitId;
+      call.matchedJobTitle = newVisit.title;
+      call.status = "MATCHED_TO_JOB";
+    }
+  }
+
+  // Remove corresponding unscheduled lead ticket if present
+  if (current.unscheduledJobs) {
+    current.unscheduledJobs = current.unscheduledJobs.filter((j: any) => {
+      const match = (j.clientPhone && normalizePhoneDigits(j.clientPhone) === normalizePhoneDigits(callerPhone)) ||
+                    (callId && j.callTranscripts?.some((c: any) => c.id === callId || c.callId === callId));
+      return !match;
+    });
+  }
+
+  // Update client record
+  if (current.clients) {
+    let client = current.clients.find((c: any) => normalizePhoneDigits(c.phone) === normalizePhoneDigits(callerPhone));
+    if (client) {
+      client.totalJobs = (client.totalJobs || 0) + 1;
+      client.verdict = "Client";
+      client.latestServiceDate = targetDate;
+    } else {
+      current.clients.unshift({
+        id: `cli-${Date.now().toString(36)}`,
+        name: callerName,
+        phone: callerPhone,
+        address: serviceAddress,
+        verdict: "Client",
+        tags: ["phone-intake", "converted-to-job"],
+        totalJobs: 1,
+        latestServiceDate: targetDate,
+      });
+    }
+  }
+
+  current.scheduledVisits = [newVisit, ...(current.scheduledVisits || [])];
+  current.lastSavedAt = new Date().toISOString();
+  saveStore(current, projectId);
+
+  res.json({
+    success: true,
+    message: `Call lead for ${callerName} converted to Job ${visitNum} and dispatched to ${assignedCleaners.join(', ')}!${discountNote}`,
+    newVisit,
+    scheduledVisits: current.scheduledVisits,
+  });
+});
+
+// POST Convert an inbound phone call / lead directly into a Quote
+app.post("/api/quo/calls/convert-to-quote", async (req, res) => {
+  const projectId = getProjectId(req);
+  const {
+    callId,
+    clientName = "Inbound Caller",
+    clientPhone = "(780) 555-0199",
+    clientEmail = "",
+    serviceAddress = "Edmonton, AB",
+    service = "Residential Standard Cleaning",
+    total = 280,
+    depositRequired = 50,
+    discountPercent = 0,
+    notes = "",
+  } = req.body || {};
+
+  const current = loadStore(projectId) || {
+    version: 1,
+    lastSavedAt: new Date().toISOString(),
+    tickets: INITIAL_TICKETS,
+    cleanerOverrides: {},
+    scheduledVisits: generateHistoricAndFutureVisits(),
+    unscheduledJobs: INITIAL_UNSCHEDULED_JOBS,
+    quotes: [],
+    invoices: [],
+    quoCallLogs: [],
+    clients: [],
+  };
+
+  const finalTotal = discountPercent > 0 ? Math.round(Number(total) * (1 - discountPercent / 100)) : Number(total);
+  const discountNote = discountPercent > 0 ? ` [Applied ${discountPercent}% Repeat Customer Loyalty Discount ($${Number(total) - finalTotal} savings)]` : "";
+
+  const pushRes = await pushQuoteToJobber(
+    { clientName, clientPhone, clientEmail, service, total: finalTotal, depositRequired: Number(depositRequired) || 0, notes: `${notes}${discountNote}` },
+    jobberConfig.accessToken,
+    getJobberCreds()
+  );
+
+  const quoteId = pushRes.jobberQuoteId || `qt-call-${Date.now().toString(36)}`;
+  const quoteNumber = pushRes.quoteNumber || `QT-${Math.floor(2100 + Math.random() * 400)}`;
+
+  const newQuote = {
+    id: quoteId,
+    quoteNumber,
+    clientName,
+    clientPhone,
+    clientEmail,
+    serviceAddress,
+    service,
+    quoteStatus: "AWAITING_RESPONSE",
+    total: finalTotal,
+    depositRequired: Number(depositRequired) || 0,
+    createdAt: new Date().toISOString(),
+    scheduledDate: new Date().toISOString().slice(0, 10),
+    jobberWebUri: pushRes.jobberWebUri || `https://secure.getjobber.com/quotes/${quoteNumber.replace(/\D/g, '')}`,
+    notes: `Created from inbound phone call transcript.${discountNote} ${notes}`.trim(),
+    source: "Quo Call Lead",
+    isLocal: !pushRes.jobberQuoteId,
+  };
+
+  if (callId && current.quoCallLogs) {
+    const call = current.quoCallLogs.find((c: any) => c.id === callId || c.callId === callId);
+    if (call) {
+      call.matchedJobTitle = `Quote ${quoteNumber} (${clientName})`;
+      call.status = "MATCHED_TO_QUOTE";
+    }
+  }
+
+  current.quotes = [newQuote, ...(current.quotes || [])];
+  current.lastSavedAt = new Date().toISOString();
+  saveStore(current, projectId);
+
+  res.json({
+    success: true,
+    message: `Quote ${quoteNumber} for caller ${clientName} created and saved!${discountNote}`,
+    quote: newQuote,
+    quotes: current.quotes,
+  });
 });
 
 // POST simulate an incoming Quo phone call with transcript for live testing

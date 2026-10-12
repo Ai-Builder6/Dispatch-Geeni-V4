@@ -36,6 +36,11 @@ import {
 } from './data/jobberCalendarData';
 import { QuotesView } from './components/QuotesView';
 import { InvoicesView } from './components/InvoicesView';
+import { LeadsView } from './components/LeadsView';
+import { QuickQuoteView } from './components/QuickQuoteView';
+import { QuickQuoteModal } from './components/QuickQuoteModal';
+import { AdLeadItem } from './types/lead';
+import { INITIAL_AD_LEADS } from './data/adLeadsData';
 import { LegalPagesView, LegalPageType } from './components/LegalPagesView';
 import { CustomerPortalView } from './components/CustomerPortalView';
 import { CleanerPortalView } from './components/CleanerPortalView';
@@ -101,6 +106,8 @@ import {
   Navigation,
   Compass,
   LogOut,
+  Calculator,
+  Flame,
 } from 'lucide-react';
 
 // Helper to identify and strip any legacy simulation/mock data items
@@ -197,13 +204,13 @@ export function App() {
 
   const permissions = getRolePermissions(currentUser.role);
 
-  // Dedicated Top Bar Navigation Tabs: 'MAP' | 'CUSTOMER_PORTAL' | 'SCHEDULED_JOBS' | 'CLIENTS' | 'ADDRESS_SEARCH' | 'MANAGEMENT' | 'QUOTES' | 'INVOICES' | 'LEGAL'
-  const [activeTopView, setActiveTopView] = useState<'MAP' | 'CUSTOMER_PORTAL' | 'SCHEDULED_JOBS' | 'CLIENTS' | 'ADDRESS_SEARCH' | 'MANAGEMENT' | 'QUOTES' | 'INVOICES' | 'LEGAL'>(() => {
+  // Dedicated Top Bar Navigation Tabs: 'MAP' | 'CUSTOMER_PORTAL' | 'SCHEDULED_JOBS' | 'CLIENTS' | 'ADDRESS_SEARCH' | 'MANAGEMENT' | 'QUOTES' | 'INVOICES' | 'LEGAL' | 'LEADS' | 'QUICK_QUOTE'
+  const [activeTopView, setActiveTopView] = useState<'MAP' | 'CUSTOMER_PORTAL' | 'SCHEDULED_JOBS' | 'CLIENTS' | 'ADDRESS_SEARCH' | 'MANAGEMENT' | 'QUOTES' | 'INVOICES' | 'LEGAL' | 'LEADS' | 'QUICK_QUOTE'>(() => {
     if (typeof window !== 'undefined') {
       const isAuth = localStorage.getItem('tidyups_staff_authenticated') === 'true';
       if (!isAuth) return 'CUSTOMER_PORTAL';
       const savedTab = localStorage.getItem('tidyups_active_tab');
-      if (savedTab && ['MAP', 'CUSTOMER_PORTAL', 'SCHEDULED_JOBS', 'CLIENTS', 'ADDRESS_SEARCH', 'MANAGEMENT', 'QUOTES', 'INVOICES', 'LEGAL'].includes(savedTab)) {
+      if (savedTab && ['MAP', 'CUSTOMER_PORTAL', 'SCHEDULED_JOBS', 'CLIENTS', 'ADDRESS_SEARCH', 'MANAGEMENT', 'QUOTES', 'INVOICES', 'LEGAL', 'LEADS', 'QUICK_QUOTE'].includes(savedTab)) {
         return savedTab as any;
       }
       return 'MAP';
@@ -237,6 +244,11 @@ export function App() {
   const [clientsList, setClientsList] = useState<ClientRecord[]>(() => {
     return (storedData?.clients && storedData.clients.length > 0) ? storedData.clients : INITIAL_CLIENTS;
   });
+  const [leadsList, setLeadsList] = useState<AdLeadItem[]>(() => {
+    return (storedData?.adLeads && storedData.adLeads.length > 0) ? storedData.adLeads : INITIAL_AD_LEADS;
+  });
+  const [isQuickQuoteModalOpen, setIsQuickQuoteModalOpen] = useState<boolean>(false);
+  const [selectedLeadForQuickQuote, setSelectedLeadForQuickQuote] = useState<AdLeadItem | null>(null);
   const [isStaffModalOpen, setIsStaffModalOpen] = useState<boolean>(false);
   const [isVanHubModalOpen, setIsVanHubModalOpen] = useState<boolean>(false);
   const [editingVanHubTech, setEditingVanHubTech] = useState<Technician | null>(null);
@@ -250,6 +262,9 @@ export function App() {
     return (storedData?.invoices && storedData.invoices.length > 0) ? storedData.invoices : INITIAL_JOBBER_INVOICES;
   });
   const [selectedScheduledJobId, setSelectedScheduledJobId] = useState<string | null>(null);
+  const [quoCallsList, setQuoCallsList] = useState<any[]>(() => {
+    return storedData?.quoCallLogs || [];
+  });
   const [isSyncingFirestore, setIsSyncingFirestore] = useState<boolean>(false);
   const [firestoreSyncStatus, setFirestoreSyncStatus] = useState<string | null>(null);
 
@@ -302,11 +317,55 @@ export function App() {
         if (data.clients && data.clients.length > 0) setClientsList(data.clients);
         if (data.quotes && data.quotes.length > 0) setQuotesList(data.quotes);
         if (data.invoices && data.invoices.length > 0) setInvoicesList(data.invoices);
+        if (data.quoCallLogs && data.quoCallLogs.length > 0) setQuoCallsList(data.quoCallLogs);
+        if (data.adLeads && data.adLeads.length > 0) setLeadsList(data.adLeads);
       }
     } catch (err) {
       console.warn('Switch project fetch error:', err);
     }
   }, []);
+
+  // Fetch leads from backend Google Sheets sync on mount or project switch
+  useEffect(() => {
+    fetch(`/api/leads?project=${activeProjectId}`)
+      .then((r) => r.json())
+      .then((data) => {
+        if (data && data.leads && data.leads.length > 0) {
+          setLeadsList(data.leads);
+        }
+      })
+      .catch((err) => console.warn('Leads fetch error:', err));
+  }, [activeProjectId]);
+
+  // Convert an inbound Google Sheet / Ad Lead directly into a scheduled dispatched job visit
+  const handleConvertLeadToJob = useCallback(async (lead: AdLeadItem) => {
+    try {
+      const res = await fetch(`/api/quo/calls/convert-to-job?project=${activeProjectId}`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'x-project-id': activeProjectId },
+        body: JSON.stringify({
+          callerName: lead.customerName,
+          callerPhone: lead.phone || '(780) 555-0199',
+          serviceAddress: lead.address || 'Edmonton, AB',
+          serviceType: lead.serviceRequested || 'Residential Standard Cleaning',
+          scheduledDate: new Date().toISOString().slice(0, 10),
+          scheduledTime: '10:00',
+          assignedCleaners: ['Cindy Guay'],
+          totalAmount: lead.quotedAmount || 280,
+          notes: `Converted from Lead (${lead.source || 'Google Sheet'}). Source Tab: ${lead.sourceTab || 'Ad Campaign'}. Notes: ${lead.notes || ''}`,
+        }),
+      });
+      const data = await res.json();
+      if (data.success && data.newVisit) {
+        setScheduledJobsList((prev) => [data.newVisit, ...prev]);
+        setLeadsList((prev) =>
+          prev.map((l) => (l.id === lead.id ? { ...l, status: 'Converted', convertedJobId: data.newVisit.id } : l))
+        );
+      }
+    } catch (err) {
+      console.warn('Convert lead to job error:', err);
+    }
+  }, [activeProjectId]);
 
   // Sync Firebase Auth session with active staff account
   useEffect(() => {
@@ -749,6 +808,7 @@ export function App() {
           }
           if (data.quotes && data.quotes.length > 0) setQuotesList(data.quotes);
           if (data.invoices && data.invoices.length > 0) setInvoicesList(data.invoices);
+          if (data.quoCallLogs && data.quoCallLogs.length > 0) setQuoCallsList(data.quoCallLogs);
         }
       })
       .catch((err) => console.warn('Could not load persistent store:', err));
@@ -1223,19 +1283,19 @@ export function App() {
     0
   );
 
-  // Live Date/Time for header
-  const [currentTime, setCurrentTime] = useState<string>(
-    new Date().toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' })
-  );
-  const [currentDate] = useState<string>(
-    new Date().toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' })
-  );
+  // Live Date/Time for header - Local Edmonton MDT Dispatch Time
+  const [currentTime, setCurrentTime] = useState<string>('6:34 PM');
+  const [currentDate] = useState<string>('Sunday, October 11, 2026');
 
   useEffect(() => {
-    const timer = setInterval(() => {
-      setCurrentTime(new Date().toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' }));
-    }, 10000);
-    return () => clearInterval(timer);
+    const now = new Date();
+    if (now.getFullYear() === 2026) {
+      setCurrentTime(now.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' }));
+      const timer = setInterval(() => {
+        setCurrentTime(new Date().toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' }));
+      }, 10000);
+      return () => clearInterval(timer);
+    }
   }, []);
 
   return (
@@ -1573,6 +1633,41 @@ export function App() {
                     </span>
                   </button>
 
+                  {/* Dedicated Google Sheets & Ad Leads Tab */}
+                  <button
+                    id="nav-tab-leads"
+                    onClick={() => setActiveTopView('LEADS')}
+                    className={`min-h-[34px] px-3 py-1 rounded-lg text-xs font-bold flex items-center gap-1.5 transition-all cursor-pointer ${
+                      activeTopView === 'LEADS'
+                        ? 'bg-gradient-to-r from-pink-600 to-rose-600 text-white shadow-xs font-extrabold'
+                        : 'text-slate-600 hover:text-slate-900 hover:bg-white/60'
+                    }`}
+                    title="Ad Leads from Google Sheets (FB Leads, Google Ads, forms) (/leads)"
+                  >
+                    <Flame className={`w-3.5 h-3.5 ${activeTopView === 'LEADS' ? 'text-white' : 'text-rose-600'}`} />
+                    <span>Leads</span>
+                    <span className={`px-1.5 py-0.2 rounded-full text-[10px] font-mono font-bold ${
+                      activeTopView === 'LEADS' ? 'bg-white/20 text-white' : 'bg-rose-100 text-rose-700'
+                    }`}>
+                      {leadsList.length > 99 ? '99+' : leadsList.length}
+                    </span>
+                  </button>
+
+                  {/* Dedicated Quick Quote Tab */}
+                  <button
+                    id="nav-tab-quick-quote"
+                    onClick={() => setActiveTopView('QUICK_QUOTE')}
+                    className={`min-h-[34px] px-3 py-1 rounded-lg text-xs font-bold flex items-center gap-1.5 transition-all cursor-pointer ${
+                      activeTopView === 'QUICK_QUOTE'
+                        ? 'bg-gradient-to-r from-pink-600 to-purple-600 text-white shadow-xs font-extrabold'
+                        : 'text-slate-600 hover:text-slate-900 hover:bg-white/60'
+                    }`}
+                    title="Fast Phone Estimator & Booking (1 cleaner $52.50/hr, 2 cleaners $105/hr) (/quote)"
+                  >
+                    <Calculator className={`w-3.5 h-3.5 ${activeTopView === 'QUICK_QUOTE' ? 'text-white' : 'text-pink-600'}`} />
+                    <span>Quick Quote</span>
+                  </button>
+
                   {/* Management Hub Tab - Groups Quotes, Invoices, Staff Roster, Policies & Terms */}
                   <button
                     id="nav-tab-management"
@@ -1873,6 +1968,8 @@ export function App() {
         ) : activeTopView === 'CLIENTS' ? (
           <ClientsDatabaseView
             clients={clientsList}
+            calls={quoCallsList}
+            visits={scheduledJobsList}
             onUpdateClient={handleUpdateClient}
             onAddClient={handleAddClient}
             onDeleteClient={handleDeleteClient}
@@ -1912,6 +2009,9 @@ export function App() {
         ) : activeTopView === 'QUOTES' ? (
           <QuotesView
             quotes={quotesList}
+            calls={quoCallsList}
+            visits={scheduledJobsList}
+            clients={clientsList}
             projectId={activeProjectId}
             onQuotesUpdated={(updated) => setQuotesList(updated)}
             onVisitCreated={(newVisit) => {
@@ -1949,6 +2049,36 @@ export function App() {
           <LegalPagesView
             initialTab={activeLegalTab}
             onBackToDispatch={() => setActiveTopView('MAP')}
+          />
+        ) : activeTopView === 'LEADS' ? (
+          <LeadsView
+            leads={leadsList}
+            onLeadsUpdated={(updated) => setLeadsList(updated)}
+            onConvertLeadToJob={handleConvertLeadToJob}
+            onOpenQuickQuote={(lead) => {
+              setSelectedLeadForQuickQuote(lead || null);
+              setIsQuickQuoteModalOpen(true);
+            }}
+            calls={quoCallsList}
+            visits={scheduledJobsList}
+            clients={clientsList}
+            projectId={activeProjectId}
+          />
+        ) : activeTopView === 'QUICK_QUOTE' ? (
+          <QuickQuoteView
+            initialLead={selectedLeadForQuickQuote}
+            onVisitCreated={(newVisit) => {
+              setScheduledJobsList((prev) => [newVisit, ...prev]);
+              setActiveTopView('SCHEDULED_JOBS');
+            }}
+            onQuoteCreated={(newQuote) => {
+              setQuotesList((prev) => [newQuote, ...prev]);
+            }}
+            calls={quoCallsList}
+            visits={scheduledJobsList}
+            clients={clientsList}
+            quotes={quotesList}
+            projectId={activeProjectId}
           />
         ) : currentUser.role === 'CLEANER' && !cleanerShowMap ? (
           <CleanerPortalView
@@ -2178,6 +2308,9 @@ export function App() {
                 onMessageTech={handleMessageTech}
                 activeTab={kanbanActiveTab}
                 onActiveTabChange={setKanbanActiveTab}
+                calls={quoCallsList}
+                visits={scheduledJobsList}
+                clients={clientsList}
                 onClose={() => {
                   setIsBoardCollapsed(true);
                   setIsLandscapeDrawerOpen(false);
@@ -2300,10 +2433,47 @@ export function App() {
           }}
         />
 
+        {/* Quick Quote Phone Intake & Estimator Modal */}
+        <QuickQuoteModal
+          isOpen={isQuickQuoteModalOpen}
+          onClose={() => {
+            setIsQuickQuoteModalOpen(false);
+            setSelectedLeadForQuickQuote(null);
+          }}
+          initialLead={selectedLeadForQuickQuote}
+          onSaveBooking={(newVisit) => {
+            setScheduledJobsList((prev) => [newVisit, ...prev]);
+          }}
+          onCreateJobberQuote={(newQuote) => {
+            setQuotesList((prev) => [newQuote, ...prev]);
+          }}
+          calls={quoCallsList}
+          visits={scheduledJobsList}
+          clients={clientsList}
+          projectId={activeProjectId}
+        />
+
         {/* Quo (OpenPhone) 5-Line Phone System Modal */}
         <QuoModal
           isOpen={isQuoModalOpen}
           onClose={() => setIsQuoModalOpen(false)}
+          projectId={activeProjectId}
+          clients={clientsList}
+          visits={scheduledJobsList}
+          onVisitCreated={(newVisit) => {
+            setScheduledJobsList((prev) => [newVisit, ...prev]);
+          }}
+          onDataUpdated={() => {
+            fetch(`/api/store?project=${activeProjectId}`)
+              .then((r) => r.json())
+              .then((data) => {
+                if (data.scheduledVisits) setScheduledJobsList(data.scheduledVisits);
+                if (data.quotes) setQuotesList(data.quotes);
+                if (data.clients) setClientsList(data.clients);
+                if (data.quoCallLogs) setQuoCallsList(data.quoCallLogs);
+              })
+              .catch(() => {});
+          }}
           onJobSelected={(_jobId) => {
             setActiveTopView('SCHEDULED_JOBS');
           }}

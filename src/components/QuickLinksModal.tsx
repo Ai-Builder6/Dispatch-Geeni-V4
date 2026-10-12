@@ -19,14 +19,16 @@ import {
   Download,
   GitBranch,
   FileSpreadsheet,
-  Compass
+  Compass,
+  Calculator,
+  Flame
 } from 'lucide-react';
 import { JOBBER_TEAM_MEMBERS } from '../data/jobberCalendarData';
 
 interface QuickLinksModalProps {
   isOpen: boolean;
   onClose: () => void;
-  onNavigateTo: (view: 'MAP' | 'CUSTOMER_PORTAL' | 'SCHEDULED_JOBS' | 'QUOTES' | 'INVOICES' | 'LEGAL' | 'ADDRESS_SEARCH', subTab?: string) => void;
+  onNavigateTo: (view: 'MAP' | 'CUSTOMER_PORTAL' | 'SCHEDULED_JOBS' | 'QUOTES' | 'INVOICES' | 'LEGAL' | 'ADDRESS_SEARCH' | 'LEADS' | 'QUICK_QUOTE', subTab?: string) => void;
   onOpenNewTicket?: () => void;
   onOpenTeamChat?: () => void;
   onOpenQuoPhone?: () => void;
@@ -218,6 +220,57 @@ export const QuickLinksModal: React.FC<QuickLinksModalProps> = ({
                   </div>
                 </div>
                 <ChevronRight className="w-4 h-4 text-blue-400 group-hover:translate-x-0.5 transition-transform shrink-0 mt-1" />
+              </button>
+
+              {/* Google Sheets Ad Leads */}
+              <button
+                onClick={() => {
+                  onNavigateTo('LEADS');
+                  onClose();
+                }}
+                className="p-3.5 rounded-2xl border border-rose-200 bg-rose-50/50 hover:bg-rose-100/60 transition-all text-left flex items-start justify-between gap-3 group cursor-pointer"
+              >
+                <div className="flex items-start gap-3">
+                  <div className="w-9 h-9 rounded-xl bg-rose-600 text-white flex items-center justify-center shrink-0 shadow-xs">
+                    <Flame className="w-5 h-5" />
+                  </div>
+                  <div>
+                    <h4 className="text-xs font-extrabold text-slate-900 group-hover:text-rose-700 transition-colors flex items-center gap-1.5">
+                      <span>Ad Leads &amp; Google Sheets</span>
+                      <span className="px-1.5 py-0.2 rounded text-[10px] font-mono bg-rose-200 text-rose-900 font-bold">
+                        99+
+                      </span>
+                    </h4>
+                    <p className="text-[11px] text-slate-500 mt-0.5">
+                      FB Leads_V1, FB Leads_V2, Google Leads_V3 tabs &amp; forms
+                    </p>
+                  </div>
+                </div>
+                <ChevronRight className="w-4 h-4 text-rose-400 group-hover:translate-x-0.5 transition-transform shrink-0 mt-1" />
+              </button>
+
+              {/* Quick Quote Phone Estimator */}
+              <button
+                onClick={() => {
+                  onNavigateTo('QUICK_QUOTE');
+                  onClose();
+                }}
+                className="p-3.5 rounded-2xl border border-fuchsia-200 bg-fuchsia-50/50 hover:bg-fuchsia-100/60 transition-all text-left flex items-start justify-between gap-3 group cursor-pointer"
+              >
+                <div className="flex items-start gap-3">
+                  <div className="w-9 h-9 rounded-xl bg-gradient-to-tr from-pink-600 to-fuchsia-600 text-white flex items-center justify-center shrink-0 shadow-xs">
+                    <Calculator className="w-5 h-5" />
+                  </div>
+                  <div>
+                    <h4 className="text-xs font-extrabold text-slate-900 group-hover:text-fuchsia-700 transition-colors">
+                      Quick Quote Phone Estimator
+                    </h4>
+                    <p className="text-[11px] text-slate-500 mt-0.5">
+                      1 cleaner $52.50/hr, 2 cleaners $105/hr, fuel &amp; tax
+                    </p>
+                  </div>
+                </div>
+                <ChevronRight className="w-4 h-4 text-fuchsia-400 group-hover:translate-x-0.5 transition-transform shrink-0 mt-1" />
               </button>
             </div>
           </div>

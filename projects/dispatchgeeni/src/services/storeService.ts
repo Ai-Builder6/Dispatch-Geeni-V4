@@ -50,6 +50,7 @@ export interface AppPersistentStore {
   quotes: any[];
   invoices: any[];
   quoCallLogs?: any[];
+  adLeads?: any[];
   chatMessages?: any[];
   jobberConfig?: {
     isConnected: boolean;

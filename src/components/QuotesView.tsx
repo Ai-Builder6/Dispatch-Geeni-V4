@@ -18,6 +18,8 @@ import {
   AlertCircle
 } from 'lucide-react';
 import { JobberQuote } from '../services/jobberSyncModules';
+import { getCustomerIntelligence } from '../services/customerIntelligenceService';
+import { CustomerIntelligenceBadge } from './CustomerIntelligenceBadge';
 
 interface QuotesViewProps {
   quotes: JobberQuote[];
@@ -25,6 +27,9 @@ interface QuotesViewProps {
   onRefreshQuotes?: () => void;
   onBackToManagement?: () => void;
   onVisitCreated?: (newVisit: any) => void;
+  calls?: any[];
+  visits?: any[];
+  clients?: any[];
   projectId?: 'dispatchgeeni' | 'tidyups';
 }
 
@@ -34,6 +39,9 @@ export const QuotesView: React.FC<QuotesViewProps> = ({
   onRefreshQuotes,
   onBackToManagement,
   onVisitCreated,
+  calls = [],
+  visits = [],
+  clients = [],
   projectId = 'dispatchgeeni',
 }) => {
   const [search, setSearch] = useState('');
@@ -376,7 +384,13 @@ export const QuotesView: React.FC<QuotesViewProps> = ({
                     </span>
                   </div>
 
-                  <h3 className="font-bold text-sm text-slate-900 leading-snug mb-1">{q.clientName}</h3>
+                  <div className="flex items-center gap-1.5 flex-wrap mb-1">
+                    <h3 className="font-bold text-sm text-slate-900 leading-snug">{q.clientName}</h3>
+                    <CustomerIntelligenceBadge
+                      intelligence={getCustomerIntelligence(q.clientPhone, q.clientName, { calls, visits, clients })}
+                      compact
+                    />
+                  </div>
                   <p className="text-xs text-slate-500 mb-2">{q.service}</p>
                   {q.clientPhone && (
                     <p className="text-[11px] text-slate-400 font-mono mb-2">{q.clientPhone}</p>
@@ -497,6 +511,26 @@ export const QuotesView: React.FC<QuotesViewProps> = ({
                   />
                 </div>
               </div>
+
+              {/* Real-Time Caller Intelligence & Loyalty Discount Banner */}
+              {(newClientPhone.trim() || newClientName.trim()) && (() => {
+                const intel = getCustomerIntelligence(newClientPhone, newClientName, { calls, visits, clients });
+                return (
+                  <CustomerIntelligenceBadge
+                    intelligence={intel}
+                    showDiscountPrompt={intel.loyaltyDiscountEligible}
+                    onApplyDiscount={(discountPercent) => {
+                      const cur = Number(newTotal) || 280;
+                      const discounted = Math.round(cur * (1 - discountPercent / 100));
+                      setNewTotal(String(discounted));
+                      const discountTag = `[Applied ${discountPercent}% Repeat Customer Loyalty Discount ($${cur - discounted} savings)]`;
+                      if (!newNotes.includes(discountTag)) {
+                        setNewNotes(newNotes ? `${newNotes} ${discountTag}` : discountTag);
+                      }
+                    }}
+                  />
+                );
+              })()}
 
               <div>
                 <label className="block font-bold text-slate-700 mb-1">Cleaning Service Type</label>
