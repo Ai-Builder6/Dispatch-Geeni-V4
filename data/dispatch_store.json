@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "lastSavedAt": "2026-10-11T18:29:36.219Z",
+  "lastSavedAt": "2026-10-11T02:02:06.481Z",
   "tickets": [],
   "cleanerOverrides": {
     "cleaner-1": {
@@ -1990,23 +1990,6 @@
   ],
   "quotes": [
     {
-      "id": "quote_local_1791743360097",
-      "quoteNumber": "QT-3492",
-      "clientName": "Test Customer Edmonton",
-      "clientPhone": "(780) 555-9988",
-      "clientEmail": "",
-      "service": "Residential Deep Cleaning",
-      "quoteStatus": "AWAITING_RESPONSE",
-      "total": 320,
-      "depositRequired": 100,
-      "createdAt": "2026-10-11T18:29:20.097Z",
-      "updatedAt": "2026-10-11T18:29:20.097Z",
-      "syncedAt": "2026-10-11T18:29:20.097Z",
-      "jobberWebUri": "https://secure.getjobber.com/quotes",
-      "notes": "",
-      "isLocal": true
-    },
-    {
       "id": "Z2lkOi8vSm9iYmVyL1F1b3RlLzY2MzMzNjA4",
       "quoteNumber": "QT-4251",
       "clientName": "Bryan Giesbrecht",
@@ -3875,11 +3858,11 @@
   "jobberConfig": {
     "isConnected": true,
     "accountName": "Tidyups Cleaning Service Inc",
-    "clientId": "9c383ceb-4970-4ef1-a85a-649bf2de63b7",
-    "clientSecret": "0199073a37ac8e8780fcfb534fbffd7b127ee502f34526e83dd040f1f24de8e7",
-    "accessToken": "eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOjE1ODAxNzYsImlzcyI6Imh0dHBzOi8vYXBpLmdldGpvYmJlci5jb20iLCJjbGllbnRfaWQiOiI5YzM4M2NlYi00OTcwLTRlZjEtYTg1YS02NDliZjJkZTYzYjciLCJzY29wZSI6InJlYWRfY2xpZW50cyB3cml0ZV9jbGllbnRzIHJlYWRfcmVxdWVzdHMgd3JpdGVfcmVxdWVzdHMgcmVhZF9xdW90ZXMgd3JpdGVfcXVvdGVzIHJlYWRfam9icyB3cml0ZV9qb2JzIHJlYWRfc2NoZWR1bGVkX2l0ZW1zIHdyaXRlX3NjaGVkdWxlZF9pdGVtcyByZWFkX2ludm9pY2VzIHdyaXRlX2ludm9pY2VzIHJlYWRfam9iYmVyX3BheW1lbnRzIHJlYWRfdXNlcnMgd3JpdGVfdXNlcnMgd3JpdGVfdGF4X3JhdGVzIHJlYWRfZXhwZW5zZXMgd3JpdGVfZXhwZW5zZXMgcmVhZF9jdXN0b21fZmllbGRfY29uZmlndXJhdGlvbnMgcmVhZF90aW1lX3NoZWV0cyByZWFkX2VxdWlwbWVudCB3cml0ZV9lcXVpcG1lbnQgcmVhZF9tYXJrZXRpbmcgd3JpdGVfbWFya2V0aW5nIiwiYXBwX2lkIjoiOWMzODNjZWItNDk3MC00ZWYxLWE4NWEtNjQ5YmYyZGU2M2I3IiwidXNlcl9pZCI6MTU4MDE3NiwiYWNjb3VudF9pZCI6NzE4NTc2LCJhdWQiOlsiaHR0cHM6Ly9nZXRqb2JiZXIuY29tL2dyYXBocWwiXSwiZXhwIjoxNzkxNzQ1OTU3fQ.QHD6OX9oWM-6d4Anbv-ppDw72Wj7hzDtk2nYXugRFvE",
+    "clientId": "27966135-e33e-4c2e-8dc3-ad7ba06dabb8",
+    "clientSecret": "65534ce762fe3ec20a5c1447794dabee0ac03f2caf1048c8686377d4e754a36a",
+    "accessToken": "eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOjE1ODAxNzYsImlzcyI6Imh0dHBzOi8vYXBpLmdldGpvYmJlci5jb20iLCJjbGllbnRfaWQiOiIyNzk2NjEzNS1lMzNlLTRjMmUtOGRjMy1hZDdiYTA2ZGFiYjgiLCJzY29wZSI6InJlYWRfY2xpZW50cyB3cml0ZV9jbGllbnRzIHJlYWRfcmVxdWVzdHMgd3JpdGVfcmVxdWVzdHMgcmVhZF9xdW90ZXMgd3JpdGVfcXVvdGVzIHJlYWRfam9icyB3cml0ZV9qb2JzIHJlYWRfc2NoZWR1bGVkX2l0ZW1zIHdyaXRlX3NjaGVkdWxlZF9pdGVtcyByZWFkX2ludm9pY2VzIHdyaXRlX2ludm9pY2VzIHJlYWRfam9iYmVyX3BheW1lbnRzIHJlYWRfdXNlcnMgd3JpdGVfdXNlcnMgd3JpdGVfdGF4X3JhdGVzIHJlYWRfZXhwZW5zZXMgd3JpdGVfZXhwZW5zZXMgcmVhZF9jdXN0b21fZmllbGRfY29uZmlndXJhdGlvbnMgd3JpdGVfY3VzdG9tX2ZpZWxkX2NvbmZpZ3VyYXRpb25zIHJlYWRfdGltZV9zaGVldHMgcmVhZF9lcXVpcG1lbnQgd3JpdGVfZXF1aXBtZW50IHJlYWRfbWFya2V0aW5nIHdyaXRlX21hcmtldGluZyIsImFwcF9pZCI6IjI3OTY2MTM1LWUzM2UtNGMyZS04ZGMzLWFkN2JhMDZkYWJiOCIsInVzZXJfaWQiOjE1ODAxNzYsImFjY291bnRfaWQiOjcxODU3NiwiYXVkIjpbImh0dHBzOi8vZ2V0am9iYmVyLmNvbS9ncmFwaHFsIl0sImV4cCI6MTc5MTY3NzQ3OH0.UPd5mvuhCo25gZBE5tc5Jgq3m5xoPqscZzUmlQD1TbU",
     "refreshToken": "fb6cc6a384c3c9811ef1925325e00043",
-    "lastSyncedAt": "2026-10-11T18:13:53.154Z"
+    "lastSyncedAt": "2026-10-10T23:19:35.388Z"
   },
   "chatMessages": [
     {

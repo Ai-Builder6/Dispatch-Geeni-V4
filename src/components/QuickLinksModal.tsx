@@ -19,21 +19,17 @@ import {
   Download,
   GitBranch,
   FileSpreadsheet,
-  Compass,
-  Calculator,
-  Flame,
-  ShieldAlert
+  Compass
 } from 'lucide-react';
 import { JOBBER_TEAM_MEMBERS } from '../data/jobberCalendarData';
 
 interface QuickLinksModalProps {
   isOpen: boolean;
   onClose: () => void;
-  onNavigateTo: (view: 'MAP' | 'CUSTOMER_PORTAL' | 'SCHEDULED_JOBS' | 'QUOTES' | 'INVOICES' | 'LEGAL' | 'ADDRESS_SEARCH' | 'LEADS' | 'QUICK_QUOTE', subTab?: string) => void;
+  onNavigateTo: (view: 'MAP' | 'CUSTOMER_PORTAL' | 'SCHEDULED_JOBS' | 'QUOTES' | 'INVOICES' | 'LEGAL' | 'ADDRESS_SEARCH', subTab?: string) => void;
   onOpenNewTicket?: () => void;
   onOpenTeamChat?: () => void;
   onOpenQuoPhone?: () => void;
-  onOpenSpamShield?: () => void;
   onOpenStaffRoster?: () => void;
   onOpenQuickReplies?: () => void;
   staffCount?: number;
@@ -48,7 +44,6 @@ export const QuickLinksModal: React.FC<QuickLinksModalProps> = ({
   onOpenNewTicket,
   onOpenTeamChat,
   onOpenQuoPhone,
-  onOpenSpamShield,
   onOpenStaffRoster,
   onOpenQuickReplies,
   staffCount = 15,
@@ -224,85 +219,6 @@ export const QuickLinksModal: React.FC<QuickLinksModalProps> = ({
                 </div>
                 <ChevronRight className="w-4 h-4 text-blue-400 group-hover:translate-x-0.5 transition-transform shrink-0 mt-1" />
               </button>
-
-              {/* Google Sheets Ad Leads */}
-              <button
-                onClick={() => {
-                  onNavigateTo('LEADS');
-                  onClose();
-                }}
-                className="p-3.5 rounded-2xl border border-rose-200 bg-rose-50/50 hover:bg-rose-100/60 transition-all text-left flex items-start justify-between gap-3 group cursor-pointer"
-              >
-                <div className="flex items-start gap-3">
-                  <div className="w-9 h-9 rounded-xl bg-rose-600 text-white flex items-center justify-center shrink-0 shadow-xs">
-                    <Flame className="w-5 h-5" />
-                  </div>
-                  <div>
-                    <h4 className="text-xs font-extrabold text-slate-900 group-hover:text-rose-700 transition-colors flex items-center gap-1.5">
-                      <span>Ad Leads &amp; Google Sheets</span>
-                      <span className="px-1.5 py-0.2 rounded text-[10px] font-mono bg-rose-200 text-rose-900 font-bold">
-                        99+
-                      </span>
-                    </h4>
-                    <p className="text-[11px] text-slate-500 mt-0.5">
-                      FB Leads_V1, FB Leads_V2, Google Leads_V3 tabs &amp; forms
-                    </p>
-                  </div>
-                </div>
-                <ChevronRight className="w-4 h-4 text-rose-400 group-hover:translate-x-0.5 transition-transform shrink-0 mt-1" />
-              </button>
-
-              {/* Quick Quote Phone Estimator */}
-              <button
-                onClick={() => {
-                  onNavigateTo('QUICK_QUOTE');
-                  onClose();
-                }}
-                className="p-3.5 rounded-2xl border border-fuchsia-200 bg-fuchsia-50/50 hover:bg-fuchsia-100/60 transition-all text-left flex items-start justify-between gap-3 group cursor-pointer"
-              >
-                <div className="flex items-start gap-3">
-                  <div className="w-9 h-9 rounded-xl bg-gradient-to-tr from-pink-600 to-fuchsia-600 text-white flex items-center justify-center shrink-0 shadow-xs">
-                    <Calculator className="w-5 h-5" />
-                  </div>
-                  <div>
-                    <h4 className="text-xs font-extrabold text-slate-900 group-hover:text-fuchsia-700 transition-colors">
-                      Quick Quote Phone Estimator
-                    </h4>
-                    <p className="text-[11px] text-slate-500 mt-0.5">
-                      1 cleaner $52.50/hr, 2 cleaners $105/hr, fuel &amp; tax
-                    </p>
-                  </div>
-                </div>
-                <ChevronRight className="w-4 h-4 text-fuchsia-400 group-hover:translate-x-0.5 transition-transform shrink-0 mt-1" />
-              </button>
-
-              {/* Twilio Spam Shield & Call Blocker */}
-              <button
-                onClick={() => {
-                  if (onOpenSpamShield) onOpenSpamShield();
-                  else if (onOpenQuoPhone) onOpenQuoPhone();
-                  onClose();
-                }}
-                className="p-3.5 rounded-2xl border border-rose-200 bg-rose-50/50 hover:bg-rose-100/60 transition-all text-left flex items-start justify-between gap-3 group cursor-pointer"
-              >
-                <div className="flex items-start gap-3">
-                  <div className="w-9 h-9 rounded-xl bg-gradient-to-tr from-rose-600 to-red-600 text-white flex items-center justify-center shrink-0 shadow-xs">
-                    <ShieldAlert className="w-5 h-5" />
-                  </div>
-                  <div>
-                    <h4 className="text-xs font-extrabold text-slate-900 group-hover:text-rose-700 transition-colors flex items-center gap-1.5">
-                      <span>Twilio Spam Shield</span>
-                      <span className="px-1.5 py-0.2 rounded text-[10px] font-mono bg-rose-200 text-rose-900 font-bold">
-                        Live Filter
-                      </span>
-                    </h4>
-                    <p className="text-[11px] text-slate-500 mt-0.5">
-                      Block foreign country codes, rotating numbers &amp; robocalls
-                    </p>
-                  </div>
-                </div>
-                <ChevronRight className="w-4 h-4 text-rose-400 group-hover:translate-x-0.5 transition-transform shrink-0 mt-1" />
-              </button>
             </div>
           </div>
 
@@ -447,7 +363,7 @@ export const QuickLinksModal: React.FC<QuickLinksModalProps> = ({
             </a>
           </div>
 
-          {/* Dual Independent Projects & Standalone Archive Downloads */}
+          {/* Download Repository ZIP for SourceTree / Git with Named Daily Checkpoints */}
           <div className="p-4 rounded-2xl bg-indigo-50 border border-indigo-200 flex flex-col gap-3 text-xs">
             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
               <div className="flex items-center gap-2.5">
@@ -456,89 +372,78 @@ export const QuickLinksModal: React.FC<QuickLinksModalProps> = ({
                 </div>
                 <div>
                   <p className="font-extrabold text-indigo-950 flex items-center gap-2 flex-wrap">
-                    <span>Two Separate Standalone Projects &amp; Archives</span>
-                    <span className="px-2 py-0.5 rounded text-[10px] font-mono bg-emerald-200 text-emerald-950 font-bold border border-emerald-300">
-                      Isolated Databases
+                    <span>Easy Dispatch Daily Checkpoint Archives (.ZIP)</span>
+                    <span className="px-2 py-0.5 rounded text-[10px] font-mono bg-indigo-200 text-indigo-900 font-bold">
+                      dispatch 05.zip
                     </span>
                   </p>
                   <p className="text-[11px] text-indigo-700 mt-0.5 leading-relaxed">
-                    The codebase is decoupled into two complete, independent projects with separate persistent stores and distinct Jobber OAuth configurations.
+                    Full codebase archive with 15 Jobber team members, Edmonton route dispatch, and real Jobber data. Every archive automatically extracts into its own dedicated folder (e.g. <code>dispatch 01/</code>, <code>dispatch 02/</code>, <code>dispatch 03/</code>, etc.) so each daily re-pull creates a clean new folder without overwriting.
                   </p>
                 </div>
               </div>
             </div>
 
-            {/* Project 1: dispatchgeeni.com */}
-            <div className="p-3 bg-white/90 rounded-xl border border-purple-200 flex flex-col sm:flex-row sm:items-center justify-between gap-2.5 shadow-2xs">
-              <div className="flex flex-col">
-                <div className="flex items-center gap-2">
-                  <span className="text-sm">🚀</span>
-                  <span className="font-extrabold text-purple-950 text-xs">Project 1: Dispatch Genie</span>
-                  <span className="px-1.5 py-0.5 rounded text-[10px] font-mono bg-purple-100 text-purple-800 font-bold">
-                    dispatchgeeni.com
-                  </span>
-                </div>
-                <span className="text-[10px] text-slate-500 mt-0.5 font-mono">
-                  Store: data/dispatch_geeni_store.json • Jobber: https://dispatchgeeni.com/api/jobber/oauth/callback
-                </span>
-              </div>
-              <a
-                href="/dispatch-genie-v1.zip"
-                download="dispatch-genie-v1.zip"
-                className="px-3.5 py-1.5 bg-gradient-to-r from-purple-700 to-pink-600 hover:opacity-95 text-white rounded-xl font-bold flex items-center gap-1.5 shadow-xs transition-all cursor-pointer shrink-0 active:scale-95 text-xs self-start sm:self-auto"
-                title="Download dispatch-genie-v1.zip standalone project archive"
-              >
-                <Download className="w-3.5 h-3.5" />
-                <span>dispatch-genie-v1.zip</span>
-              </a>
-            </div>
-
-            {/* Project 2: app.tidyupscleaning.com */}
-            <div className="p-3 bg-white/90 rounded-xl border border-emerald-200 flex flex-col sm:flex-row sm:items-center justify-between gap-2.5 shadow-2xs">
-              <div className="flex flex-col">
-                <div className="flex items-center gap-2">
-                  <span className="text-sm">✨</span>
-                  <span className="font-extrabold text-emerald-950 text-xs">Project 2: TidyUps Cleaning Operations</span>
-                  <span className="px-1.5 py-0.5 rounded text-[10px] font-mono bg-emerald-100 text-emerald-800 font-bold">
-                    app.tidyupscleaning.com
-                  </span>
-                </div>
-                <span className="text-[10px] text-slate-500 mt-0.5 font-mono">
-                  Store: data/tidyups_cleaning_store.json • Jobber: https://app.tidyupscleaning.com/api/jobber/oauth/callback
-                </span>
-              </div>
-              <a
-                href="/tidyups-cleaning-v1.zip"
-                download="tidyups-cleaning-v1.zip"
-                className="px-3.5 py-1.5 bg-gradient-to-r from-emerald-600 to-teal-700 hover:opacity-95 text-white rounded-xl font-bold flex items-center gap-1.5 shadow-xs transition-all cursor-pointer shrink-0 active:scale-95 text-xs self-start sm:self-auto"
-                title="Download tidyups-cleaning-v1.zip standalone project archive"
-              >
-                <Download className="w-3.5 h-3.5" />
-                <span>tidyups-cleaning-v1.zip</span>
-              </a>
-            </div>
-
-            {/* Daily Version Checkpoints Action Buttons */}
+            {/* Quick Daily Re-Pull Action Buttons */}
             <div className="flex items-center gap-2 flex-wrap pt-1 border-t border-indigo-200/60">
-              <span className="text-[10px] font-bold text-indigo-900 uppercase tracking-wider">Next Checkpoints:</span>
               <a
-                href="/api/download-zip?name=dispatch-genie-v2"
-                download="dispatch-genie-v2.zip"
-                className="px-2.5 py-1 bg-white hover:bg-indigo-100 text-indigo-800 border border-indigo-300 rounded-lg font-bold flex items-center gap-1 transition-all cursor-pointer text-[11px] active:scale-95"
-                title="Generate dispatch-genie-v2 archive"
+                href="/api/download-zip?name=dispatch%2001"
+                download="dispatch 01.zip"
+                className="px-3 py-2 bg-white hover:bg-indigo-100 text-indigo-800 border border-indigo-300 rounded-xl font-bold flex items-center gap-1.5 transition-all cursor-pointer text-xs active:scale-95"
+                title="Download dispatch 01 archive"
+              >
+                <Download className="w-3.5 h-3.5 text-indigo-600" />
+                <span>dispatch 01</span>
+              </a>
+
+              <a
+                href="/api/download-zip?name=dispatch%2002"
+                download="dispatch 02.zip"
+                className="px-3 py-2 bg-white hover:bg-indigo-100 text-indigo-800 border border-indigo-300 rounded-xl font-bold flex items-center gap-1.5 transition-all cursor-pointer text-xs active:scale-95"
+                title="Download dispatch 02 archive"
+              >
+                <Download className="w-3.5 h-3.5 text-indigo-600" />
+                <span>dispatch 02</span>
+              </a>
+
+              <a
+                href="/api/download-zip?name=dispatch%2003"
+                download="dispatch 03.zip"
+                className="px-3 py-2 bg-white hover:bg-indigo-100 text-indigo-800 border border-indigo-300 rounded-xl font-bold flex items-center gap-1.5 transition-all cursor-pointer text-xs active:scale-95"
+                title="Download dispatch 03 archive"
+              >
+                <Download className="w-3.5 h-3.5 text-indigo-600" />
+                <span>dispatch 03</span>
+              </a>
+
+              <a
+                href="/api/download-zip?name=dispatch%2004"
+                download="dispatch 04.zip"
+                className="px-3 py-2 bg-white hover:bg-indigo-100 text-indigo-800 border border-indigo-300 rounded-xl font-bold flex items-center gap-1.5 transition-all cursor-pointer text-xs active:scale-95"
+                title="Download dispatch 04 archive"
               >
                 <Download className="w-3 h-3 text-indigo-600" />
-                <span>dispatch-genie-v2</span>
+                <span>dispatch 04</span>
               </a>
 
               <a
-                href="/api/download-zip?name=tidyups-cleaning-v2"
-                download="tidyups-cleaning-v2.zip"
-                className="px-2.5 py-1 bg-white hover:bg-emerald-100 text-emerald-800 border border-emerald-300 rounded-lg font-bold flex items-center gap-1 transition-all cursor-pointer text-[11px] active:scale-95"
-                title="Generate tidyups-cleaning-v2 archive"
+                href="/api/download-zip?name=dispatch%2005"
+                download="dispatch 05.zip"
+                className="px-3.5 py-2 bg-purple-600 hover:bg-purple-700 text-white rounded-xl font-bold flex items-center gap-1.5 shadow-xs transition-all cursor-pointer shrink-0 active:scale-95"
+                title="Download dispatch 05 (Today) - Extracts into 'dispatch 05/' folder"
               >
-                <Download className="w-3 h-3 text-emerald-600" />
-                <span>tidyups-cleaning-v2</span>
+                <Download className="w-3.5 h-3.5" />
+                <span>dispatch 05 (Today)</span>
+              </a>
+
+              <a
+                href="/api/download-zip?name=dispatch%2006"
+                download="dispatch 06.zip"
+                className="px-3 py-2 bg-white hover:bg-indigo-100 text-indigo-800 border border-indigo-300 rounded-xl font-bold flex items-center gap-1.5 transition-all cursor-pointer text-xs active:scale-95"
+                title="Download dispatch 06 archive"
+              >
+                <Download className="w-3 h-3 text-indigo-600" />
+                <span>dispatch 06</span>
               </a>
             </div>
           </div>

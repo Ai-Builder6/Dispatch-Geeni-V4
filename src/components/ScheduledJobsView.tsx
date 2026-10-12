@@ -183,8 +183,8 @@ export const ScheduledJobsView: React.FC<ScheduledJobsViewProps> = ({
   const [copiedPhone, setCopiedPhone] = useState<boolean>(false);
   const [copiedAddress, setCopiedAddress] = useState<boolean>(false);
   
-  // Focused date for schedule navigation (Default: October 11, 2026)
-  const [selectedDate, setSelectedDate] = useState<Date>(() => new Date(2026, 9, 11));
+  // Focused date for schedule navigation (Default: October 2, 2026)
+  const [selectedDate, setSelectedDate] = useState<Date>(() => new Date(2026, 9, 2));
 
   // Day sub-view mode: 'TIMELINE' or 'LANES' (cleaner grid)
   const [daySubView, setDaySubView] = useState<'TIMELINE' | 'LANES'>('TIMELINE');
@@ -288,7 +288,7 @@ export const ScheduledJobsView: React.FC<ScheduledJobsViewProps> = ({
   };
 
   const handleGoToToday = () => {
-    setSelectedDate(new Date(2026, 9, 11)); // Sunday, October 11, 2026 (Today)
+    setSelectedDate(new Date(2026, 9, 2)); // Friday, October 2, 2026 (Jobber active date)
   };
 
   const handleJumpToMonth = (yr: number, mo: number) => {
@@ -476,7 +476,7 @@ export const ScheduledJobsView: React.FC<ScheduledJobsViewProps> = ({
     for (let day = 1; day <= daysInMonth; day++) {
       const d = new Date(currentYear, currentMonth, day);
       const ds = `${currentYear}-${String(currentMonth + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
-      const isToday = currentYear === 2026 && currentMonth === 9 && day === 11; // Oct 11, 2026 (Today)
+      const isToday = currentYear === 2026 && currentMonth === 9 && day === 2; // Oct 2, 2026
       const { jobsOnDate, quotesOnDate, invoicesOnDate } = getItemsForDateString(ds);
       cells.push({
         date: d,
@@ -522,7 +522,7 @@ export const ScheduledJobsView: React.FC<ScheduledJobsViewProps> = ({
       const d = new Date(startOfWeek);
       d.setDate(startOfWeek.getDate() + offset);
       const ds = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
-      const isToday = d.getFullYear() === 2026 && d.getMonth() === 9 && d.getDate() === 11;
+      const isToday = d.getFullYear() === 2026 && d.getMonth() === 9 && d.getDate() === 2;
       const { jobsOnDate, quotesOnDate, invoicesOnDate } = getItemsForDateString(ds);
       return {
         date: d,
@@ -544,7 +544,7 @@ export const ScheduledJobsView: React.FC<ScheduledJobsViewProps> = ({
       const d = new Date(selectedDate);
       d.setDate(selectedDate.getDate() + offset);
       const ds = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
-      const isToday = d.getFullYear() === 2026 && d.getMonth() === 9 && d.getDate() === 11;
+      const isToday = d.getFullYear() === 2026 && d.getMonth() === 9 && d.getDate() === 2;
       const { jobsOnDate, quotesOnDate, invoicesOnDate } = getItemsForDateString(ds);
       return {
         date: d,
@@ -564,7 +564,7 @@ export const ScheduledJobsView: React.FC<ScheduledJobsViewProps> = ({
   const singleDayInfo = useMemo(() => {
     const ds = `${selectedDate.getFullYear()}-${String(selectedDate.getMonth() + 1).padStart(2, '0')}-${String(selectedDate.getDate()).padStart(2, '0')}`;
     const { jobsOnDate, quotesOnDate, invoicesOnDate } = getItemsForDateString(ds);
-    const isToday = selectedDate.getFullYear() === 2026 && selectedDate.getMonth() === 9 && selectedDate.getDate() === 11;
+    const isToday = selectedDate.getFullYear() === 2026 && selectedDate.getMonth() === 9 && selectedDate.getDate() === 2;
 
     // Cleaner lanes: Group jobs by assigned cleaner
     const cleanerLanes: Record<string, ScheduledJobItem[]> = {};

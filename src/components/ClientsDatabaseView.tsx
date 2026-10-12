@@ -24,8 +24,6 @@ import {
 } from 'lucide-react';
 import { ClientRecord, ClientVerdict } from '../types/client';
 import { ClientModal } from './ClientModal';
-import { getCustomerIntelligence } from '../services/customerIntelligenceService';
-import { CustomerIntelligenceBadge } from './CustomerIntelligenceBadge';
 
 interface ClientsDatabaseViewProps {
   clients: ClientRecord[];
@@ -35,8 +33,6 @@ interface ClientsDatabaseViewProps {
   onOpenQuoModal?: () => void;
   onSelectClientOnMap?: (client: ClientRecord) => void;
   onScheduleClient?: (client: ClientRecord) => void;
-  calls?: any[];
-  visits?: any[];
 }
 
 export const ClientsDatabaseView: React.FC<ClientsDatabaseViewProps> = ({
@@ -47,8 +43,6 @@ export const ClientsDatabaseView: React.FC<ClientsDatabaseViewProps> = ({
   onOpenQuoModal,
   onSelectClientOnMap,
   onScheduleClient,
-  calls = [],
-  visits = [],
 }) => {
   const [searchQuery, setSearchQuery] = useState('');
   const [verdictFilter, setVerdictFilter] = useState<'ALL' | ClientVerdict | 'JOBBER_LINKED'>('ALL');
@@ -437,11 +431,6 @@ export const ClientsDatabaseView: React.FC<ClientsDatabaseViewProps> = ({
                       <h3 className="font-extrabold text-sm sm:text-base text-white tracking-tight truncate max-w-[200px]" title={client.name}>
                         {client.name}
                       </h3>
-
-                      <CustomerIntelligenceBadge
-                        intelligence={getCustomerIntelligence(client.phone, client.name, { calls, visits, clients })}
-                        compact
-                      />
 
                       {client.isJobberLinked && (
                         <span className="px-2 py-0.5 rounded-full text-[10px] font-mono font-bold bg-emerald-950/80 text-emerald-400 border border-emerald-800/70 flex items-center gap-1 shadow-2xs">

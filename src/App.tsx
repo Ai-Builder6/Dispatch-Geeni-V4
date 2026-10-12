@@ -36,12 +36,6 @@ import {
 } from './data/jobberCalendarData';
 import { QuotesView } from './components/QuotesView';
 import { InvoicesView } from './components/InvoicesView';
-import { LeadsView } from './components/LeadsView';
-import { QuickQuoteView } from './components/QuickQuoteView';
-import { QuickQuoteModal } from './components/QuickQuoteModal';
-import { TwilioSpamShieldModal } from './components/TwilioSpamShieldModal';
-import { AdLeadItem } from './types/lead';
-import { INITIAL_AD_LEADS } from './data/adLeadsData';
 import { LegalPagesView, LegalPageType } from './components/LegalPagesView';
 import { CustomerPortalView } from './components/CustomerPortalView';
 import { CleanerPortalView } from './components/CleanerPortalView';
@@ -107,9 +101,6 @@ import {
   Navigation,
   Compass,
   LogOut,
-  Calculator,
-  Flame,
-  ShieldAlert,
 } from 'lucide-react';
 
 // Helper to identify and strip any legacy simulation/mock data items
@@ -206,13 +197,13 @@ export function App() {
 
   const permissions = getRolePermissions(currentUser.role);
 
-  // Dedicated Top Bar Navigation Tabs: 'MAP' | 'CUSTOMER_PORTAL' | 'SCHEDULED_JOBS' | 'CLIENTS' | 'ADDRESS_SEARCH' | 'MANAGEMENT' | 'QUOTES' | 'INVOICES' | 'LEGAL' | 'LEADS' | 'QUICK_QUOTE'
-  const [activeTopView, setActiveTopView] = useState<'MAP' | 'CUSTOMER_PORTAL' | 'SCHEDULED_JOBS' | 'CLIENTS' | 'ADDRESS_SEARCH' | 'MANAGEMENT' | 'QUOTES' | 'INVOICES' | 'LEGAL' | 'LEADS' | 'QUICK_QUOTE'>(() => {
+  // Dedicated Top Bar Navigation Tabs: 'MAP' | 'CUSTOMER_PORTAL' | 'SCHEDULED_JOBS' | 'CLIENTS' | 'ADDRESS_SEARCH' | 'MANAGEMENT' | 'QUOTES' | 'INVOICES' | 'LEGAL'
+  const [activeTopView, setActiveTopView] = useState<'MAP' | 'CUSTOMER_PORTAL' | 'SCHEDULED_JOBS' | 'CLIENTS' | 'ADDRESS_SEARCH' | 'MANAGEMENT' | 'QUOTES' | 'INVOICES' | 'LEGAL'>(() => {
     if (typeof window !== 'undefined') {
       const isAuth = localStorage.getItem('tidyups_staff_authenticated') === 'true';
       if (!isAuth) return 'CUSTOMER_PORTAL';
       const savedTab = localStorage.getItem('tidyups_active_tab');
-      if (savedTab && ['MAP', 'CUSTOMER_PORTAL', 'SCHEDULED_JOBS', 'CLIENTS', 'ADDRESS_SEARCH', 'MANAGEMENT', 'QUOTES', 'INVOICES', 'LEGAL', 'LEADS', 'QUICK_QUOTE'].includes(savedTab)) {
+      if (savedTab && ['MAP', 'CUSTOMER_PORTAL', 'SCHEDULED_JOBS', 'CLIENTS', 'ADDRESS_SEARCH', 'MANAGEMENT', 'QUOTES', 'INVOICES', 'LEGAL'].includes(savedTab)) {
         return savedTab as any;
       }
       return 'MAP';
@@ -246,18 +237,6 @@ export function App() {
   const [clientsList, setClientsList] = useState<ClientRecord[]>(() => {
     return (storedData?.clients && storedData.clients.length > 0) ? storedData.clients : INITIAL_CLIENTS;
   });
-  const [leadsList, setLeadsList] = useState<AdLeadItem[]>(() => {
-    return (storedData?.adLeads && storedData.adLeads.length > 0) ? storedData.adLeads : INITIAL_AD_LEADS;
-  });
-  const [isQuickQuoteModalOpen, setIsQuickQuoteModalOpen] = useState<boolean>(false);
-  const [selectedLeadForQuickQuote, setSelectedLeadForQuickQuote] = useState<AdLeadItem | null>(null);
-  const [isSpamShieldModalOpen, setIsSpamShieldModalOpen] = useState<boolean>(false);
-  const [spamShieldNumber, setSpamShieldNumber] = useState<string>('');
-
-  const handleOpenSpamShield = (num?: string) => {
-    setSpamShieldNumber(num || '');
-    setIsSpamShieldModalOpen(true);
-  };
   const [isStaffModalOpen, setIsStaffModalOpen] = useState<boolean>(false);
   const [isVanHubModalOpen, setIsVanHubModalOpen] = useState<boolean>(false);
   const [editingVanHubTech, setEditingVanHubTech] = useState<Technician | null>(null);
@@ -271,110 +250,8 @@ export function App() {
     return (storedData?.invoices && storedData.invoices.length > 0) ? storedData.invoices : INITIAL_JOBBER_INVOICES;
   });
   const [selectedScheduledJobId, setSelectedScheduledJobId] = useState<string | null>(null);
-  const [quoCallsList, setQuoCallsList] = useState<any[]>(() => {
-    return storedData?.quoCallLogs || [];
-  });
   const [isSyncingFirestore, setIsSyncingFirestore] = useState<boolean>(false);
   const [firestoreSyncStatus, setFirestoreSyncStatus] = useState<string | null>(null);
-
-  // Active Project Identification (Dispatch Genie vs TidyUps Cleaning Operations)
-  const [activeProjectId, setActiveProjectId] = useState<'dispatchgeeni' | 'tidyups'>(() => {
-    if (typeof window !== 'undefined') {
-      const host = window.location.hostname || '';
-      if (host.includes('tidyupscleaning')) return 'tidyups';
-      if (host.includes('dispatchgeeni') || host.includes('dispatchgenie')) return 'dispatchgeeni';
-      const saved = localStorage.getItem('active_project_id');
-      if (saved === 'tidyups' || saved === 'dispatchgeeni') return saved;
-    }
-    return 'dispatchgeeni';
-  });
-
-  // Switch between the two isolated projects, updating persistent state and isolated store
-  const handleSwitchProject = useCallback(async (targetProj: 'dispatchgeeni' | 'tidyups') => {
-    setActiveProjectId(targetProj);
-    if (typeof window !== 'undefined') {
-      localStorage.setItem('active_project_id', targetProj);
-    }
-    try {
-      const res = await fetch(`/api/store?project=${targetProj}`);
-      const data = await res.json();
-      if (data) {
-        if (data.tickets && data.tickets.length > 0) setTickets(data.tickets);
-        if (data.scheduledVisits && data.scheduledVisits.length > 0) {
-          setScheduledJobsList(
-            data.scheduledVisits.map((v: any, idx: number) => ({
-              id: v.id || `visit-${idx}`,
-              visitNumber: v.visitNumber || `VISIT-${4000 + idx}`,
-              title: v.title || 'Cleaning Service Visit',
-              clientName: v.clientName || 'Jobber Client',
-              clientPhone: v.clientPhone || '(780) 555-0100',
-              secondaryPhone: v.secondaryPhone,
-              serviceAddress: v.serviceAddress || '10405 Jasper Ave NW, Edmonton, AB',
-              lat: v.lat || 53.5412 + (idx % 3) * 0.02 - 0.01,
-              lng: v.lng || -113.4988 + (idx % 4) * 0.03 - 0.015,
-              startAt: v.startAt || new Date().toISOString(),
-              endAt: v.endAt || new Date(Date.now() + 3600000).toISOString(),
-              assignedCleaners: v.assignedCleaners || ['Melissa Clarke', 'Joel Mbatchou'],
-              serviceType: v.serviceType || 'Standard Cleaning',
-              status: v.status || 'SCHEDULED',
-              jobberWebUri: v.jobberWebUri || 'https://secure.getjobber.com',
-              notes: v.notes,
-            }))
-          );
-        }
-        if (data.unscheduledJobs && data.unscheduledJobs.length > 0) setUnscheduledJobsList(data.unscheduledJobs);
-        if (data.clients && data.clients.length > 0) setClientsList(data.clients);
-        if (data.quotes && data.quotes.length > 0) setQuotesList(data.quotes);
-        if (data.invoices && data.invoices.length > 0) setInvoicesList(data.invoices);
-        if (data.quoCallLogs && data.quoCallLogs.length > 0) setQuoCallsList(data.quoCallLogs);
-        if (data.adLeads && data.adLeads.length > 0) setLeadsList(data.adLeads);
-      }
-    } catch (err) {
-      console.warn('Switch project fetch error:', err);
-    }
-  }, []);
-
-  // Fetch leads from backend Google Sheets sync on mount or project switch
-  useEffect(() => {
-    fetch(`/api/leads?project=${activeProjectId}`)
-      .then((r) => r.json())
-      .then((data) => {
-        if (data && data.leads && data.leads.length > 0) {
-          setLeadsList(data.leads);
-        }
-      })
-      .catch((err) => console.warn('Leads fetch error:', err));
-  }, [activeProjectId]);
-
-  // Convert an inbound Google Sheet / Ad Lead directly into a scheduled dispatched job visit
-  const handleConvertLeadToJob = useCallback(async (lead: AdLeadItem) => {
-    try {
-      const res = await fetch(`/api/quo/calls/convert-to-job?project=${activeProjectId}`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json', 'x-project-id': activeProjectId },
-        body: JSON.stringify({
-          callerName: lead.customerName,
-          callerPhone: lead.phone || '(780) 555-0199',
-          serviceAddress: lead.address || 'Edmonton, AB',
-          serviceType: lead.serviceRequested || 'Residential Standard Cleaning',
-          scheduledDate: new Date().toISOString().slice(0, 10),
-          scheduledTime: '10:00',
-          assignedCleaners: ['Cindy Guay'],
-          totalAmount: lead.quotedAmount || 280,
-          notes: `Converted from Lead (${lead.source || 'Google Sheet'}). Source Tab: ${lead.sourceTab || 'Ad Campaign'}. Notes: ${lead.notes || ''}`,
-        }),
-      });
-      const data = await res.json();
-      if (data.success && data.newVisit) {
-        setScheduledJobsList((prev) => [data.newVisit, ...prev]);
-        setLeadsList((prev) =>
-          prev.map((l) => (l.id === lead.id ? { ...l, status: 'Converted', convertedJobId: data.newVisit.id } : l))
-        );
-      }
-    } catch (err) {
-      console.warn('Convert lead to job error:', err);
-    }
-  }, [activeProjectId]);
 
   // Sync Firebase Auth session with active staff account
   useEffect(() => {
@@ -750,9 +627,7 @@ export function App() {
       }
     }
 
-    fetch(`/api/store?project=${activeProjectId}`, {
-      headers: { 'x-project-id': activeProjectId },
-    })
+    fetch('/api/store')
       .then((r) => r.json())
       .then((data) => {
         if (data) {
@@ -817,13 +692,12 @@ export function App() {
           }
           if (data.quotes && data.quotes.length > 0) setQuotesList(data.quotes);
           if (data.invoices && data.invoices.length > 0) setInvoicesList(data.invoices);
-          if (data.quoCallLogs && data.quoCallLogs.length > 0) setQuoCallsList(data.quoCallLogs);
         }
       })
       .catch((err) => console.warn('Could not load persistent store:', err));
-  }, [activeProjectId]);
+  }, []);
 
-  // Unified persistent auto-save: preserves all user entries, clients, quotes, invoices, and jobs across refreshes per project
+  // Unified persistent auto-save: preserves all user entries, clients, quotes, invoices, and jobs across refreshes
   useEffect(() => {
     try {
       if (typeof window !== 'undefined') {
@@ -837,24 +711,21 @@ export function App() {
           invoices: invoicesList,
           lastSavedAt: new Date().toISOString(),
         };
-        localStorage.setItem(`${activeProjectId}_dispatch_data`, JSON.stringify(payload));
+        localStorage.setItem('tidyups_dispatch_data', JSON.stringify(payload));
       }
     } catch (err) {
       console.warn('Auto-save error:', err);
     }
-  }, [activeProjectId, tickets, technicians, scheduledJobsList, unscheduledJobsList, clientsList, quotesList, invoicesList]);
+  }, [tickets, technicians, scheduledJobsList, unscheduledJobsList, clientsList, quotesList, invoicesList]);
 
   // Save tickets to local persistent database whenever updated
   const saveStateToStore = useCallback((updatedTickets: ServiceTicket[]) => {
-    fetch(`/api/store/save?project=${activeProjectId}`, {
+    fetch('/api/store/save', {
       method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'x-project-id': activeProjectId,
-      },
+      headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ tickets: updatedTickets }),
     }).catch((err) => console.warn('Store save note:', err));
-  }, [activeProjectId]);
+  }, []);
 
   // Responsive layout & collapsible component states
   const [isBoardCollapsed, setIsBoardCollapsed] = useState<boolean>(false);
@@ -1292,19 +1163,19 @@ export function App() {
     0
   );
 
-  // Live Date/Time for header - Local Edmonton MDT Dispatch Time
-  const [currentTime, setCurrentTime] = useState<string>('6:34 PM');
-  const [currentDate] = useState<string>('Sunday, October 11, 2026');
+  // Live Date/Time for header
+  const [currentTime, setCurrentTime] = useState<string>(
+    new Date().toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' })
+  );
+  const [currentDate] = useState<string>(
+    new Date().toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' })
+  );
 
   useEffect(() => {
-    const now = new Date();
-    if (now.getFullYear() === 2026) {
-      setCurrentTime(now.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' }));
-      const timer = setInterval(() => {
-        setCurrentTime(new Date().toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' }));
-      }, 10000);
-      return () => clearInterval(timer);
-    }
+    const timer = setInterval(() => {
+      setCurrentTime(new Date().toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' }));
+    }, 10000);
+    return () => clearInterval(timer);
   }, []);
 
   return (
@@ -1349,37 +1220,7 @@ export function App() {
             className="h-16 px-3 sm:px-6 bg-white border-b border-slate-200 flex items-center justify-between flex-shrink-0 z-20 shadow-xs gap-3"
           >
             <div className="flex items-center gap-2 sm:gap-3 cursor-pointer" onClick={() => setActiveTopView('CUSTOMER_PORTAL')}>
-              <BookMyCleaningLogo projectId={activeProjectId} size={36} withText={true} />
-            </div>
-
-            {/* Dual Project Switcher (Independent Projects) */}
-            <div className="flex items-center bg-slate-100 p-0.5 rounded-xl border border-slate-200 text-xs font-bold shrink-0">
-              <button
-                type="button"
-                onClick={() => handleSwitchProject('dispatchgeeni')}
-                className={`px-2.5 py-1 rounded-lg transition-all flex items-center gap-1 cursor-pointer ${
-                  activeProjectId === 'dispatchgeeni'
-                    ? 'bg-purple-700 text-white shadow-2xs font-extrabold'
-                    : 'text-slate-600 hover:text-slate-900'
-                }`}
-                title="Switch to Dispatch Genie (dispatchgeeni.com) - Isolated Database"
-              >
-                <span>🚀</span>
-                <span className="hidden md:inline">dispatchgeeni.com</span>
-              </button>
-              <button
-                type="button"
-                onClick={() => handleSwitchProject('tidyups')}
-                className={`px-2.5 py-1 rounded-lg transition-all flex items-center gap-1 cursor-pointer ${
-                  activeProjectId === 'tidyups'
-                    ? 'bg-emerald-700 text-white shadow-2xs font-extrabold'
-                    : 'text-slate-600 hover:text-slate-900'
-                }`}
-                title="Switch to TidyUps Operations (app.tidyupscleaning.com) - Isolated Database"
-              >
-                <span>✨</span>
-                <span className="hidden md:inline">app.tidyupscleaning.com</span>
-              </button>
+              <BookMyCleaningLogo size={36} withText={true} />
             </div>
 
             <div className="flex items-center gap-2 sm:gap-3">
@@ -1387,7 +1228,7 @@ export function App() {
               <a
                 href="tel:18338439877"
                 className="hidden md:flex items-center gap-2 px-3 py-1.5 bg-gradient-to-r from-pink-50 to-purple-50 hover:from-pink-100 hover:to-purple-100 border border-pink-200/80 rounded-xl text-xs font-bold text-slate-800 transition-all cursor-pointer shadow-2xs group"
-                title="Dispatch Genie Toll-Free Hotline: 1-833-TIDYUPS (833-843-9877) or Direct Dispatch: (587) 900-7223"
+                title="Tidyups Toll-Free Hotline"
               >
                 <div className="w-6 h-6 rounded-lg bg-gradient-to-tr from-pink-600 to-purple-600 text-white flex items-center justify-center shrink-0 shadow-2xs">
                   <Phone className="w-3.5 h-3.5 text-white" />
@@ -1435,44 +1276,14 @@ export function App() {
           >
             {/* Brand & Identity */}
             <div className="flex items-center gap-1.5 sm:gap-2.5 min-w-0 flex-shrink cursor-pointer" onClick={() => setActiveTopView('MAP')}>
-              <BookMyCleaningLogo projectId={activeProjectId} size={36} withText={true} />
-            </div>
-
-            {/* Dual Project Switcher (Independent Projects) */}
-            <div className="hidden xl:flex items-center bg-slate-100 p-0.5 rounded-xl border border-slate-200 text-xs font-bold shrink-0">
-              <button
-                type="button"
-                onClick={() => handleSwitchProject('dispatchgeeni')}
-                className={`px-2.5 py-1 rounded-lg transition-all flex items-center gap-1 cursor-pointer ${
-                  activeProjectId === 'dispatchgeeni'
-                    ? 'bg-purple-700 text-white shadow-2xs font-extrabold'
-                    : 'text-slate-600 hover:text-slate-900'
-                }`}
-                title="Switch to Dispatch Genie (dispatchgeeni.com) - Isolated Database"
-              >
-                <span>🚀</span>
-                <span>dispatchgeeni.com</span>
-              </button>
-              <button
-                type="button"
-                onClick={() => handleSwitchProject('tidyups')}
-                className={`px-2.5 py-1 rounded-lg transition-all flex items-center gap-1 cursor-pointer ${
-                  activeProjectId === 'tidyups'
-                    ? 'bg-emerald-700 text-white shadow-2xs font-extrabold'
-                    : 'text-slate-600 hover:text-slate-900'
-                }`}
-                title="Switch to TidyUps Operations (app.tidyupscleaning.com) - Isolated Database"
-              >
-                <span>✨</span>
-                <span>app.tidyupscleaning.com</span>
-              </button>
+              <BookMyCleaningLogo size={36} withText={true} />
             </div>
 
             {/* Vanity Line & Direct Dispatch Badge */}
             <a
               href="tel:18338439877"
               className="hidden 2xl:flex items-center gap-2 px-2.5 py-1 bg-gradient-to-r from-pink-50 to-purple-50 hover:from-pink-100 hover:to-purple-100 border border-pink-200/80 rounded-xl text-xs font-bold text-slate-800 transition-all cursor-pointer shadow-2xs shrink-0 group"
-              title="Call Dispatch Genie Vanity Line: 1-833-TIDYUPS (833-843-9877) or Direct Dispatch: (587) 900-7223"
+              title="Call Tidyups Vanity Line: 1-833-TIDYUPS (833-843-9877) or Direct Dispatch: (587) 900-7223"
             >
               <div className="w-6 h-6 rounded-lg bg-gradient-to-tr from-pink-600 to-purple-600 text-white flex items-center justify-center shrink-0 shadow-2xs">
                 <Phone className="w-3.5 h-3.5 text-white" />
@@ -1642,41 +1453,6 @@ export function App() {
                     </span>
                   </button>
 
-                  {/* Dedicated Google Sheets & Ad Leads Tab */}
-                  <button
-                    id="nav-tab-leads"
-                    onClick={() => setActiveTopView('LEADS')}
-                    className={`min-h-[34px] px-3 py-1 rounded-lg text-xs font-bold flex items-center gap-1.5 transition-all cursor-pointer ${
-                      activeTopView === 'LEADS'
-                        ? 'bg-gradient-to-r from-pink-600 to-rose-600 text-white shadow-xs font-extrabold'
-                        : 'text-slate-600 hover:text-slate-900 hover:bg-white/60'
-                    }`}
-                    title="Ad Leads from Google Sheets (FB Leads, Google Ads, forms) (/leads)"
-                  >
-                    <Flame className={`w-3.5 h-3.5 ${activeTopView === 'LEADS' ? 'text-white' : 'text-rose-600'}`} />
-                    <span>Leads</span>
-                    <span className={`px-1.5 py-0.2 rounded-full text-[10px] font-mono font-bold ${
-                      activeTopView === 'LEADS' ? 'bg-white/20 text-white' : 'bg-rose-100 text-rose-700'
-                    }`}>
-                      {leadsList.length > 99 ? '99+' : leadsList.length}
-                    </span>
-                  </button>
-
-                  {/* Dedicated Quick Quote Tab */}
-                  <button
-                    id="nav-tab-quick-quote"
-                    onClick={() => setActiveTopView('QUICK_QUOTE')}
-                    className={`min-h-[34px] px-3 py-1 rounded-lg text-xs font-bold flex items-center gap-1.5 transition-all cursor-pointer ${
-                      activeTopView === 'QUICK_QUOTE'
-                        ? 'bg-gradient-to-r from-pink-600 to-purple-600 text-white shadow-xs font-extrabold'
-                        : 'text-slate-600 hover:text-slate-900 hover:bg-white/60'
-                    }`}
-                    title="Fast Phone Estimator & Booking (1 cleaner $52.50/hr, 2 cleaners $105/hr) (/quote)"
-                  >
-                    <Calculator className={`w-3.5 h-3.5 ${activeTopView === 'QUICK_QUOTE' ? 'text-white' : 'text-pink-600'}`} />
-                    <span>Quick Quote</span>
-                  </button>
-
                   {/* Management Hub Tab - Groups Quotes, Invoices, Staff Roster, Policies & Terms */}
                   <button
                     id="nav-tab-management"
@@ -1811,21 +1587,6 @@ export function App() {
                 </button>
               )}
 
-              {/* Twilio Spam Shield & Call Blocker Button */}
-              {permissions.canAccessQuoPhoneConfig && (
-                <button
-                  id="topbar-spam-shield-btn"
-                  onClick={() => handleOpenSpamShield()}
-                  className="min-h-[34px] sm:min-h-[36px] landscape:max-md:min-h-[32px] px-2.5 sm:px-3 py-1 sm:py-1.5 rounded-xl bg-rose-50 hover:bg-rose-100 text-rose-800 border border-rose-300 text-xs font-bold flex items-center gap-1.5 transition-all shadow-2xs whitespace-nowrap cursor-pointer flex-shrink-0"
-                  title="Twilio Spam Shield: Block country codes, rotating numbers & robocalls"
-                  aria-label="Open Twilio Spam Shield"
-                >
-                  <ShieldAlert className="w-3.5 h-3.5 text-rose-600 shrink-0" aria-hidden="true" />
-                  <span className="hidden sm:inline">Spam Shield</span>
-                  <span className="sm:hidden">Shield</span>
-                </button>
-              )}
-
               {/* PWA Mobile & Web App Installation Button */}
               <PWAInstallButton />
 
@@ -1898,18 +1659,8 @@ export function App() {
           </header>
         )}
 
-        {/* Unauthenticated public visitors are strictly restricted to the Customer Booking Portal or Support/Legal */}
-        {!isStaffAuthenticated && activeTopView !== 'LEGAL' ? (
-          <CustomerPortalView
-            onBookingSubmitted={(ticket) => {
-              setTickets((prev) => [ticket, ...prev]);
-              saveStateToStore([ticket, ...tickets]);
-            }}
-            onNavigateToMap={() => setIsRoleModalOpen(true)}
-            onOpenPhoneModal={() => setIsQuoModalOpen(true)}
-            onOpenStaffLogin={() => setIsRoleModalOpen(true)}
-          />
-        ) : activeTopView === 'CUSTOMER_PORTAL' ? (
+        {/* View Switching: Customer Portal, Address Radar, Scheduled Jobs, Quotes, Invoices, or Main Dispatch Map */}
+        {activeTopView === 'CUSTOMER_PORTAL' ? (
           <CustomerPortalView
             onBookingSubmitted={(ticket) => {
               setTickets((prev) => [ticket, ...prev]);
@@ -2002,8 +1753,6 @@ export function App() {
         ) : activeTopView === 'CLIENTS' ? (
           <ClientsDatabaseView
             clients={clientsList}
-            calls={quoCallsList}
-            visits={scheduledJobsList}
             onUpdateClient={handleUpdateClient}
             onAddClient={handleAddClient}
             onDeleteClient={handleDeleteClient}
@@ -2023,7 +1772,6 @@ export function App() {
             onOpenStaffRoster={() => setIsStaffModalOpen(true)}
             onOpenJobberSync={() => setIsJobberModalOpen(true)}
             onOpenQuoModal={() => setIsQuoModalOpen(true)}
-            onOpenSpamShield={handleOpenSpamShield}
             onNavigateToLegal={(tab) => {
               setActiveLegalTab(tab);
               setActiveTopView('LEGAL');
@@ -2044,77 +1792,29 @@ export function App() {
         ) : activeTopView === 'QUOTES' ? (
           <QuotesView
             quotes={quotesList}
-            calls={quoCallsList}
-            visits={scheduledJobsList}
-            clients={clientsList}
-            projectId={activeProjectId}
-            onQuotesUpdated={(updated) => setQuotesList(updated)}
-            onVisitCreated={(newVisit) => {
-              setScheduledJobsList((prev) => [newVisit, ...prev]);
-            }}
             onRefreshQuotes={() => {
-              fetch(`/api/jobber/sync-quotes?project=${activeProjectId}`, {
-                method: 'POST',
-                headers: { 'x-project-id': activeProjectId },
-              })
+              fetch('/api/jobber/sync-quotes', { method: 'POST' })
                 .then((r) => r.json())
                 .then((data) => {
                   if (data.quotes) setQuotesList(data.quotes);
                 });
             }}
-            onBackToManagement={() => setActiveTopView('MANAGEMENT')}
           />
         ) : activeTopView === 'INVOICES' ? (
           <InvoicesView
             invoices={invoicesList}
-            onInvoicesUpdated={(updated) => setInvoicesList(updated)}
             onRefreshInvoices={() => {
-              fetch(`/api/jobber/sync-invoices?project=${activeProjectId}`, {
-                method: 'POST',
-                headers: { 'x-project-id': activeProjectId },
-              })
+              fetch('/api/jobber/sync-invoices', { method: 'POST' })
                 .then((r) => r.json())
                 .then((data) => {
                   if (data.invoices) setInvoicesList(data.invoices);
                 });
             }}
-            onBackToManagement={() => setActiveTopView('MANAGEMENT')}
           />
         ) : activeTopView === 'LEGAL' ? (
           <LegalPagesView
             initialTab={activeLegalTab}
             onBackToDispatch={() => setActiveTopView('MAP')}
-          />
-        ) : activeTopView === 'LEADS' ? (
-          <LeadsView
-            leads={leadsList}
-            onLeadsUpdated={(updated) => setLeadsList(updated)}
-            onConvertLeadToJob={handleConvertLeadToJob}
-            onOpenQuickQuote={(lead) => {
-              setSelectedLeadForQuickQuote(lead || null);
-              setIsQuickQuoteModalOpen(true);
-            }}
-            onOpenSpamShield={handleOpenSpamShield}
-            calls={quoCallsList}
-            visits={scheduledJobsList}
-            clients={clientsList}
-            projectId={activeProjectId}
-          />
-        ) : activeTopView === 'QUICK_QUOTE' ? (
-          <QuickQuoteView
-            initialLead={selectedLeadForQuickQuote}
-            onVisitCreated={(newVisit) => {
-              setScheduledJobsList((prev) => [newVisit, ...prev]);
-              setActiveTopView('SCHEDULED_JOBS');
-            }}
-            onQuoteCreated={(newQuote) => {
-              setQuotesList((prev) => [newQuote, ...prev]);
-            }}
-            calls={quoCallsList}
-            visits={scheduledJobsList}
-            clients={clientsList}
-            quotes={quotesList}
-            projectId={activeProjectId}
           />
         ) : currentUser.role === 'CLEANER' && !cleanerShowMap ? (
           <CleanerPortalView
@@ -2344,9 +2044,6 @@ export function App() {
                 onMessageTech={handleMessageTech}
                 activeTab={kanbanActiveTab}
                 onActiveTabChange={setKanbanActiveTab}
-                calls={quoCallsList}
-                visits={scheduledJobsList}
-                clients={clientsList}
                 onClose={() => {
                   setIsBoardCollapsed(true);
                   setIsLandscapeDrawerOpen(false);
@@ -2368,14 +2065,12 @@ export function App() {
               <span>Fleet Health: <span className="text-emerald-400 font-bold">Optimal</span></span>
               <span>Cleaners: <span className="text-slate-200 font-mono">15 Active Cleaners</span></span>
               <a
-                href={activeProjectId === 'tidyups' ? 'https://app.tidyupscleaning.com' : 'https://dispatchgeeni.com'}
+                href="https://app.tidyupscleaning.com"
                 target="_blank"
                 rel="noopener noreferrer"
-                className={`hidden lg:inline font-mono font-semibold ${
-                  activeProjectId === 'tidyups' ? 'text-emerald-400 hover:text-emerald-300' : 'text-purple-400 hover:text-purple-300'
-                }`}
+                className="hidden lg:inline text-purple-400 hover:text-purple-300 font-mono font-semibold"
               >
-                {activeProjectId === 'tidyups' ? 'app.tidyupscleaning.com' : 'dispatchgeeni.com'}
+                app.tidyupscleaning.com
               </a>
               <span className="hidden xl:inline text-pink-400 font-mono font-bold">1-833-TIDYUPS</span>
               <div className="hidden sm:flex items-center gap-2 border-l border-slate-700 pl-3">
@@ -2456,7 +2151,6 @@ export function App() {
           onClose={() => setIsJobberModalOpen(false)}
           tickets={tickets}
           onTicketsUpdated={setTickets}
-          projectId={activeProjectId}
         />
 
         {/* Public Booking Modal (Option A for bookmycleaning.net) */}
@@ -2469,47 +2163,10 @@ export function App() {
           }}
         />
 
-        {/* Quick Quote Phone Intake & Estimator Modal */}
-        <QuickQuoteModal
-          isOpen={isQuickQuoteModalOpen}
-          onClose={() => {
-            setIsQuickQuoteModalOpen(false);
-            setSelectedLeadForQuickQuote(null);
-          }}
-          initialLead={selectedLeadForQuickQuote}
-          onSaveBooking={(newVisit) => {
-            setScheduledJobsList((prev) => [newVisit, ...prev]);
-          }}
-          onCreateJobberQuote={(newQuote) => {
-            setQuotesList((prev) => [newQuote, ...prev]);
-          }}
-          calls={quoCallsList}
-          visits={scheduledJobsList}
-          clients={clientsList}
-          projectId={activeProjectId}
-        />
-
         {/* Quo (OpenPhone) 5-Line Phone System Modal */}
         <QuoModal
           isOpen={isQuoModalOpen}
           onClose={() => setIsQuoModalOpen(false)}
-          projectId={activeProjectId}
-          clients={clientsList}
-          visits={scheduledJobsList}
-          onVisitCreated={(newVisit) => {
-            setScheduledJobsList((prev) => [newVisit, ...prev]);
-          }}
-          onDataUpdated={() => {
-            fetch(`/api/store?project=${activeProjectId}`)
-              .then((r) => r.json())
-              .then((data) => {
-                if (data.scheduledVisits) setScheduledJobsList(data.scheduledVisits);
-                if (data.quotes) setQuotesList(data.quotes);
-                if (data.clients) setClientsList(data.clients);
-                if (data.quoCallLogs) setQuoCallsList(data.quoCallLogs);
-              })
-              .catch(() => {});
-          }}
           onJobSelected={(_jobId) => {
             setActiveTopView('SCHEDULED_JOBS');
           }}
@@ -2528,7 +2185,6 @@ export function App() {
           onOpenNewTicket={() => setIsNewTicketModalOpen(true)}
           onOpenTeamChat={() => setIsChatOpen(true)}
           onOpenQuoPhone={() => setIsQuoModalOpen(true)}
-          onOpenSpamShield={handleOpenSpamShield}
           onOpenStaffRoster={() => setIsStaffModalOpen(true)}
           onOpenQuickReplies={() => setIsQuickRepliesOpen(true)}
           staffCount={staffList.length}
@@ -2568,14 +2224,6 @@ export function App() {
           currentUser={currentUser}
           selectedRecipient={chatRecipient}
           onSelectRecipient={setChatRecipient}
-        />
-
-        {/* Twilio Spam Shield & Call Blocker Modal */}
-        <TwilioSpamShieldModal
-          isOpen={isSpamShieldModalOpen}
-          onClose={() => setIsSpamShieldModalOpen(false)}
-          projectId={activeProjectId}
-          preFillNumber={spamShieldNumber}
         />
 
         {/* Role Selector & Login Switcher Modal */}
