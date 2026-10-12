@@ -346,6 +346,17 @@ export function App() {
       .catch((err) => console.warn('Leads fetch error:', err));
   }, [activeProjectId]);
 
+  // Sync document title dynamically according to domain / activeProjectId
+  useEffect(() => {
+    if (typeof document !== 'undefined') {
+      if (activeProjectId === 'tidyups') {
+        document.title = 'TidyUps Cleaning Operations – Live Dispatch Board & Customer Booking';
+      } else {
+        document.title = 'Dispatch Genie – Smart Field Service Dispatch & Scheduling';
+      }
+    }
+  }, [activeProjectId]);
+
   // Convert an inbound Google Sheet / Ad Lead directly into a scheduled dispatched job visit
   const handleConvertLeadToJob = useCallback(async (lead: AdLeadItem) => {
     try {
