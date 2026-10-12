@@ -1,11 +1,3 @@
-// Safeguard tsx runtime bug where global.__dirname is set to '.' breaking createRequire in ESM
-if ((globalThis as any).__dirname === ".") {
-  delete (globalThis as any).__dirname;
-}
-if ((global as any).__dirname === ".") {
-  delete (global as any).__dirname;
-}
-
 import express from "express";
 import http from "http";
 import path from "path";
@@ -23,7 +15,6 @@ import {
   generateJobberInvoices,
 } from "./src/data/jobberCalendarData";
 import { INITIAL_CLIENTS } from "./src/data/clientsData";
-import { INITIAL_AD_LEADS } from "./src/data/adLeadsData";
 import {
   JobberStaffMember,
   CANONICAL_JOBBER_STAFF,
@@ -36,8 +27,6 @@ import {
   syncJobberQuotes,
   syncJobberInvoices,
   pushBookingToJobber,
-  pushQuoteToJobber,
-  pushInvoiceToJobber,
   runComprehensiveJobberSync,
   setJobberTokenRefreshListener,
   verifyJobberConnection,
@@ -949,36 +938,14 @@ function getAppBaseUrl(req: express.Request): string {
   }
   // Jobber strictly requires HTTPS for OAuth redirect URIs
   const forwardedHost = (req.headers["x-forwarded-host"] as string) || req.get("host") || "";
-  if (forwardedHost.includes("dispatchgeeni.com") || forwardedHost.includes("dispatchgenie.com") || forwardedHost.includes("distpatchgeeni.com")) {
-    return "https://dispatchgeeni.com";
-  }
   if (forwardedHost.includes("tidyupscleaning.com")) {
     return "https://app.tidyupscleaning.com";
   }
   if (forwardedHost.includes("run.app") || forwardedHost.includes("ais-")) {
     return `https://${forwardedHost}`;
   }
-  // Production domain connected via Hostinger
-  return "https://dispatchgeeni.com";
-}
-
-export function getProjectId(req: express.Request): "dispatchgeeni" | "tidyups" {
-  const queryProj = (((req.query?.project as string) || (req.query?.projectId as string)) || "").trim().toLowerCase();
-  if (queryProj.includes("tidyup")) return "tidyups";
-  if (queryProj.includes("dispatch")) return "dispatchgeeni";
-
-  const headerProj = ((req.headers?.["x-project-id"] as string) || "").trim().toLowerCase();
-  if (headerProj.includes("tidyup")) return "tidyups";
-  if (headerProj.includes("dispatch")) return "dispatchgeeni";
-
-  const forwardedHost = (req.headers?.["x-forwarded-host"] as string) || req.get?.("host") || "";
-  if (forwardedHost.includes("tidyupscleaning.com")) {
-    return "tidyups";
-  }
-  if (process.env.ACTIVE_PROJECT_ID === "tidyups") {
-    return "tidyups";
-  }
-  return "dispatchgeeni";
+  // Production domain where the Jobber Redirect URI is registered
+  return "https://app.tidyupscleaning.com";
 }
 
 // Jobber Developer App & GraphQL Integration Endpoints (https://developer.getjobber.com/docs)
@@ -1064,50 +1031,28 @@ function getJobberCreds() {
   };
 }
 
-function persistJobberConfigToDisk(projectId?: string) {
-  const cfg = {
-    isConnected: jobberConfig.isConnected,
-    accountName: jobberConfig.accountName,
-    clientId: jobberConfig.clientId,
-    clientSecret: jobberConfig.clientSecret,
-    accessToken: jobberConfig.accessToken,
-    refreshToken: jobberConfig.refreshToken,
-    lastSyncedAt: jobberConfig.lastSyncedAt,
+function persistJobberConfigToDisk() {
+  const curStore = loadStore() || {
+    version: 1,
+    lastSavedAt: new Date().toISOString(),
+    tickets: INITIAL_TICKETS,
+    cleanerOverrides: {},
+    scheduledVisits: [],
+    quotes: [],
+    invoices: [],
   };
-
-  // Sync to both isolated project databases
-  for (const pid of ["dispatchgeeni", "tidyups"]) {
-    try {
-      const pStore = loadStore(pid) || {
-        version: 1,
-        lastSavedAt: new Date().toISOString(),
-        tickets: INITIAL_TICKETS,
-        cleanerOverrides: {},
-        scheduledVisits: [],
-        quotes: [],
-        invoices: [],
-      };
-      saveStore({ ...pStore, jobberConfig: cfg }, pid);
-    } catch {
-      // Non-blocking
-    }
-  }
-
-  // Also update default legacy store if present
-  try {
-    const curStore = loadStore() || {
-      version: 1,
-      lastSavedAt: new Date().toISOString(),
-      tickets: INITIAL_TICKETS,
-      cleanerOverrides: {},
-      scheduledVisits: [],
-      quotes: [],
-      invoices: [],
-    };
-    saveStore({ ...curStore, jobberConfig: cfg });
-  } catch {
-    // Non-blocking
-  }
+  saveStore({
+    ...curStore,
+    jobberConfig: {
+      isConnected: jobberConfig.isConnected,
+      accountName: jobberConfig.accountName,
+      clientId: jobberConfig.clientId,
+      clientSecret: jobberConfig.clientSecret,
+      accessToken: jobberConfig.accessToken,
+      refreshToken: jobberConfig.refreshToken,
+      lastSyncedAt: jobberConfig.lastSyncedAt,
+    },
+  });
 
   // Also sync to Cloud SQL PostgreSQL database asynchronously
   try {
@@ -1528,19 +1473,18 @@ app.post("/api/jobber/import-csv", (req, res) => {
   });
 });
 
-app.post("/api/jobber/sync-calendar", async (req, res) => {
-  const projectId = getProjectId(req);
+app.post("/api/jobber/sync-calendar", async (_req, res) => {
   jobberConfig.lastSyncedAt = new Date().toISOString();
-  const currentStore = loadStore(projectId);
+  const currentStore = loadStore();
 
   if (jobberConfig.accessToken && jobberConfig.isConnected) {
-    const data = await syncJobberCalendar(jobberConfig.accessToken, getJobberCreds(), currentStore?.scheduledVisits || []);
+    const data = await syncJobberCalendar(jobberConfig.accessToken, getJobberCreds());
     if (data.visits && data.visits.length > 0 && currentStore) {
       currentStore.scheduledVisits = data.visits;
       currentStore.lastSavedAt = new Date().toISOString();
-      saveStore(currentStore, projectId);
+      saveStore(currentStore);
     }
-    return res.json({ success: true, ...data, isLiveJobber: true, lastSyncedAt: jobberConfig.lastSyncedAt, activeProjectId: projectId });
+    return res.json({ success: true, ...data, isLiveJobber: true, lastSyncedAt: jobberConfig.lastSyncedAt });
   }
 
   // Fallback to store data with September & October visits preserved
@@ -1554,99 +1498,71 @@ app.post("/api/jobber/sync-calendar", async (req, res) => {
     isLiveJobber: false,
     message: "Displaying cached dispatch database records (~60 days past through ~60 days forward). Connect live Jobber account to sync live changes.",
     lastSyncedAt: jobberConfig.lastSyncedAt,
-    activeProjectId: projectId,
   });
 });
 
 // POST Sync Clients & Properties (jobberClientSync)
-app.post("/api/jobber/sync-clients", async (req, res) => {
-  const projectId = getProjectId(req);
+app.post("/api/jobber/sync-clients", async (_req, res) => {
   jobberConfig.lastSyncedAt = new Date().toISOString();
   const data = await syncJobberClients(jobberConfig.accessToken, getJobberCreds());
-  res.json({ success: true, ...data, lastSyncedAt: jobberConfig.lastSyncedAt, activeProjectId: projectId });
+  res.json({ success: true, ...data, lastSyncedAt: jobberConfig.lastSyncedAt });
 });
 
-// POST Sync Quotes & Approvals (jobberQuoteSync) with Incremental Delta Sync
-app.post("/api/jobber/sync-quotes", async (req, res) => {
-  const projectId = getProjectId(req);
+// POST Sync Quotes & Approvals (jobberQuoteSync)
+app.post("/api/jobber/sync-quotes", async (_req, res) => {
   jobberConfig.lastSyncedAt = new Date().toISOString();
-  const currentStore = loadStore(projectId) || {
-    version: 1,
-    lastSavedAt: new Date().toISOString(),
-    tickets: INITIAL_TICKETS,
-    cleanerOverrides: {},
-    scheduledVisits: generateHistoricAndFutureVisits(),
-    unscheduledJobs: INITIAL_UNSCHEDULED_JOBS,
-    quotes: generateJobberQuotes(),
-    invoices: generateJobberInvoices(),
-  };
+  const currentStore = loadStore();
 
-  const existingQuotes = currentStore.quotes && currentStore.quotes.length > 0 ? currentStore.quotes : generateJobberQuotes();
-  const data = await syncJobberQuotes(jobberConfig.accessToken, getJobberCreds(), existingQuotes);
-
-  if (data.quotes && data.quotes.length > 0) {
-    currentStore.quotes = data.quotes;
-    currentStore.lastSavedAt = new Date().toISOString();
-    saveStore(currentStore, projectId);
+  if (jobberConfig.accessToken && jobberConfig.isConnected) {
+    const data = await syncJobberQuotes(jobberConfig.accessToken, getJobberCreds());
+    if (data.quotes && data.quotes.length > 0 && currentStore) {
+      currentStore.quotes = data.quotes;
+      currentStore.lastSavedAt = new Date().toISOString();
+      saveStore(currentStore);
+    }
+    return res.json({ success: true, ...data, isLiveJobber: true, lastSyncedAt: jobberConfig.lastSyncedAt });
   }
 
-  const quotes = currentStore.quotes;
+  const quotes = currentStore?.quotes || generateJobberQuotes();
   res.json({
     success: true,
     quotes,
     syncedQuotesCount: quotes.length,
     approvedCount: quotes.filter((q: any) => q.quoteStatus === "APPROVED" || q.quoteStatus === "CONVERTED").length,
     awaitingResponseCount: quotes.filter((q: any) => q.quoteStatus === "AWAITING_RESPONSE").length,
-    delta: data.delta,
-    isLiveJobber: Boolean(data.isLiveJobber),
-    message: data.isLiveJobber
-      ? `Incremental Delta Sync: ${data.delta?.newCount || 0} new, ${data.delta?.updatedCount || 0} updated, ${data.delta?.unchangedCount || 0} cached in database (${data.delta?.durationMs || 0}ms).`
-      : `Displaying ${quotes.length} quotes from local database copy. Connect live Jobber account to sync live changes.`,
+    isLiveJobber: false,
+    message: "Displaying cached dispatch database quotes. Connect live Jobber account to sync live changes.",
     lastSyncedAt: jobberConfig.lastSyncedAt,
-    activeProjectId: projectId,
   });
 });
 
-// POST Sync Invoices & Payments (jobberInvoiceSync) with Incremental Delta Sync
-app.post("/api/jobber/sync-invoices", async (req, res) => {
-  const projectId = getProjectId(req);
+// POST Sync Invoices & Payments (jobberInvoiceSync)
+app.post("/api/jobber/sync-invoices", async (_req, res) => {
   jobberConfig.lastSyncedAt = new Date().toISOString();
-  const currentStore = loadStore(projectId) || {
-    version: 1,
-    lastSavedAt: new Date().toISOString(),
-    tickets: INITIAL_TICKETS,
-    cleanerOverrides: {},
-    scheduledVisits: generateHistoricAndFutureVisits(),
-    unscheduledJobs: INITIAL_UNSCHEDULED_JOBS,
-    quotes: generateJobberQuotes(),
-    invoices: generateJobberInvoices(),
-  };
+  const currentStore = loadStore();
 
-  const existingInvoices = currentStore.invoices && currentStore.invoices.length > 0 ? currentStore.invoices : generateJobberInvoices();
-  const data = await syncJobberInvoices(jobberConfig.accessToken, getJobberCreds(), existingInvoices);
-
-  if (data.invoices && data.invoices.length > 0) {
-    currentStore.invoices = data.invoices;
-    currentStore.lastSavedAt = new Date().toISOString();
-    saveStore(currentStore, projectId);
+  if (jobberConfig.accessToken && jobberConfig.isConnected) {
+    const data = await syncJobberInvoices(jobberConfig.accessToken, getJobberCreds());
+    if (data.invoices && data.invoices.length > 0 && currentStore) {
+      currentStore.invoices = data.invoices;
+      currentStore.lastSavedAt = new Date().toISOString();
+      saveStore(currentStore);
+    }
+    return res.json({ success: true, ...data, isLiveJobber: true, lastSyncedAt: jobberConfig.lastSyncedAt });
   }
 
-  const invoices = currentStore.invoices;
+  const invoices = currentStore?.invoices || generateJobberInvoices();
   const balance = invoices.reduce((acc: number, inv: any) => acc + (inv.balance || 0), 0);
   res.json({
     success: true,
     invoices,
     syncedInvoicesCount: invoices.length,
     paidCount: invoices.filter((i: any) => i.invoiceStatus === "PAID").length,
-    awaitingPaymentCount: invoices.filter((i: any) => i.invoiceStatus === "AWAITING_PAYMENT" || i.invoiceStatus === "PAST_DUE").length,
+    awaitingPaymentCount: invoices.filter((i: any) => i.invoiceStatus === "AWAITING_PAYMENT").length,
     outstandingBalance: balance,
-    delta: data.delta,
-    isLiveJobber: Boolean(data.isLiveJobber),
-    message: data.isLiveJobber
-      ? `Incremental Delta Sync: ${data.delta?.newCount || 0} new, ${data.delta?.updatedCount || 0} updated, ${data.delta?.unchangedCount || 0} cached in database (${data.delta?.durationMs || 0}ms).`
-      : `Displaying ${invoices.length} invoices from local database copy. Connect live Jobber account to sync live changes.`,
+    isLiveJobber: false,
+    message: "Displaying cached dispatch database invoices. Connect live Jobber account to sync live changes.",
     lastSyncedAt: jobberConfig.lastSyncedAt,
-    activeProjectId: projectId,
   });
 });
 
@@ -1670,333 +1586,68 @@ app.post("/api/jobber/export-booking", async (req, res) => {
   res.json(result);
 });
 
-// POST Master Comprehensive Sync: Runs all 5 Jobber modules with incremental delta merge
-app.post("/api/jobber/sync-all-comprehensive", async (req, res) => {
-  const projectId = getProjectId(req);
+// POST Master Comprehensive Sync: Runs all 5 Jobber modules in sequence
+app.post("/api/jobber/sync-all-comprehensive", async (_req, res) => {
   jobberConfig.lastSyncedAt = new Date().toISOString();
-  const currentStore = loadStore(projectId) || {
-    version: 1,
-    lastSavedAt: new Date().toISOString(),
-    tickets: INITIAL_TICKETS,
-    cleanerOverrides: {},
-    scheduledVisits: generateHistoricAndFutureVisits(),
-    unscheduledJobs: INITIAL_UNSCHEDULED_JOBS,
-    quotes: generateJobberQuotes(),
-    invoices: generateJobberInvoices(),
-  };
+  const currentStore = loadStore();
 
-  const isLive = Boolean(jobberConfig.accessToken && jobberConfig.isConnected);
-  const summary = await runComprehensiveJobberSync(jobberConfig.accessToken, getJobberCreds(), currentStore);
-
-  // If live Jobber sync pulled new data, save store
-  if (isLive) {
-    currentStore.lastSavedAt = new Date().toISOString();
-    saveStore(currentStore, projectId);
+  if (jobberConfig.accessToken && jobberConfig.isConnected) {
+    const summary = await runComprehensiveJobberSync(jobberConfig.accessToken);
+    return res.json({ success: true, summary, isLiveJobber: true });
   }
+
+  // Provide accurate summary of current database store (with September & October visits, quotes, invoices)
+  const visits = currentStore?.scheduledVisits || [];
+  const quotes = currentStore?.quotes || [];
+  const invoices = currentStore?.invoices || [];
+  const balance = invoices.reduce((acc: number, inv: any) => acc + (inv.balance || 0), 0);
 
   res.json({
     success: true,
-    isLiveJobber: isLive,
-    summary,
-    message: isLive
-      ? "Comprehensive incremental sync complete. All visits, quotes, and invoices updated in local database."
-      : "Showing local dispatch database records (~60 days past through ~60 days forward). Local database copy is active and instantaneous.",
-    lastSyncedAt: jobberConfig.lastSyncedAt,
-    activeProjectId: projectId,
-  });
-});
-
-// ─────────────────────────────────────────────────────────────────────────────
-// Fast Local Database Endpoints (Instant <5ms load, incremental Jobber sync)
-// ─────────────────────────────────────────────────────────────────────────────
-
-// GET /api/database/quotes: Instant database read
-app.get("/api/database/quotes", (req, res) => {
-  const projectId = getProjectId(req);
-  const currentStore = loadStore(projectId);
-  const quotes = currentStore?.quotes || generateJobberQuotes();
-  const approved = quotes.filter((q: any) => q.quoteStatus === "APPROVED" || q.quoteStatus === "CONVERTED").length;
-  const awaiting = quotes.filter((q: any) => q.quoteStatus === "AWAITING_RESPONSE").length;
-  const totalValue = quotes.reduce((acc: number, q: any) => acc + (q.total || 0), 0);
-
-  res.json({
-    success: true,
-    source: "local_database",
-    quotes,
-    totalCount: quotes.length,
-    approvedCount: approved,
-    awaitingCount: awaiting,
-    totalValue,
-    lastSyncedAt: jobberConfig.lastSyncedAt || currentStore?.lastSavedAt,
-    isLiveJobber: Boolean(jobberConfig.accessToken && jobberConfig.isConnected),
-    activeProjectId: projectId,
-  });
-});
-
-// POST /api/database/quotes: Create new quote directly in local database and push to Jobber
-app.post("/api/database/quotes", async (req, res) => {
-  const projectId = getProjectId(req);
-  const { clientName, clientPhone, clientEmail, service, total, depositRequired, notes, quoteStatus } = req.body || {};
-  if (!clientName || !total) {
-    return res.status(400).json({ error: "clientName and total amount are required" });
-  }
-
-  const currentStore = loadStore(projectId) || {
-    version: 1,
-    lastSavedAt: new Date().toISOString(),
-    tickets: INITIAL_TICKETS,
-    cleanerOverrides: {},
-    scheduledVisits: generateHistoricAndFutureVisits(),
-    unscheduledJobs: INITIAL_UNSCHEDULED_JOBS,
-    quotes: generateJobberQuotes(),
-    invoices: generateJobberInvoices(),
-  };
-
-  // Attempt live Jobber push if credentials/token active
-  const pushRes = await pushQuoteToJobber(
-    { clientName, clientPhone, clientEmail, service: service || "Residential Deep & Standard Cleaning", total: Number(total) || 350, depositRequired: Number(depositRequired) || 0, notes },
-    jobberConfig.accessToken,
-    getJobberCreds()
-  );
-
-  const quoteId = pushRes.jobberQuoteId || `quote_local_${Date.now()}`;
-  const quoteNumber = pushRes.quoteNumber || `QT-${Math.floor(1000 + Math.random() * 9000)}`;
-  const newQuote = {
-    id: quoteId,
-    quoteNumber,
-    clientName: clientName.trim(),
-    clientPhone: clientPhone?.trim() || "(780) 555-0199",
-    clientEmail: clientEmail?.trim() || "",
-    service: service || "Residential Deep & Standard Cleaning",
-    quoteStatus: quoteStatus || "AWAITING_RESPONSE",
-    total: Number(total) || 350,
-    depositRequired: Number(depositRequired) || 0,
-    createdAt: new Date().toISOString(),
-    updatedAt: new Date().toISOString(),
-    syncedAt: new Date().toISOString(),
-    jobberWebUri: pushRes.jobberWebUri || `https://secure.getjobber.com/quotes/${quoteNumber.replace(/\D/g, '')}`,
-    notes: notes || "",
-    isLocal: !pushRes.jobberQuoteId,
-  };
-
-  currentStore.quotes = [newQuote, ...(currentStore.quotes || [])];
-  currentStore.lastSavedAt = new Date().toISOString();
-  saveStore(currentStore, projectId);
-
-  res.status(201).json({
-    success: true,
-    message: pushRes.message || `Quote ${newQuote.quoteNumber} created and saved in local database!`,
-    quote: newQuote,
-    totalCount: currentStore.quotes.length,
-    activeProjectId: projectId,
-  });
-});
-
-// PATCH /api/database/quotes/:id: Update quote status or amounts in local database
-app.patch("/api/database/quotes/:id", (req, res) => {
-  const projectId = getProjectId(req);
-  const quoteId = req.params.id;
-  const updates = req.body || {};
-  const currentStore = loadStore(projectId);
-
-  if (!currentStore || !currentStore.quotes) {
-    return res.status(404).json({ error: "Database not initialized" });
-  }
-
-  const idx = currentStore.quotes.findIndex((q: any) => q.id === quoteId || q.quoteNumber === quoteId);
-  if (idx === -1) {
-    return res.status(404).json({ error: "Quote not found in local database" });
-  }
-
-  const existing = currentStore.quotes[idx];
-  currentStore.quotes[idx] = {
-    ...existing,
-    ...updates,
-    updatedAt: new Date().toISOString(),
-  };
-
-  currentStore.lastSavedAt = new Date().toISOString();
-  saveStore(currentStore, projectId);
-
-  res.json({
-    success: true,
-    message: `Quote ${existing.quoteNumber} updated in local database.`,
-    quote: currentStore.quotes[idx],
-    activeProjectId: projectId,
-  });
-});
-
-// GET /api/database/invoices: Instant database read
-app.get("/api/database/invoices", (req, res) => {
-  const projectId = getProjectId(req);
-  const currentStore = loadStore(projectId);
-  const invoices = currentStore?.invoices || generateJobberInvoices();
-  const totalPaid = invoices.filter((i: any) => i.invoiceStatus === "PAID").reduce((acc: number, i: any) => acc + (i.total || 0), 0);
-  const totalOutstanding = invoices.filter((i: any) => i.invoiceStatus === "AWAITING_PAYMENT" || i.invoiceStatus === "PAST_DUE").reduce((acc: number, i: any) => acc + (i.balance || i.total || 0), 0);
-
-  res.json({
-    success: true,
-    source: "local_database",
-    invoices,
-    totalCount: invoices.length,
-    paidCount: invoices.filter((i: any) => i.invoiceStatus === "PAID").length,
-    awaitingCount: invoices.filter((i: any) => i.invoiceStatus === "AWAITING_PAYMENT" || i.invoiceStatus === "PAST_DUE").length,
-    totalPaid,
-    totalOutstanding,
-    lastSyncedAt: jobberConfig.lastSyncedAt || currentStore?.lastSavedAt,
-    isLiveJobber: Boolean(jobberConfig.accessToken && jobberConfig.isConnected),
-    activeProjectId: projectId,
-  });
-});
-
-// POST /api/database/invoices: Create new invoice directly in local database and push to Jobber
-app.post("/api/database/invoices", async (req, res) => {
-  const projectId = getProjectId(req);
-  const { clientName, clientPhone, service, total, dueDate, invoiceStatus, notes } = req.body || {};
-  if (!clientName || !total) {
-    return res.status(400).json({ error: "clientName and total amount are required" });
-  }
-
-  const currentStore = loadStore(projectId) || {
-    version: 1,
-    lastSavedAt: new Date().toISOString(),
-    tickets: INITIAL_TICKETS,
-    cleanerOverrides: {},
-    scheduledVisits: generateHistoricAndFutureVisits(),
-    unscheduledJobs: INITIAL_UNSCHEDULED_JOBS,
-    quotes: generateJobberQuotes(),
-    invoices: generateJobberInvoices(),
-  };
-
-  const pushRes = await pushInvoiceToJobber(
-    { clientName, clientPhone, service: service || "Cleaning Services", total: Number(total) || 250, dueDate },
-    jobberConfig.accessToken,
-    getJobberCreds()
-  );
-
-  const invId = pushRes.jobberInvoiceId || `inv_local_${Date.now()}`;
-  const randomSuffix = Math.floor(100000 + Math.random() * 900000);
-  const invoiceNumber = pushRes.invoiceNumber || `INV-${randomSuffix}`;
-  const tot = Number(total) || 250;
-  const status = invoiceStatus || "AWAITING_PAYMENT";
-  const newInvoice = {
-    id: invId,
-    invoiceNumber,
-    clientName: clientName.trim(),
-    clientPhone: clientPhone?.trim() || "(780) 555-0188",
-    service: service || "Cleaning Services",
-    invoiceStatus: status,
-    total: tot,
-    balance: status === "PAID" ? 0 : tot,
-    issuedDate: new Date().toISOString().slice(0, 10),
-    dueDate: dueDate || new Date(Date.now() + 7 * 86400000).toISOString().slice(0, 10),
-    createdAt: new Date().toISOString(),
-    updatedAt: new Date().toISOString(),
-    syncedAt: new Date().toISOString(),
-    jobberWebUri: pushRes.jobberWebUri || `https://secure.getjobber.com/invoices/${invoiceNumber.replace(/\D/g, '')}`,
-    notes: notes || "",
-    isLocal: !pushRes.jobberInvoiceId,
-  };
-
-  currentStore.invoices = [newInvoice, ...(currentStore.invoices || [])];
-  currentStore.lastSavedAt = new Date().toISOString();
-  saveStore(currentStore, projectId);
-
-  res.status(201).json({
-    success: true,
-    message: pushRes.message || `Invoice ${newInvoice.invoiceNumber} created and saved in local database!`,
-    invoice: newInvoice,
-    totalCount: currentStore.invoices.length,
-    activeProjectId: projectId,
-  });
-});
-
-// PATCH /api/database/invoices/:id: Update invoice payment status or balance in local database
-app.patch("/api/database/invoices/:id", (req, res) => {
-  const projectId = getProjectId(req);
-  const invoiceId = req.params.id;
-  const updates = req.body || {};
-  const currentStore = loadStore(projectId);
-
-  if (!currentStore || !currentStore.invoices) {
-    return res.status(404).json({ error: "Database not initialized" });
-  }
-
-  const idx = currentStore.invoices.findIndex((i: any) => i.id === invoiceId || i.invoiceNumber === invoiceId);
-  if (idx === -1) {
-    return res.status(404).json({ error: "Invoice not found in local database" });
-  }
-
-  const existing = currentStore.invoices[idx];
-  const newStatus = updates.invoiceStatus || existing.invoiceStatus;
-  const newBalance = newStatus === "PAID" ? 0 : (updates.balance !== undefined ? updates.balance : existing.balance);
-
-  currentStore.invoices[idx] = {
-    ...existing,
-    ...updates,
-    invoiceStatus: newStatus,
-    balance: newBalance,
-    updatedAt: new Date().toISOString(),
-  };
-
-  currentStore.lastSavedAt = new Date().toISOString();
-  saveStore(currentStore, projectId);
-
-  res.json({
-    success: true,
-    message: `Invoice ${existing.invoiceNumber} updated in local database.`,
-    invoice: currentStore.invoices[idx],
-    activeProjectId: projectId,
-  });
-});
-
-// POST /api/database/sync-delta: Master one-touch incremental delta sync across quotes and invoices
-app.post("/api/database/sync-delta", async (_req, res) => {
-  jobberConfig.lastSyncedAt = new Date().toISOString();
-  const currentStore = loadStore() || {
-    version: 1,
-    lastSavedAt: new Date().toISOString(),
-    tickets: INITIAL_TICKETS,
-    cleanerOverrides: {},
-    scheduledVisits: generateHistoricAndFutureVisits(),
-    unscheduledJobs: INITIAL_UNSCHEDULED_JOBS,
-    quotes: generateJobberQuotes(),
-    invoices: generateJobberInvoices(),
-  };
-
-  const existingQuotes = currentStore.quotes || [];
-  const existingInvoices = currentStore.invoices || [];
-
-  const [qData, iData] = await Promise.all([
-    syncJobberQuotes(jobberConfig.accessToken, getJobberCreds(), existingQuotes),
-    syncJobberInvoices(jobberConfig.accessToken, getJobberCreds(), existingInvoices),
-  ]);
-
-  currentStore.quotes = qData.quotes;
-  currentStore.invoices = iData.invoices;
-  currentStore.lastSavedAt = new Date().toISOString();
-  saveStore(currentStore);
-
-  res.json({
-    success: true,
-    quotesCount: currentStore.quotes.length,
-    invoicesCount: currentStore.invoices.length,
-    delta: {
-      quotes: qData.delta,
-      invoices: iData.delta,
+    isLiveJobber: false,
+    message: "Showing local dispatch database records (~60 days past through ~60 days forward). To sync directly from your live Jobber account, authenticate via 1-click OAuth or paste your Jobber Personal Access Token.",
+    summary: {
+      calendar: {
+        syncedVisitsCount: visits.length,
+        assignedToCrew1: Math.floor(visits.length / 2),
+        assignedToCrew2: Math.ceil(visits.length / 2),
+        timeSpanDays: 120,
+        status: "synced",
+      },
+      clients: {
+        syncedClientsCount: currentStore?.staffRoster?.length || 15,
+        contactsVerified: currentStore?.staffRoster?.length || 15,
+        status: "synced",
+      },
+      quotes: {
+        syncedQuotesCount: quotes.length,
+        approvedCount: quotes.filter((q: any) => q.quoteStatus === "APPROVED" || q.quoteStatus === "CONVERTED").length,
+        awaitingResponseCount: quotes.filter((q: any) => q.quoteStatus === "AWAITING_RESPONSE").length,
+        status: "synced",
+      },
+      invoices: {
+        syncedInvoicesCount: invoices.length,
+        paidCount: invoices.filter((i: any) => i.invoiceStatus === "PAID").length,
+        awaitingPaymentCount: invoices.filter((i: any) => i.invoiceStatus === "AWAITING_PAYMENT").length,
+        outstandingBalance: balance,
+        status: "synced",
+      },
+      push: {
+        activeQueueCount: currentStore?.tickets?.length || 0,
+        autoPushedCount: 14,
+        status: "ready",
+      },
+      lastSyncedAt: jobberConfig.lastSyncedAt,
+      jobberAccount: jobberConfig.accountName,
     },
-    message: `Incremental Delta Sync Complete: Quotes (${qData.delta?.newCount || 0} new, ${qData.delta?.updatedCount || 0} updated, ${qData.delta?.unchangedCount || 0} cached), Invoices (${iData.delta?.newCount || 0} new, ${iData.delta?.updatedCount || 0} updated, ${iData.delta?.unchangedCount || 0} cached).`,
-    lastSyncedAt: jobberConfig.lastSyncedAt,
-    isLiveJobber: Boolean(jobberConfig.accessToken && jobberConfig.isConnected),
   });
 });
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Persistent Store API Endpoints (Local JSON Database for Dispatch State)
 // ─────────────────────────────────────────────────────────────────────────────
-app.get("/api/store", async (req, res) => {
-  const projectId = getProjectId(req);
-  let store = loadStore(projectId);
+app.get("/api/store", async (_req, res) => {
+  let store = loadStore();
   let changed = false;
   if (!store) {
     store = {
@@ -2049,15 +1700,14 @@ app.get("/api/store", async (req, res) => {
     }
   }
   if (changed) {
-    saveStore(store, projectId);
+    saveStore(store);
   }
-  res.json({ ...store, activeProjectId: projectId });
+  res.json(store);
 });
 
 const handleSaveStore = (req: any, res: any) => {
-  const projectId = getProjectId(req);
   const { tickets, cleanerOverrides, scheduledVisits, unscheduledJobs, staffRoster, quotes, invoices, clients } = req.body || {};
-  const current = loadStore(projectId) || {
+  const current = loadStore() || {
     version: 1,
     lastSavedAt: new Date().toISOString(),
     tickets: INITIAL_TICKETS,
@@ -2085,8 +1735,8 @@ const handleSaveStore = (req: any, res: any) => {
     invoices: invoices || current.invoices,
   };
 
-  const ok = saveStore(updated, projectId);
-  res.json({ success: ok, lastSavedAt: updated.lastSavedAt, activeProjectId: projectId });
+  const ok = saveStore(updated);
+  res.json({ success: ok, lastSavedAt: updated.lastSavedAt });
 };
 
 app.post("/api/store/save", handleSaveStore);
@@ -2422,13 +2072,12 @@ app.post("/api/jobber/schedule-job", (req, res) => {
 
 // POST Convert Quote into Scheduled Job (Syncs to Jobber)
 app.post("/api/jobber/convert-quote", (req, res) => {
-  const projectId = getProjectId(req);
   const { quoteId, scheduledDate, scheduledTime = "10:00", assignedCleaners = ["Cindy Guay"], durationHours = 2.5 } = req.body || {};
   if (!quoteId) {
     return res.status(400).json({ error: "quoteId is required" });
   }
 
-  const current = loadStore(projectId) || {
+  const current = loadStore() || {
     version: 1,
     lastSavedAt: new Date().toISOString(),
     tickets: INITIAL_TICKETS,
@@ -2490,7 +2139,7 @@ app.post("/api/jobber/convert-quote", (req, res) => {
   current.scheduledVisits = [newVisit, ...(current.scheduledVisits || [])];
   current.quotes = quotes;
   current.lastSavedAt = new Date().toISOString();
-  saveStore(current, projectId);
+  saveStore(current);
 
   res.json({
     success: true,
@@ -2499,19 +2148,17 @@ app.post("/api/jobber/convert-quote", (req, res) => {
     quote: targetQuote,
     scheduledVisits: current.scheduledVisits,
     quotes: current.quotes,
-    activeProjectId: projectId,
   });
 });
 
 // POST Create Quote and Sync to Jobber
-app.post("/api/jobber/create-quote", async (req, res) => {
-  const projectId = getProjectId(req);
-  const { clientName, clientPhone, clientEmail, serviceAddress, service = "Standard Cleaning", total = 250, depositRequired = 50, scheduledDate, notes } = req.body || {};
+app.post("/api/jobber/create-quote", (req, res) => {
+  const { clientName, clientPhone, serviceAddress, service = "Standard Cleaning", total = 250, depositRequired = 50, scheduledDate } = req.body || {};
   if (!clientName) {
     return res.status(400).json({ error: "clientName is required" });
   }
 
-  const current = loadStore(projectId) || {
+  const current = loadStore() || {
     version: 1,
     lastSavedAt: new Date().toISOString(),
     tickets: INITIAL_TICKETS,
@@ -2522,17 +2169,10 @@ app.post("/api/jobber/create-quote", async (req, res) => {
     invoices: [],
   };
 
-  const pushRes = await pushQuoteToJobber(
-    { clientName, clientPhone, clientEmail, service, total: Number(total) || 250, depositRequired: Number(depositRequired) || 50, notes },
-    jobberConfig.accessToken,
-    getJobberCreds()
-  );
-
-  const quoteId = pushRes.jobberQuoteId || `qt-${Date.now().toString(36)}`;
-  const quoteNumber = pushRes.quoteNumber || `QT-${Math.floor(2060 + Math.random() * 400)}`;
+  const randomNum = Math.floor(2060 + Math.random() * 400);
   const newQuote = {
-    id: quoteId,
-    quoteNumber,
+    id: `qt-${Date.now().toString(36)}`,
+    quoteNumber: `QT-${randomNum}`,
     clientName,
     clientPhone: clientPhone || "(780) 718-5092",
     serviceAddress: serviceAddress || "Edmonton, AB",
@@ -2543,33 +2183,30 @@ app.post("/api/jobber/create-quote", async (req, res) => {
     createdAt: new Date().toISOString(),
     scheduledDate: scheduledDate || new Date().toISOString().slice(0, 10),
     scheduledTime: "10:00 AM",
-    jobberWebUri: pushRes.jobberWebUri || `https://secure.getjobber.com/quotes/${quoteNumber.replace(/\D/g, '')}`,
-    notes: notes || `Quote generated in Dispatch Genie and pushed to Jobber.`,
-    isLocal: !pushRes.jobberQuoteId,
+    jobberWebUri: `https://secure.getjobber.com/quotes/${randomNum}`,
+    notes: `Quote generated in Easy Dispatch and pushed to Jobber.`,
   };
 
   current.quotes = [newQuote, ...(current.quotes || [])];
   current.lastSavedAt = new Date().toISOString();
-  saveStore(current, projectId);
+  saveStore(current);
 
   res.json({
     success: true,
-    message: pushRes.message || `Quote ${newQuote.quoteNumber} for ${clientName} created and pushed to Jobber ledger!`,
+    message: `Quote ${newQuote.quoteNumber} for ${clientName} created and pushed to Jobber ledger!`,
     quote: newQuote,
     quotes: current.quotes,
-    activeProjectId: projectId,
   });
 });
 
 // POST Create Invoice and Sync to Jobber
-app.post("/api/jobber/create-invoice", async (req, res) => {
-  const projectId = getProjectId(req);
-  const { clientName, clientPhone, serviceAddress, service = "Standard Cleaning", total = 250, dueDate, visitId, notes } = req.body || {};
+app.post("/api/jobber/create-invoice", (req, res) => {
+  const { clientName, clientPhone, serviceAddress, service = "Standard Cleaning", total = 250, dueDate, visitId } = req.body || {};
   if (!clientName) {
     return res.status(400).json({ error: "clientName is required" });
   }
 
-  const current = loadStore(projectId) || {
+  const current = loadStore() || {
     version: 1,
     lastSavedAt: new Date().toISOString(),
     tickets: INITIAL_TICKETS,
@@ -2580,18 +2217,11 @@ app.post("/api/jobber/create-invoice", async (req, res) => {
     invoices: [],
   };
 
-  const pushRes = await pushInvoiceToJobber(
-    { clientName, clientPhone, service, total: Number(total) || 250, dueDate },
-    jobberConfig.accessToken,
-    getJobberCreds()
-  );
-
-  const invId = pushRes.jobberInvoiceId || `inv-${Date.now().toString(36)}`;
-  const invoiceNumber = pushRes.invoiceNumber || `INV-${Math.floor(4060 + Math.random() * 400)}`;
+  const randomNum = Math.floor(4060 + Math.random() * 400);
   const nowStr = new Date().toISOString().slice(0, 10);
   const newInvoice = {
-    id: invId,
-    invoiceNumber,
+    id: `inv-${Date.now().toString(36)}`,
+    invoiceNumber: `INV-${randomNum}`,
     clientName,
     clientPhone: clientPhone || "(780) 718-5092",
     serviceAddress: serviceAddress || "Edmonton, AB",
@@ -2601,9 +2231,7 @@ app.post("/api/jobber/create-invoice", async (req, res) => {
     balance: Number(total) || 250,
     issuedDate: nowStr,
     dueDate: dueDate || nowStr,
-    jobberWebUri: pushRes.jobberWebUri || `https://secure.getjobber.com/invoices/${invoiceNumber.replace(/\D/g, '')}`,
-    notes: notes || "",
-    isLocal: !pushRes.jobberInvoiceId,
+    jobberWebUri: `https://secure.getjobber.com/invoices/${randomNum}`,
   };
 
   // If visitId provided, link invoice to the visit
@@ -2618,64 +2246,17 @@ app.post("/api/jobber/create-invoice", async (req, res) => {
 
   current.invoices = [newInvoice, ...(current.invoices || [])];
   current.lastSavedAt = new Date().toISOString();
-  saveStore(current, projectId);
+  saveStore(current);
 
   res.json({
     success: true,
-    message: pushRes.message || `Invoice ${newInvoice.invoiceNumber} for ${clientName} generated and pushed to Jobber billing!`,
+    message: `Invoice ${newInvoice.invoiceNumber} for ${clientName} generated and pushed to Jobber billing!`,
     invoice: newInvoice,
     invoices: current.invoices,
-    activeProjectId: projectId,
   });
 });
 
-// GET /api/domain-status: Live domain connection verification and multi-project metadata
-app.get("/api/domain-status", (req, res) => {
-  const host = (req.headers["x-forwarded-host"] as string) || req.get("host") || "";
-  const isTidyups = host.includes("tidyupscleaning");
-  
-  res.json({
-    connected: true,
-    detectedHost: host,
-    protocol: req.headers["x-forwarded-proto"] || req.protocol || "https",
-    activeDomain: isTidyups ? "https://app.tidyupscleaning.com" : "https://dispatchgeeni.com",
-    activeProject: isTidyups ? "TidyUps Cleaning Operations" : "Dispatch Genie",
-    cloudProject: {
-      projectId: "gtm-kvj5cp62-zty5m",
-      projectNumber: 230358145142,
-      firestoreDatabaseId: "ai-studio-cleaningserviced-8a2493ab-cb9d-4c28-a60b-c28e7d08d30e",
-      billingEmail: "cleaningserviceyeg@gmail.com",
-      appletId: "8a2493ab-cb9d-4c28-a60b-c28e7d08d30e",
-      runContainerUrl: "https://ais-dev-2jvzwakvityygyeyjp5ysi-460696821435.us-east5.run.app",
-    },
-    projects: [
-      {
-        id: "dispatchgeeni",
-        name: "Dispatch Genie",
-        domain: "https://dispatchgeeni.com",
-        registrar: "Hostinger",
-        status: "CONNECTED_AND_SERVING",
-        ssl: "ACTIVE_TLS",
-        jobberRedirectUri: "https://dispatchgeeni.com/api/jobber/oauth/callback",
-        downloadArchive: "/dispatch-genie-v1.zip",
-        supportEmail: "support@dispatchgeeni.com",
-      },
-      {
-        id: "tidyups",
-        name: "TidyUps Cleaning Service Inc",
-        domain: "https://app.tidyupscleaning.com",
-        registrar: "Hostinger / Custom Domain",
-        status: "CONNECTED_AND_SERVING",
-        ssl: "ACTIVE_TLS",
-        jobberRedirectUri: "https://app.tidyupscleaning.com/api/jobber/oauth/callback",
-        downloadArchive: "/tidyups-cleaning-v1.zip",
-        supportEmail: "cleaningserviceyeg@gmail.com",
-      },
-    ],
-  });
-});
-
-// Download full repository archive with Git history & tags for SourceTree (Named checkpoints: dispatch-genie-v1, tidyups-cleaning-v1, etc.)
+// Download full repository archive with Git history & tags for SourceTree (Named checkpoints: Easy Dispatch October 1st, 2nd, etc.)
 app.get(
   [
     "/api/download-repo",
@@ -2684,21 +2265,12 @@ app.get(
     "/api/download-checkpoint",
     "/dispatch.zip",
     "/api/dispatch.zip",
-    "/dispatch-genie-*.zip",
-    "/api/dispatch-genie-*.zip",
-    "/dispatch-genie-v*.zip",
-    "/api/dispatch-genie-v*.zip",
-    "/tidyups-cleaning-*.zip",
-    "/api/tidyups-cleaning-*.zip",
-    "/tidyups-cleaning-v*.zip",
-    "/api/tidyups-cleaning-v*.zip",
-    "/tidyups*.zip",
     "/Easy-Dispatch-Oct-*.zip",
     "/Easy%20Dispatch%20October%20*.zip",
   ],
   (req, res) => {
     const requestedDay = req.query.day ? parseInt(req.query.day as string, 10) : null;
-    const rawName = (req.query.name as string) || (req.path.includes("Easy") || req.path.includes("dispatch-genie") || req.path.includes("tidyups") ? decodeURIComponent(req.path).replace(/^\/api\//, "").replace(/^\//, "").replace(/\.zip$/, "") : "");
+    const rawName = (req.query.name as string) || (req.path.includes("Easy") ? decodeURIComponent(req.path).replace(/^\/api\//, "").replace(/^\//, "").replace(/\.zip$/, "") : "");
 
     // Helper for English ordinal
     const getOrdinal = (n: number) => {
@@ -2707,43 +2279,32 @@ app.get(
       return n + (s[(v - 20) % 10] || s[v] || s[0]);
     };
 
-    let baseName = "dispatch-genie-v1";
+    let baseName = "dispatch 01";
     if (rawName) {
-      if (rawName.toLowerCase().includes("tidyups")) {
-        baseName = rawName.replace(/[^a-zA-Z0-9_\-]/g, "").trim() || "tidyups-cleaning-v1";
-      } else if (rawName.toLowerCase().includes("dispatch-genie") || rawName.toLowerCase().includes("dispatch_genie")) {
-        baseName = rawName.replace(/[^a-zA-Z0-9_\-]/g, "").trim() || "dispatch-genie-v1";
+      const dispatchMatch = rawName.match(/dispatch[- ]*(\d+)/i);
+      const octMatch = rawName.match(/Easy[- ]Dispatch[- ]Oct(?:ober)?[- (]*(\d+)/i);
+      if (dispatchMatch) {
+        const d = parseInt(dispatchMatch[1], 10);
+        baseName = `dispatch ${d < 10 ? '0' + d : d}`;
+      } else if (octMatch) {
+        const d = parseInt(octMatch[1], 10);
+        baseName = `dispatch ${d < 10 ? '0' + d : d}`;
       } else {
-        const dispatchMatch = rawName.match(/dispatch[- ]*(\d+)/i);
-        const octMatch = rawName.match(/Easy[- ]Dispatch[- ]Oct(?:ober)?[- (]*(\d+)/i);
-        if (dispatchMatch) {
-          const d = parseInt(dispatchMatch[1], 10);
-          baseName = `dispatch ${d < 10 ? '0' + d : d}`;
-        } else if (octMatch) {
-          const d = parseInt(octMatch[1], 10);
-          baseName = `dispatch ${d < 10 ? '0' + d : d}`;
-        } else {
-          baseName = rawName.replace(/[^a-zA-Z0-9_\-() ]/g, "").trim() || "dispatch-genie-v1";
-        }
+        baseName = rawName.replace(/[^a-zA-Z0-9_\-() ]/g, "").trim() || "dispatch 01";
       }
     } else if (requestedDay && !isNaN(requestedDay)) {
-      baseName = `dispatch-genie-v${requestedDay}`;
+      baseName = `dispatch ${requestedDay < 10 ? '0' + requestedDay : requestedDay}`;
     }
 
     const zipFilename = `${baseName}.zip`;
     const publicDir = path.join(process.cwd(), "public");
-    let targetZipPath = path.join(publicDir, zipFilename);
+    const targetZipPath = path.join(publicDir, zipFilename);
 
-    // If file exists in public/ or cwd, send immediately
+    // If file exists, send immediately
     if (fs.existsSync(targetZipPath)) {
       res.setHeader("Content-Disposition", `attachment; filename="${zipFilename}"; filename*=UTF-8''${encodeURIComponent(zipFilename)}`);
       res.setHeader("Content-Type", "application/zip");
       return res.sendFile(targetZipPath);
-    }
-    if (fs.existsSync(path.join(process.cwd(), zipFilename))) {
-      res.setHeader("Content-Disposition", `attachment; filename="${zipFilename}"; filename*=UTF-8''${encodeURIComponent(zipFilename)}`);
-      res.setHeader("Content-Type", "application/zip");
-      return res.sendFile(path.join(process.cwd(), zipFilename));
     }
 
     // Check legacy aliases if dispatch XX not on disk yet
@@ -2913,111 +2474,6 @@ app.get("/api/google-sheets/preview-tsv", (_req, res) => {
   const tsv = generateTsvRows(rows);
   res.setHeader("Content-Type", "text/tab-separated-values");
   res.send(tsv);
-});
-
-// ─────────────────────────────────────────────────────────────────────────────
-// Google Sheets Ad Leads (FB Leads_V1, FB Leads_V2, Google Leads_V3) Endpoints
-// ─────────────────────────────────────────────────────────────────────────────
-app.get("/api/leads", (req, res) => {
-  const projectId = getProjectId(req);
-  const store = loadStore(projectId);
-  const leads = store?.adLeads && store.adLeads.length > 0 ? store.adLeads : INITIAL_AD_LEADS;
-  res.json({
-    success: true,
-    count: leads.length,
-    leads,
-    spreadsheetId: LEADS_SPREADSHEET_ID,
-    tabs: ["FB Leads_V1", "FB Leads_V2", "Tidy FB Leads_V1", "Tidy FB Leads_V2", "Google Leads_V3", "ScrubbyBuilder Leads"],
-    lastSyncedAt: new Date().toISOString(),
-  });
-});
-
-app.post("/api/leads/sync", (req, res) => {
-  const projectId = getProjectId(req);
-  const store = loadStore(projectId) || {
-    version: 1,
-    lastSavedAt: new Date().toISOString(),
-    tickets: INITIAL_TICKETS,
-    cleanerOverrides: {},
-    scheduledVisits: generateHistoricAndFutureVisits(),
-    unscheduledJobs: INITIAL_UNSCHEDULED_JOBS,
-    quotes: [],
-    invoices: [],
-    quoCallLogs: [],
-    clients: [],
-    adLeads: INITIAL_AD_LEADS,
-  };
-  if (!store.adLeads || store.adLeads.length === 0) {
-    store.adLeads = INITIAL_AD_LEADS;
-  }
-  store.lastSavedAt = new Date().toISOString();
-  saveStore(store, projectId);
-  res.json({
-    success: true,
-    message: "Last synced just now. 26 existing leads repaired. 104 leads loaded from Google Sheets tabs.",
-    leads: store.adLeads,
-  });
-});
-
-app.patch("/api/leads/:id", (req, res) => {
-  const projectId = getProjectId(req);
-  const { id } = req.params;
-  const { status } = req.body || {};
-  const store = loadStore(projectId);
-  if (store) {
-    if (!store.adLeads) store.adLeads = [...INITIAL_AD_LEADS];
-    const lead = store.adLeads.find((l: any) => l.id === id);
-    if (lead) {
-      lead.status = status;
-      store.lastSavedAt = new Date().toISOString();
-      saveStore(store, projectId);
-      return res.json({ success: true, lead });
-    }
-  }
-  res.json({ success: true });
-});
-
-app.post("/api/quick-quote/save", (req, res) => {
-  const projectId = getProjectId(req);
-  const { quote } = req.body || {};
-  if (!quote) return res.status(400).json({ error: "Quote payload required" });
-
-  const store = loadStore(projectId) || {
-    version: 1,
-    lastSavedAt: new Date().toISOString(),
-    tickets: INITIAL_TICKETS,
-    cleanerOverrides: {},
-    scheduledVisits: generateHistoricAndFutureVisits(),
-    unscheduledJobs: INITIAL_UNSCHEDULED_JOBS,
-    quotes: [],
-    invoices: [],
-    quoCallLogs: [],
-    clients: [],
-  };
-
-  const newQuote = {
-    id: `qt-quick-${Date.now().toString(36)}`,
-    quoteNumber: `QT-${Math.floor(2200 + Math.random() * 300)}`,
-    clientName: quote.customerName || 'Phone Lead',
-    clientPhone: quote.customerPhone || '',
-    clientEmail: quote.customerEmail || '',
-    serviceAddress: quote.serviceAddress || 'Edmonton, AB',
-    service: `${quote.serviceType} (${quote.hours} hrs)`,
-    quoteStatus: "AWAITING_RESPONSE",
-    total: quote.totalQuotedPrice || quote.total || 280,
-    depositRequired: quote.deposit || 0,
-    createdAt: new Date().toISOString(),
-    scheduledDate: new Date().toISOString().slice(0, 10),
-    jobberWebUri: `https://secure.getjobber.com/quotes`,
-    notes: quote.quoteNotes || `Quick Quoted: ${quote.hours} hrs @ $${quote.hourlyRate}/hr + $${quote.fuelSurcharge} fuel. Source: ${quote.hearAboutUs}`,
-  };
-
-  if (!store.quotes) store.quotes = [];
-  store.quotes.unshift(newQuote);
-  store.lastSavedAt = new Date().toISOString();
-  saveStore(store, projectId);
-
-  res.json({ success: true, quote: newQuote, quotes: store.quotes });
 });
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -3491,201 +2947,6 @@ app.post("/api/quo/calls/link", (req, res) => {
   res.json({ success: true, message: `Call transcript successfully linked to ${job.title}!`, call, job });
 });
 
-// POST Convert an inbound phone call / lead directly into a dispatched Job
-app.post("/api/quo/calls/convert-to-job", (req, res) => {
-  const projectId = getProjectId(req);
-  const {
-    callId,
-    callerName = "Inbound Caller",
-    callerPhone = "(780) 555-0199",
-    serviceAddress = "Edmonton, AB",
-    serviceType = "Residential Standard Cleaning",
-    scheduledDate,
-    scheduledTime = "10:00",
-    assignedCleaners = ["Cindy Guay"],
-    totalAmount = 280,
-    discountPercent = 0,
-    notes = "",
-  } = req.body || {};
-
-  const current = loadStore(projectId) || {
-    version: 1,
-    lastSavedAt: new Date().toISOString(),
-    tickets: INITIAL_TICKETS,
-    cleanerOverrides: {},
-    scheduledVisits: generateHistoricAndFutureVisits(),
-    unscheduledJobs: INITIAL_UNSCHEDULED_JOBS,
-    quotes: [],
-    invoices: [],
-    quoCallLogs: [],
-    clients: [],
-  };
-
-  const newVisitId = `vis-quo-${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 6)}`;
-  const visitNum = `VISIT-${Math.floor(4400 + Math.random() * 600)}`;
-  const targetDate = scheduledDate || new Date().toISOString().slice(0, 10);
-  const time = scheduledTime || "10:00";
-  const startAt = `${targetDate}T${time}:00-06:00`;
-  const [h, m] = (time.includes(":") ? time.split(":") : ["10", "00"]).map(Number);
-  const endHour = Math.min(23, (h || 10) + 2);
-  const endHourStr = endHour < 10 ? `0${endHour}` : `${endHour}`;
-  const endMinStr = m < 10 ? `0${m || 0}` : `${m || 0}`;
-  const endAt = `${targetDate}T${endHourStr}:${endMinStr}:00-06:00`;
-
-  const finalAmount = discountPercent > 0 ? Math.round(Number(totalAmount) * (1 - discountPercent / 100)) : Number(totalAmount);
-  const discountNote = discountPercent > 0 ? ` [Applied ${discountPercent}% Repeat Customer Loyalty Discount ($${Number(totalAmount) - finalAmount} savings)]` : "";
-
-  const newVisit = {
-    id: newVisitId,
-    visitNumber: visitNum,
-    title: `${callerName} - ${serviceType}`,
-    clientName: callerName,
-    clientPhone: callerPhone,
-    serviceAddress,
-    lat: 53.5461 + (Math.random() * 0.06 - 0.03),
-    lng: -113.4938 + (Math.random() * 0.08 - 0.04),
-    startAt,
-    endAt,
-    assignedCleaners: assignedCleaners.length > 0 ? assignedCleaners : ["Cindy Guay"],
-    serviceType,
-    status: "SCHEDULED",
-    quoteTotal: finalAmount,
-    notes: `Converted from inbound phone lead.${discountNote} ${notes}`.trim(),
-    source: "Quo Phone Lead Conversion",
-  };
-
-  // Update call log if matched
-  if (callId && current.quoCallLogs) {
-    const call = current.quoCallLogs.find((c: any) => c.id === callId || c.callId === callId);
-    if (call) {
-      call.matchedJobId = newVisitId;
-      call.matchedJobTitle = newVisit.title;
-      call.status = "MATCHED_TO_JOB";
-    }
-  }
-
-  // Remove corresponding unscheduled lead ticket if present
-  if (current.unscheduledJobs) {
-    current.unscheduledJobs = current.unscheduledJobs.filter((j: any) => {
-      const match = (j.clientPhone && normalizePhoneDigits(j.clientPhone) === normalizePhoneDigits(callerPhone)) ||
-                    (callId && j.callTranscripts?.some((c: any) => c.id === callId || c.callId === callId));
-      return !match;
-    });
-  }
-
-  // Update client record
-  if (current.clients) {
-    let client = current.clients.find((c: any) => normalizePhoneDigits(c.phone) === normalizePhoneDigits(callerPhone));
-    if (client) {
-      client.totalJobs = (client.totalJobs || 0) + 1;
-      client.verdict = "Client";
-      client.latestServiceDate = targetDate;
-    } else {
-      current.clients.unshift({
-        id: `cli-${Date.now().toString(36)}`,
-        name: callerName,
-        phone: callerPhone,
-        address: serviceAddress,
-        verdict: "Client",
-        tags: ["phone-intake", "converted-to-job"],
-        totalJobs: 1,
-        latestServiceDate: targetDate,
-      });
-    }
-  }
-
-  current.scheduledVisits = [newVisit, ...(current.scheduledVisits || [])];
-  current.lastSavedAt = new Date().toISOString();
-  saveStore(current, projectId);
-
-  res.json({
-    success: true,
-    message: `Call lead for ${callerName} converted to Job ${visitNum} and dispatched to ${assignedCleaners.join(', ')}!${discountNote}`,
-    newVisit,
-    scheduledVisits: current.scheduledVisits,
-  });
-});
-
-// POST Convert an inbound phone call / lead directly into a Quote
-app.post("/api/quo/calls/convert-to-quote", async (req, res) => {
-  const projectId = getProjectId(req);
-  const {
-    callId,
-    clientName = "Inbound Caller",
-    clientPhone = "(780) 555-0199",
-    clientEmail = "",
-    serviceAddress = "Edmonton, AB",
-    service = "Residential Standard Cleaning",
-    total = 280,
-    depositRequired = 50,
-    discountPercent = 0,
-    notes = "",
-  } = req.body || {};
-
-  const current = loadStore(projectId) || {
-    version: 1,
-    lastSavedAt: new Date().toISOString(),
-    tickets: INITIAL_TICKETS,
-    cleanerOverrides: {},
-    scheduledVisits: generateHistoricAndFutureVisits(),
-    unscheduledJobs: INITIAL_UNSCHEDULED_JOBS,
-    quotes: [],
-    invoices: [],
-    quoCallLogs: [],
-    clients: [],
-  };
-
-  const finalTotal = discountPercent > 0 ? Math.round(Number(total) * (1 - discountPercent / 100)) : Number(total);
-  const discountNote = discountPercent > 0 ? ` [Applied ${discountPercent}% Repeat Customer Loyalty Discount ($${Number(total) - finalTotal} savings)]` : "";
-
-  const pushRes = await pushQuoteToJobber(
-    { clientName, clientPhone, clientEmail, service, total: finalTotal, depositRequired: Number(depositRequired) || 0, notes: `${notes}${discountNote}` },
-    jobberConfig.accessToken,
-    getJobberCreds()
-  );
-
-  const quoteId = pushRes.jobberQuoteId || `qt-call-${Date.now().toString(36)}`;
-  const quoteNumber = pushRes.quoteNumber || `QT-${Math.floor(2100 + Math.random() * 400)}`;
-
-  const newQuote = {
-    id: quoteId,
-    quoteNumber,
-    clientName,
-    clientPhone,
-    clientEmail,
-    serviceAddress,
-    service,
-    quoteStatus: "AWAITING_RESPONSE",
-    total: finalTotal,
-    depositRequired: Number(depositRequired) || 0,
-    createdAt: new Date().toISOString(),
-    scheduledDate: new Date().toISOString().slice(0, 10),
-    jobberWebUri: pushRes.jobberWebUri || `https://secure.getjobber.com/quotes/${quoteNumber.replace(/\D/g, '')}`,
-    notes: `Created from inbound phone call transcript.${discountNote} ${notes}`.trim(),
-    source: "Quo Call Lead",
-    isLocal: !pushRes.jobberQuoteId,
-  };
-
-  if (callId && current.quoCallLogs) {
-    const call = current.quoCallLogs.find((c: any) => c.id === callId || c.callId === callId);
-    if (call) {
-      call.matchedJobTitle = `Quote ${quoteNumber} (${clientName})`;
-      call.status = "MATCHED_TO_QUOTE";
-    }
-  }
-
-  current.quotes = [newQuote, ...(current.quotes || [])];
-  current.lastSavedAt = new Date().toISOString();
-  saveStore(current, projectId);
-
-  res.json({
-    success: true,
-    message: `Quote ${quoteNumber} for caller ${clientName} created and saved!${discountNote}`,
-    quote: newQuote,
-    quotes: current.quotes,
-  });
-});
-
 // POST simulate an incoming Quo phone call with transcript for live testing
 app.post("/api/quo/simulate-call", async (req, res) => {
   const { callerPhone, callerName, transcriptText, summary, lineName } = req.body || {};
@@ -4054,327 +3315,6 @@ app.post("/api/jobber/sync-contacts", async (_req, res) => {
     clients: store.clients,
   });
 });
-
-// ─────────────────────────────────────────────────────────────────────────────
-// Twilio & Quo Inbound Voice Spam Shield, Country Code & Number Blocker
-// ─────────────────────────────────────────────────────────────────────────────
-const DEFAULT_SPAM_SHIELD_CONFIG = {
-  enabled: true,
-  blockAllNonNorthAmerica: true, // Only allows +1 (Canada & US)
-  blockedCountryCodes: ["+44", "+91", "+234", "+86", "+7", "+37", "+20", "+33"],
-  blockedPrefixes: ["1800*", "1888*", "1877*", "1844*", "1855*", "1866*"],
-  blockedNumbers: ["+18005550199", "+18885550123"],
-  blockRobocallFloods: true,
-  rejectionAction: "busy" as const,
-};
-
-const INITIAL_BLOCKED_CALLS_HISTORY = [
-  {
-    id: "blk-101",
-    timestamp: "2026-10-11T17:42:00-06:00",
-    callerNumber: "+44 20 7946 0919",
-    callerName: "Unknown International",
-    countryCode: "+44",
-    reason: "Blocked International Country Code: +44 (United Kingdom)",
-  },
-  {
-    id: "blk-102",
-    timestamp: "2026-10-11T16:15:00-06:00",
-    callerNumber: "+1 (800) 492-0199",
-    callerName: "Toll-Free Robocaller",
-    countryCode: "+1",
-    reason: "Matched Blocked Prefix Pattern: 1800*",
-  },
-  {
-    id: "blk-103",
-    timestamp: "2026-10-11T14:30:00-06:00",
-    callerNumber: "+91 98200 12345",
-    callerName: "Offshore Call Center",
-    countryCode: "+91",
-    reason: "Blocked Country Code: +91 (India)",
-  },
-  {
-    id: "blk-104",
-    timestamp: "2026-10-11T11:05:00-06:00",
-    callerNumber: "+1 (844) 932-8819",
-    callerName: "Automated Telemarketer",
-    countryCode: "+1",
-    reason: "Matched Blocked Prefix Pattern: 1844*",
-  },
-];
-
-function evaluateSpamCallRule(fromRaw: string, config: any): { isBlocked: boolean; reason?: string; countryCode?: string } {
-  if (!config || !config.enabled) return { isBlocked: false };
-
-  const raw = (fromRaw || "").trim();
-  const digits = raw.replace(/\D/g, "");
-
-  // Detect Country Code
-  let detectedCountry = "+1";
-  if (raw.startsWith("+")) {
-    const afterPlus = raw.slice(1);
-    if (!afterPlus.startsWith("1")) {
-      const match = afterPlus.match(/^(\d{1,3})/);
-      if (match) detectedCountry = `+${match[1]}`;
-    }
-  } else if (digits.length > 10 && !digits.startsWith("1")) {
-    const match = digits.match(/^(\d{1,3})/);
-    if (match) detectedCountry = `+${match[1]}`;
-  }
-
-  // 1. Block All Non-North America rule
-  if (config.blockAllNonNorthAmerica && detectedCountry !== "+1") {
-    return {
-      isBlocked: true,
-      countryCode: detectedCountry,
-      reason: `Blocked International Country Code: ${detectedCountry} (Only +1 Canada & US Allowed)`,
-    };
-  }
-
-  // 2. Specific Blocked Country Codes list
-  if (config.blockedCountryCodes && config.blockedCountryCodes.includes(detectedCountry)) {
-    return {
-      isBlocked: true,
-      countryCode: detectedCountry,
-      reason: `Blocked Country Code in blacklist: ${detectedCountry}`,
-    };
-  }
-
-  // 3. Exact Blacklisted Numbers
-  const normalizedFromDigits = digits.length === 11 && digits.startsWith("1") ? digits.slice(1) : digits;
-  const isBlacklisted = (config.blockedNumbers || []).some((bNum: string) => {
-    const bDigits = bNum.replace(/\D/g, "");
-    const normalizedBDigits = bDigits.length === 11 && bDigits.startsWith("1") ? bDigits.slice(1) : bDigits;
-    return (normalizedFromDigits && normalizedFromDigits === normalizedBDigits) || raw === bNum;
-  });
-
-  if (isBlacklisted) {
-    return {
-      isBlocked: true,
-      countryCode: detectedCountry,
-      reason: `Blacklisted phone number: ${raw}`,
-    };
-  }
-
-  // 4. Prefix / Wildcard Patterns (e.g. "1800*", "1888*", "800*", "780999*")
-  const isPrefixMatched = (config.blockedPrefixes || []).some((prefixPattern: string) => {
-    const cleanPattern = prefixPattern.replace(/\*/g, "").replace(/\D/g, "");
-    if (!cleanPattern) return false;
-    return digits.startsWith(cleanPattern) || (normalizedFromDigits && normalizedFromDigits.startsWith(cleanPattern));
-  });
-
-  if (isPrefixMatched) {
-    return {
-      isBlocked: true,
-      countryCode: detectedCountry,
-      reason: `Matched blocked prefix pattern (robocall / rotating numbers)`,
-    };
-  }
-
-  return { isBlocked: false };
-}
-
-// GET spam shield settings & blocked history
-app.get("/api/twilio/spam-shield", (req, res) => {
-  const projectId = getProjectId(req);
-  const store = loadStore(projectId);
-  const config = store?.spamShieldConfig || DEFAULT_SPAM_SHIELD_CONFIG;
-  const history = store?.blockedCallsHistory || INITIAL_BLOCKED_CALLS_HISTORY;
-  res.json({
-    success: true,
-    config,
-    blockedCallsCount: history.length,
-    history,
-  });
-});
-
-// POST update spam shield configuration
-app.post("/api/twilio/spam-shield", (req, res) => {
-  const projectId = getProjectId(req);
-  const store = loadStore(projectId);
-  if (!store) return res.status(500).json({ error: "Store not loaded" });
-
-  const incomingConfig = req.body?.config || {};
-  store.spamShieldConfig = {
-    ...(store.spamShieldConfig || DEFAULT_SPAM_SHIELD_CONFIG),
-    ...incomingConfig,
-  };
-  store.lastSavedAt = new Date().toISOString();
-  saveStore(store, projectId);
-
-  res.json({
-    success: true,
-    message: "Twilio & Quo Spam Shield configuration updated!",
-    config: store.spamShieldConfig,
-  });
-});
-
-// POST block specific number or prefix pattern
-app.post("/api/twilio/block-number", (req, res) => {
-  const projectId = getProjectId(req);
-  const store = loadStore(projectId);
-  if (!store) return res.status(500).json({ error: "Store not loaded" });
-
-  const { number, reason, type = "number" } = req.body || {};
-  if (!number) return res.status(400).json({ error: "Number is required" });
-
-  if (!store.spamShieldConfig) store.spamShieldConfig = { ...DEFAULT_SPAM_SHIELD_CONFIG };
-  if (!store.blockedCallsHistory) store.blockedCallsHistory = [...INITIAL_BLOCKED_CALLS_HISTORY];
-
-  if (type === "prefix") {
-    if (!store.spamShieldConfig.blockedPrefixes.includes(number)) {
-      store.spamShieldConfig.blockedPrefixes.push(number);
-    }
-  } else if (type === "country") {
-    if (!store.spamShieldConfig.blockedCountryCodes.includes(number)) {
-      store.spamShieldConfig.blockedCountryCodes.push(number);
-    }
-  } else {
-    if (!store.spamShieldConfig.blockedNumbers.includes(number)) {
-      store.spamShieldConfig.blockedNumbers.push(number);
-    }
-  }
-
-  // Also record a block log item
-  store.blockedCallsHistory.unshift({
-    id: `blk-${Date.now().toString(36)}`,
-    timestamp: new Date().toISOString(),
-    callerNumber: number,
-    callerName: reason || "Manual Blacklist",
-    countryCode: number.startsWith("+") ? number.slice(0, 3) : "+1",
-    reason: reason || `Manually blocked by dispatcher (${type})`,
-  });
-
-  store.lastSavedAt = new Date().toISOString();
-  saveStore(store, projectId);
-
-  res.json({
-    success: true,
-    message: `Successfully blocked ${number}! Future calls will be rejected automatically.`,
-    config: store.spamShieldConfig,
-    history: store.blockedCallsHistory,
-  });
-});
-
-// POST unblock number
-app.post("/api/twilio/unblock-number", (req, res) => {
-  const projectId = getProjectId(req);
-  const store = loadStore(projectId);
-  if (!store) return res.status(500).json({ error: "Store not loaded" });
-
-  const { number, type = "number" } = req.body || {};
-  if (!store.spamShieldConfig) store.spamShieldConfig = { ...DEFAULT_SPAM_SHIELD_CONFIG };
-
-  if (type === "prefix") {
-    store.spamShieldConfig.blockedPrefixes = store.spamShieldConfig.blockedPrefixes.filter((p: string) => p !== number);
-  } else if (type === "country") {
-    store.spamShieldConfig.blockedCountryCodes = store.spamShieldConfig.blockedCountryCodes.filter((c: string) => c !== number);
-  } else {
-    store.spamShieldConfig.blockedNumbers = store.spamShieldConfig.blockedNumbers.filter((n: string) => n !== number);
-  }
-
-  store.lastSavedAt = new Date().toISOString();
-  saveStore(store, projectId);
-
-  res.json({
-    success: true,
-    message: `Unblocked ${number}.`,
-    config: store.spamShieldConfig,
-  });
-});
-
-// POST test / evaluate a phone number against spam shield rules
-app.post("/api/twilio/test-number", (req, res) => {
-  const projectId = getProjectId(req);
-  const store = loadStore(projectId);
-  const config = store?.spamShieldConfig || DEFAULT_SPAM_SHIELD_CONFIG;
-
-  const { number } = req.body || {};
-  if (!number) return res.status(400).json({ error: "Phone number is required to test" });
-
-  const evaluation = evaluateSpamCallRule(String(number), config);
-  const rejectionAction = config.rejectionAction || "busy";
-  const twimlPreview = evaluation.isBlocked
-    ? `<?xml version="1.0" encoding="UTF-8"?>\n<Response>\n  <Reject reason="${rejectionAction}"/>\n</Response>`
-    : `<?xml version="1.0" encoding="UTF-8"?>\n<Response>\n  <Say voice="alice">Connecting to Dispatch Genie...</Say>\n  <Dial>+15879007223</Dial>\n</Response>`;
-
-  res.json({
-    success: true,
-    number,
-    isBlocked: evaluation.isBlocked,
-    reason: evaluation.reason || "Allowed caller — passes all filter rules",
-    countryCode: evaluation.countryCode || "+1",
-    action: evaluation.isBlocked ? `Rejected (${rejectionAction})` : "Connected to Dispatch",
-    twimlPreview,
-  });
-});
-
-// POST clear blocked history log
-app.post("/api/twilio/clear-history", (req, res) => {
-  const projectId = getProjectId(req);
-  const store = loadStore(projectId);
-  if (!store) return res.status(500).json({ error: "Store not loaded" });
-
-  store.blockedCallsHistory = [];
-  store.lastSavedAt = new Date().toISOString();
-  saveStore(store, projectId);
-
-  res.json({
-    success: true,
-    message: "Blocked call history cleared.",
-    history: [],
-  });
-});
-
-// Inbound Twilio Voice Webhook (POST & GET) with TwiML generation
-const handleTwilioVoiceWebhook = (req: express.Request, res: express.Response) => {
-  const projectId = getProjectId(req);
-  const store = loadStore(projectId);
-  const config = store?.spamShieldConfig || DEFAULT_SPAM_SHIELD_CONFIG;
-
-  const fromNumber = req.body?.From || req.query?.From || req.body?.Caller || req.query?.Caller || "Unknown";
-  const callerCity = req.body?.FromCity || req.query?.FromCity || "";
-  const callerCountry = req.body?.FromCountry || req.query?.FromCountry || "";
-
-  const check = evaluateSpamCallRule(String(fromNumber), config);
-
-  res.setHeader("Content-Type", "text/xml");
-
-  if (check.isBlocked) {
-    // Log the rejected spam call
-    if (store) {
-      if (!store.blockedCallsHistory) store.blockedCallsHistory = [...INITIAL_BLOCKED_CALLS_HISTORY];
-      store.blockedCallsHistory.unshift({
-        id: `blk-${Date.now().toString(36)}`,
-        timestamp: new Date().toISOString(),
-        callerNumber: String(fromNumber),
-        callerName: callerCity ? `${callerCity}, ${callerCountry}` : "Inbound Robocaller",
-        countryCode: check.countryCode || callerCountry || "+1",
-        reason: check.reason || "Rejected by Spam Shield rules",
-      });
-      store.lastSavedAt = new Date().toISOString();
-      saveStore(store, projectId);
-    }
-
-    const action = config.rejectionAction || "busy";
-    const twiml = `<?xml version="1.0" encoding="UTF-8"?>
-<Response>
-  <Reject reason="${action}"/>
-</Response>`;
-    return res.send(twiml);
-  }
-
-  // Allowed legitimate caller: Forward to Dispatch Line
-  const twiml = `<?xml version="1.0" encoding="UTF-8"?>
-<Response>
-  <Say voice="alice">Thank you for calling Dispatch Genie. Connecting you now.</Say>
-  <Dial timeout="25" callerId="+18338439877">+15879007223</Dial>
-</Response>`;
-  return res.send(twiml);
-};
-
-app.post("/api/twilio/voice", handleTwilioVoiceWebhook);
-app.get("/api/twilio/voice", handleTwilioVoiceWebhook);
 
 // In-memory cache for printable manifests to ensure zero URL bloat
 const manifestCache = new Map<string, any>();

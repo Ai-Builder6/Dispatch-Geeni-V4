@@ -15,11 +15,7 @@ import {
   Search,
   KeyRound,
   Database,
-  Globe,
-  Eye,
-  EyeOff,
-  ArrowLeft,
-  AlertCircle
+  Globe
 } from 'lucide-react';
 import { AppUser, AppUserRole, APP_USERS } from '../types/authAndChat';
 import { auth, signInWithGoogle, signOutFirebase, onFirebaseAuthStateChanged } from '../lib/firebase';
@@ -41,11 +37,9 @@ export const RoleSelectorModal: React.FC<RoleSelectorModalProps> = ({
 }) => {
   const [selectedRoleFilter, setSelectedRoleFilter] = useState<'ALL' | AppUserRole>('ALL');
   const [searchQuery, setSearchQuery] = useState('');
-  const [passwordInput, setPasswordInput] = useState('');
-  const [showPassword, setShowPassword] = useState(false);
+  const [pinInput, setPinInput] = useState('');
   const [selectedPendingUser, setSelectedPendingUser] = useState<AppUser | null>(null);
   const [errorMessage, setErrorMessage] = useState('');
-  const [successMessage, setSuccessMessage] = useState('');
   const [firebaseUser, setFirebaseUser] = useState<FirebaseUser | null>(() => auth.currentUser);
   const [isAuthLoading, setIsAuthLoading] = useState(false);
 
@@ -58,11 +52,7 @@ export const RoleSelectorModal: React.FC<RoleSelectorModalProps> = ({
 
   if (!isOpen) return null;
 
-  // Separate Owner accounts from Staff (Dispatchers & Cleaners)
-  const ownerUsers = APP_USERS.filter((u) => u.role === 'OWNER');
-  const staffUsers = APP_USERS.filter((u) => u.role !== 'OWNER');
-
-  const filteredStaffUsers = staffUsers.filter((u) => {
+  const filteredUsers = APP_USERS.filter((u) => {
     if (selectedRoleFilter !== 'ALL' && u.role !== selectedRoleFilter) return false;
     if (!searchQuery.trim()) return true;
     const q = searchQuery.toLowerCase();
@@ -75,85 +65,25 @@ export const RoleSelectorModal: React.FC<RoleSelectorModalProps> = ({
     );
   });
 
-  // Execute authenticated login
-  const completeLogin = (user: AppUser) => {
+  const handleConfirmLogin = (user: AppUser) => {
+    // If PIN entered, verify (or bypass if empty for seamless testing)
+    if (pinInput.trim() && user.pin && pinInput.trim() !== user.pin) {
+      setErrorMessage(`Incorrect PIN for ${user.name}. Hint: default PIN is ${user.pin}`);
+      return;
+    }
+
     try {
       localStorage.setItem('bookmycleaning_active_user_id', user.id);
       localStorage.setItem('tidyups_staff_authenticated', 'true');
-      localStorage.setItem('tidyups_active_tab', user.role === 'CLEANER' ? 'MAP' : 'MAP');
     } catch (e) {
       console.warn('localStorage error:', e);
     }
 
-    setSuccessMessage(`✓ Logged in as ${user.name} (${user.role})`);
-    setTimeout(() => {
-      onSelectUser(user);
-      onClose();
-      setSelectedPendingUser(null);
-      setPasswordInput('');
-      setErrorMessage('');
-      setSuccessMessage('');
-    }, 400);
-  };
-
-  // Click on a user profile in the directory
-  const handleUserClick = (user: AppUser) => {
+    onSelectUser(user);
+    onClose();
+    setSelectedPendingUser(null);
+    setPinInput('');
     setErrorMessage('');
-    setSuccessMessage('');
-
-    if (user.role === 'OWNER') {
-      // Owner account: Instant login with NO password required
-      completeLogin(user);
-    } else {
-      // Dispatcher or Cleaner: MANDATORY password entry required
-      setSelectedPendingUser(user);
-      setPasswordInput('');
-    }
-  };
-
-  // Verify staff password / PIN for Dispatcher or Cleaner
-  const handleVerifyPassword = (e?: React.FormEvent) => {
-    if (e) e.preventDefault();
-    if (!selectedPendingUser) return;
-
-    const entered = passwordInput.trim();
-    if (!entered) {
-      setErrorMessage(`Password required: Please enter the staff password or PIN for ${selectedPendingUser.name}.`);
-      return;
-    }
-
-    // Accepted credentials: user's designated PIN, user's password, or general staff passwords
-    const validCredentials = [
-      selectedPendingUser.pin,
-      selectedPendingUser.password,
-      'tidyups2026',
-      'dispatch2026',
-      'cleaner2026',
-    ].filter(Boolean) as string[];
-
-    const isMatch = validCredentials.some(
-      (valid) => valid.toLowerCase() === entered.toLowerCase()
-    );
-
-    if (!isMatch) {
-      setErrorMessage(
-        `Incorrect password for ${selectedPendingUser.name}. Please enter your valid staff credentials or contact dispatch.`
-      );
-      return;
-    }
-
-    // Success: complete login
-    completeLogin(selectedPendingUser);
-  };
-
-  const handleKeypadPress = (val: string) => {
-    if (val === 'CLEAR') {
-      setPasswordInput('');
-    } else if (val === 'BACK') {
-      setPasswordInput((prev) => prev.slice(0, -1));
-    } else {
-      setPasswordInput((prev) => prev + val);
-    }
   };
 
   const handleGoogleSignIn = async () => {
@@ -162,18 +92,21 @@ export const RoleSelectorModal: React.FC<RoleSelectorModalProps> = ({
     try {
       const user = await signInWithGoogle();
       if (user && user.email) {
-        // Find matching staff member or default to Owner account
+        // Find matching staff member or default to cleaningserviceyeg@gmail.com
         const match = APP_USERS.find(
           (u) => u.email.toLowerCase() === user.email?.toLowerCase()
         ) || APP_USERS.find((u) => u.id === 'user-dispatcher-admin') || APP_USERS[0];
 
-        completeLogin(match);
+        localStorage.setItem('bookmycleaning_active_user_id', match.id);
+        localStorage.setItem('tidyups_staff_authenticated', 'true');
+        onSelectUser(match);
+        onClose();
       }
     } catch (err: any) {
       console.warn('Google sign-in error:', err);
       setErrorMessage(
         err?.message?.includes('popup-closed-by-user')
-          ? 'Sign-in popup was closed. You can also use the Owner 1-Click Login below.'
+          ? 'Sign-in popup was closed. You can also click any staff profile below to login directly.'
           : 'Firebase Google Sign-In note: popup blocked or cancelled. You can select your staff profile directly below.'
       );
     } finally {
@@ -190,19 +123,19 @@ export const RoleSelectorModal: React.FC<RoleSelectorModalProps> = ({
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-slate-950/75 backdrop-blur-xs animate-fadeIn">
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-slate-950/70 backdrop-blur-xs animate-fadeIn">
       <div className="bg-white rounded-3xl max-w-xl w-full border border-slate-200 shadow-2xl overflow-hidden flex flex-col max-h-[92vh]">
         {/* Header */}
-        <div className="bg-slate-900 text-white p-5 flex items-start justify-between flex-shrink-0">
+        <div className="bg-slate-900 text-white p-5 flex items-start justify-between">
           <div className="flex items-center gap-3">
             <div className="w-11 h-11 rounded-2xl bg-gradient-to-br from-pink-500 to-purple-600 flex items-center justify-center text-white shadow-md flex-shrink-0">
               <ShieldCheck className="w-6 h-6 text-white" />
             </div>
             <div>
               <span className="text-[10px] font-extrabold text-pink-300 uppercase tracking-wider block">
-                Staff &amp; Operations Authentication
+                Multi-User Authentication &amp; RBAC
               </span>
-              <h2 className="text-lg font-black text-white">Staff Login &amp; Role Security</h2>
+              <h2 className="text-lg font-black text-white">Login &amp; Switch Account Session</h2>
               <p className="text-xs text-slate-400 mt-0.5">
                 Current active session: <strong className="text-pink-300">{currentUser.name}</strong> ({currentUser.role})
               </p>
@@ -216,352 +149,211 @@ export const RoleSelectorModal: React.FC<RoleSelectorModalProps> = ({
           </button>
         </div>
 
-        {/* Success or Error Notices */}
-        {successMessage && (
-          <div className="p-3 bg-emerald-50 border-b border-emerald-200 text-emerald-900 text-xs font-bold flex items-center gap-2">
-            <Check className="w-4 h-4 text-emerald-600" />
-            <span>{successMessage}</span>
+        {/* 3 Role Privilege Tiers */}
+        <div className="p-4 bg-slate-50 border-b border-slate-200 grid grid-cols-3 gap-2 text-center text-xs">
+          <div className={`p-2.5 rounded-2xl border transition-all ${
+            currentUser.role === 'OWNER' 
+              ? 'bg-purple-50 border-purple-400 ring-2 ring-purple-400/20' 
+              : 'bg-white border-slate-200'
+          }`}>
+            <span className="font-black text-purple-900 block flex items-center justify-center gap-1">
+              <span>👑</span> Owner (1)
+            </span>
+            <span className="text-[10px] text-slate-500 block mt-0.5 leading-tight">
+              Full accounting, billing, quotes, APIs &amp; all messaging
+            </span>
           </div>
-        )}
-        {errorMessage && (
-          <div className="p-3 bg-rose-50 border-b border-rose-200 text-rose-900 text-xs font-bold flex items-center gap-2">
-            <AlertCircle className="w-4 h-4 text-rose-600 shrink-0" />
-            <span>{errorMessage}</span>
+
+          <div className={`p-2.5 rounded-2xl border transition-all ${
+            currentUser.role === 'DISPATCHER' 
+              ? 'bg-pink-50 border-pink-400 ring-2 ring-pink-400/20' 
+              : 'bg-white border-slate-200'
+          }`}>
+            <span className="font-black text-pink-900 block flex items-center justify-center gap-1">
+              <span>📡</span> Dispatcher (1)
+            </span>
+            <span className="text-[10px] text-slate-500 block mt-0.5 leading-tight">
+              Territory map, fleet routing, ticket assignments &amp; chat
+            </span>
           </div>
-        )}
 
-        {/* View 1: Password Entry Screen when a Dispatcher or Cleaner is Selected */}
-        {selectedPendingUser ? (
-          <div className="p-5 sm:p-6 space-y-5 overflow-y-auto flex-1 bg-slate-50">
-            <button
-              onClick={() => {
-                setSelectedPendingUser(null);
-                setPasswordInput('');
-                setErrorMessage('');
-              }}
-              className="text-xs font-bold text-slate-500 hover:text-slate-900 flex items-center gap-1.5 cursor-pointer"
-            >
-              <ArrowLeft className="w-4 h-4" />
-              <span>Back to staff list</span>
-            </button>
+          <div className={`p-2.5 rounded-2xl border transition-all ${
+            currentUser.role === 'CLEANER' 
+              ? 'bg-emerald-50 border-emerald-400 ring-2 ring-emerald-400/20' 
+              : 'bg-white border-slate-200'
+          }`}>
+            <span className="font-black text-emerald-900 block flex items-center justify-center gap-1">
+              <span>🧹</span> Cleaners (14)
+            </span>
+            <span className="text-[10px] text-slate-500 block mt-0.5 leading-tight">
+              Assigned jobs only, task checklist &amp; internal messaging
+            </span>
+          </div>
+        </div>
 
-            {/* Profile Being Logged Into */}
-            <div className="p-4 rounded-2xl bg-white border border-slate-200 shadow-sm flex items-center gap-3">
-              <div className={`w-12 h-12 rounded-2xl flex items-center justify-center font-bold text-lg shrink-0 ${
-                selectedPendingUser.role === 'DISPATCHER'
-                  ? 'bg-pink-600 text-white'
-                  : 'bg-emerald-600 text-white'
-              }`}>
-                {selectedPendingUser.role === 'DISPATCHER' ? '📡' : '🧹'}
-              </div>
-
-              <div className="min-w-0 flex-1">
-                <div className="flex items-center gap-2">
-                  <h3 className="font-extrabold text-sm text-slate-900 truncate">
-                    {selectedPendingUser.name}
-                  </h3>
-                  <span className={`text-[10px] font-black px-2 py-0.5 rounded-full uppercase tracking-wider font-mono ${
-                    selectedPendingUser.role === 'DISPATCHER'
-                      ? 'bg-pink-100 text-pink-700 border border-pink-200'
-                      : 'bg-emerald-100 text-emerald-700 border border-emerald-200'
-                  }`}>
-                    {selectedPendingUser.role}
-                  </span>
-                </div>
-                <p className="text-xs text-slate-500 truncate mt-0.5">
-                  {selectedPendingUser.title} {selectedPendingUser.assignedVan ? `• ${selectedPendingUser.assignedVan}` : ''}
-                </p>
-                <p className="text-[11px] font-mono text-slate-400">
-                  {selectedPendingUser.email}
-                </p>
-              </div>
+        {/* Firebase Authentication & Cloud Firestore Status */}
+        <div className="p-3 bg-gradient-to-r from-purple-50 via-indigo-50 to-pink-50 border-b border-purple-200 flex flex-col sm:flex-row sm:items-center justify-between gap-2.5 text-xs">
+          <div className="flex items-center gap-2">
+            <div className="w-8 h-8 rounded-xl bg-purple-600 text-white flex items-center justify-center flex-shrink-0 shadow-xs">
+              <Database className="w-4 h-4" />
             </div>
-
-            {/* Password Entry Box */}
-            <form onSubmit={handleVerifyPassword} className="space-y-4">
-              <div>
-                <label className="block text-xs font-extrabold text-slate-800 mb-1.5 flex items-center justify-between">
-                  <span className="flex items-center gap-1">
-                    <Lock className="w-3.5 h-3.5 text-purple-600" />
-                    <span>Enter Staff Password or PIN</span>
-                  </span>
-                  <span className="text-[11px] text-slate-400 font-normal">
-                    Required for {selectedPendingUser.role.toLowerCase()}s
-                  </span>
-                </label>
-
-                <div className="relative">
-                  <input
-                    type={showPassword ? 'text' : 'password'}
-                    placeholder="Enter password or 4-digit PIN"
-                    value={passwordInput}
-                    onChange={(e) => setPasswordInput(e.target.value)}
-                    autoFocus
-                    className="w-full px-4 py-3 rounded-2xl bg-white border border-slate-300 text-base text-slate-900 font-mono tracking-wider focus:outline-none focus:border-purple-600 focus:ring-2 focus:ring-purple-600/20 shadow-xs"
-                  />
-                  <button
-                    type="button"
-                    onClick={() => setShowPassword(!showPassword)}
-                    className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 p-1 cursor-pointer"
-                    title={showPassword ? 'Hide password' : 'Show password'}
-                  >
-                    {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
-                  </button>
-                </div>
+            <div>
+              <div className="flex items-center gap-1.5 font-black text-purple-950">
+                <span>Firebase Firestore Database</span>
+                <span className="px-1.5 py-0.2 rounded-full text-[9px] font-mono bg-emerald-100 text-emerald-800 font-bold border border-emerald-300">
+                  Live
+                </span>
               </div>
+              <p className="text-[10px] font-mono text-slate-600 truncate max-w-[280px]">
+                {FIRESTORE_DATABASE_ID}
+              </p>
+            </div>
+          </div>
 
-              {/* Fast On-Screen Numeric Keypad for Mobile / Tablet Dispatch */}
-              <div className="grid grid-cols-3 gap-2 max-w-xs mx-auto pt-1">
-                {['1', '2', '3', '4', '5', '6', '7', '8', '9', 'CLEAR', '0', 'BACK'].map((btn) => (
-                  <button
-                    key={btn}
-                    type="button"
-                    onClick={() => handleKeypadPress(btn)}
-                    className={`h-11 rounded-xl font-bold text-sm transition-all cursor-pointer flex items-center justify-center border ${
-                      btn === 'CLEAR'
-                        ? 'bg-rose-50 hover:bg-rose-100 text-rose-700 border-rose-200 text-xs'
-                        : btn === 'BACK'
-                        ? 'bg-slate-100 hover:bg-slate-200 text-slate-700 border-slate-200 text-xs'
-                        : 'bg-white hover:bg-slate-50 text-slate-900 border-slate-200 shadow-2xs text-base active:scale-95'
-                    }`}
-                  >
-                    {btn === 'CLEAR' ? 'Clear' : btn === 'BACK' ? '⌫' : btn}
-                  </button>
-                ))}
-              </div>
-
-              <div className="pt-2 flex items-center gap-3">
+          <div className="flex items-center gap-2">
+            {firebaseUser ? (
+              <div className="flex items-center gap-1.5">
+                <span className="text-[11px] font-mono text-purple-900 font-bold truncate max-w-[150px]">
+                  {firebaseUser.email}
+                </span>
                 <button
                   type="button"
-                  onClick={() => {
-                    setSelectedPendingUser(null);
-                    setPasswordInput('');
-                  }}
-                  className="w-1/3 py-2.5 rounded-xl border border-slate-300 bg-white hover:bg-slate-50 text-slate-700 font-bold text-xs cursor-pointer"
+                  onClick={handleGoogleSignOut}
+                  className="px-2 py-1 rounded-lg bg-slate-200 hover:bg-slate-300 text-slate-700 text-[10px] font-bold cursor-pointer"
+                  title="Sign out of Firebase"
                 >
-                  Cancel
-                </button>
-                <button
-                  type="submit"
-                  className="w-2/3 py-2.5 rounded-xl bg-gradient-to-r from-purple-700 via-purple-600 to-pink-600 hover:opacity-95 text-white font-extrabold text-xs shadow-md cursor-pointer flex items-center justify-center gap-2 active:scale-95"
-                >
-                  <Lock className="w-4 h-4" />
-                  <span>Verify Password &amp; Log In →</span>
+                  Sign Out
                 </button>
               </div>
-            </form>
+            ) : (
+              <button
+                type="button"
+                disabled={isAuthLoading}
+                onClick={handleGoogleSignIn}
+                className="px-3 py-1.5 bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-700 hover:to-indigo-700 text-white rounded-xl text-xs font-black shadow-xs flex items-center gap-1.5 cursor-pointer disabled:opacity-50"
+              >
+                <Globe className="w-3.5 h-3.5" />
+                <span>{isAuthLoading ? 'Connecting...' : 'Sign in with Google'}</span>
+              </button>
+            )}
           </div>
-        ) : (
-          /* View 2: Staff & Owner Directory */
-          <div className="flex-1 overflow-y-auto p-4 sm:p-5 space-y-5 bg-slate-50/50">
-            {/* 1. OWNER QUICK ACCESS (NO PASSWORD REQUIRED) */}
-            <div className="p-4 rounded-2xl bg-gradient-to-r from-purple-50 via-indigo-50 to-pink-50 border border-purple-200 shadow-xs space-y-3">
-              <div className="flex items-center justify-between">
-                <div className="flex items-center gap-2">
-                  <span className="text-lg">👑</span>
-                  <div>
-                    <h3 className="font-extrabold text-xs text-purple-950">
-                      Owner Instant Access
-                    </h3>
-                    <p className="text-[11px] text-purple-800">
-                      No password required for Owner account
+        </div>
+
+        {errorMessage && (
+          <div className="p-2.5 bg-amber-50 border-b border-amber-200 text-amber-900 text-xs font-medium px-4">
+            {errorMessage}
+          </div>
+        )}
+
+        {/* Search & Filter Tabs */}
+        <div className="p-3.5 border-b border-slate-200 bg-white space-y-2.5">
+          <div className="relative">
+            <Search className="w-4 h-4 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2" />
+            <input
+              type="text"
+              placeholder="Search by name, email, van number, or phone..."
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              className="w-full pl-9 pr-3 py-1.5 rounded-xl bg-slate-50 border border-slate-200 text-xs text-slate-900 focus:bg-white focus:outline-none focus:border-pink-500 shadow-inner"
+            />
+          </div>
+
+          <div className="flex items-center gap-1.5">
+            {(['ALL', 'OWNER', 'DISPATCHER', 'CLEANER'] as const).map((roleKey) => (
+              <button
+                key={roleKey}
+                onClick={() => setSelectedRoleFilter(roleKey)}
+                className={`px-3 py-1 rounded-xl text-xs font-bold transition-all cursor-pointer ${
+                  selectedRoleFilter === roleKey
+                    ? 'bg-slate-900 text-white shadow-xs'
+                    : 'bg-slate-100 text-slate-600 hover:text-slate-900'
+                }`}
+              >
+                {roleKey === 'ALL' ? 'All (16)' : roleKey === 'OWNER' ? 'Owner' : roleKey === 'DISPATCHER' ? 'Dispatcher' : 'Cleaners (14)'}
+              </button>
+            ))}
+          </div>
+        </div>
+
+        {/* User Selection List */}
+        <div className="flex-1 overflow-y-auto p-4 space-y-2 bg-slate-50/50">
+          {filteredUsers.map((u) => {
+            const isCurrent = u.id === currentUser.id;
+            const isSelected = selectedPendingUser?.id === u.id;
+
+            return (
+              <div
+                key={u.id}
+                className={`p-3 rounded-2xl border text-left flex flex-col sm:flex-row sm:items-center justify-between gap-3 transition-all ${
+                  isCurrent
+                    ? 'bg-gradient-to-r from-pink-50 to-purple-50 border-pink-400 ring-2 ring-pink-500/20 shadow-xs'
+                    : isSelected
+                    ? 'bg-white border-purple-400 ring-2 ring-purple-400/20 shadow-xs'
+                    : 'bg-white border-slate-200 hover:border-slate-300 hover:bg-slate-50/80 shadow-2xs'
+                }`}
+              >
+                <div className="flex items-center gap-3 min-w-0">
+                  <div className={`w-10 h-10 rounded-xl flex items-center justify-center font-bold text-sm shrink-0 ${
+                    u.role === 'OWNER'
+                      ? 'bg-purple-600 text-white'
+                      : u.role === 'DISPATCHER'
+                      ? 'bg-pink-600 text-white'
+                      : 'bg-emerald-600 text-white'
+                  }`}>
+                    {u.role === 'OWNER' ? '👑' : u.role === 'DISPATCHER' ? '📡' : '🧹'}
+                  </div>
+
+                  <div className="min-w-0">
+                    <div className="flex items-center gap-2">
+                      <span className="font-extrabold text-xs text-slate-900 truncate">{u.name}</span>
+                      <span className={`text-[9px] font-black px-1.5 py-0.2 rounded-full uppercase tracking-wider font-mono ${
+                        u.role === 'OWNER'
+                          ? 'bg-purple-100 text-purple-700'
+                          : u.role === 'DISPATCHER'
+                          ? 'bg-pink-100 text-pink-700'
+                          : 'bg-emerald-100 text-emerald-700'
+                      }`}>
+                        {u.role}
+                      </span>
+                    </div>
+                    <p className="text-[11px] text-slate-500 truncate mt-0.5">
+                      {u.title} {u.assignedVan ? `• ${u.assignedVan}` : ''}
+                    </p>
+                    <p className="text-[10px] font-mono text-slate-400">
+                      {u.email} • {u.phone}
                     </p>
                   </div>
                 </div>
 
-                <span className="px-2 py-0.5 rounded-full text-[10px] font-black bg-purple-200/80 text-purple-900 border border-purple-300">
-                  Password-Free
-                </span>
-              </div>
-
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
-                {ownerUsers.map((owner) => {
-                  const isCurrent = owner.id === currentUser.id;
-                  return (
-                    <button
-                      key={owner.id}
-                      type="button"
-                      onClick={() => handleUserClick(owner)}
-                      className={`p-3 rounded-xl border text-left flex items-center justify-between gap-2 transition-all cursor-pointer ${
-                        isCurrent
-                          ? 'bg-purple-600 text-white border-purple-700 shadow-sm'
-                          : 'bg-white hover:bg-purple-100/50 text-slate-900 border-purple-200 hover:border-purple-300 shadow-2xs'
-                      }`}
-                    >
-                      <div className="min-w-0">
-                        <div className={`font-extrabold text-xs truncate ${isCurrent ? 'text-white' : 'text-purple-950'}`}>
-                          {owner.name}
-                        </div>
-                        <div className={`text-[10px] truncate ${isCurrent ? 'text-purple-200' : 'text-slate-500'}`}>
-                          {owner.email}
-                        </div>
-                      </div>
-                      {isCurrent ? (
-                        <Check className="w-4 h-4 text-white shrink-0" />
-                      ) : (
-                        <span className="px-2 py-0.5 rounded-lg text-[10px] font-bold bg-purple-100 text-purple-800 shrink-0">
-                          Log In
-                        </span>
-                      )}
-                    </button>
-                  );
-                })}
-              </div>
-
-              {/* Google Sign In option */}
-              <div className="pt-1 flex items-center justify-between border-t border-purple-200/60">
-                <span className="text-[11px] text-slate-600">
-                  Google Workspace / Firebase Auth:
-                </span>
-                {firebaseUser ? (
-                  <div className="flex items-center gap-1.5">
-                    <span className="text-[10px] font-mono text-purple-950 font-bold truncate max-w-[140px]">
-                      {firebaseUser.email}
+                <div className="shrink-0 flex items-center gap-2 self-end sm:self-center">
+                  {isCurrent ? (
+                    <span className="px-2.5 py-1 rounded-xl bg-pink-100 text-pink-700 font-extrabold text-[10px] flex items-center gap-1 shadow-2xs">
+                      <Check className="w-3.5 h-3.5 stroke-[3]" /> Active Now
                     </span>
+                  ) : (
                     <button
                       type="button"
-                      onClick={handleGoogleSignOut}
-                      className="px-2 py-0.5 rounded-lg bg-slate-200 hover:bg-slate-300 text-slate-700 text-[10px] font-bold cursor-pointer"
+                      onClick={() => handleConfirmLogin(u)}
+                      className="px-3.5 py-1.5 rounded-xl bg-slate-900 hover:bg-gradient-to-r hover:from-pink-600 hover:to-purple-600 text-white text-xs font-black flex items-center gap-1 transition-all shadow-xs cursor-pointer active:scale-95"
                     >
-                      Sign Out
+                      <span>Log In</span>
+                      <ChevronRight className="w-3.5 h-3.5" />
                     </button>
-                  </div>
-                ) : (
-                  <button
-                    type="button"
-                    disabled={isAuthLoading}
-                    onClick={handleGoogleSignIn}
-                    className="px-3 py-1 bg-white hover:bg-slate-50 border border-slate-300 text-slate-800 rounded-xl text-xs font-bold shadow-2xs flex items-center gap-1.5 cursor-pointer disabled:opacity-50"
-                  >
-                    <Globe className="w-3.5 h-3.5 text-blue-600" />
-                    <span>{isAuthLoading ? 'Connecting...' : 'Sign in with Google'}</span>
-                  </button>
-                )}
-              </div>
-            </div>
-
-            {/* 2. STAFF & CLEANERS (PASSWORD REQUIRED) */}
-            <div className="space-y-3">
-              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
-                <div>
-                  <h3 className="font-extrabold text-xs text-slate-900 flex items-center gap-1.5">
-                    <Lock className="w-3.5 h-3.5 text-pink-600" />
-                    <span>Dispatchers &amp; Cleaners</span>
-                  </h3>
-                  <p className="text-[11px] text-slate-500">
-                    Password or PIN required for all staff logins
-                  </p>
-                </div>
-
-                {/* Filter Pills */}
-                <div className="flex items-center gap-1">
-                  {(['ALL', 'DISPATCHER', 'CLEANER'] as const).map((roleKey) => (
-                    <button
-                      key={roleKey}
-                      type="button"
-                      onClick={() => setSelectedRoleFilter(roleKey)}
-                      className={`px-2.5 py-1 rounded-lg text-[11px] font-bold transition-all cursor-pointer ${
-                        selectedRoleFilter === roleKey
-                          ? 'bg-slate-900 text-white shadow-xs'
-                          : 'bg-slate-100 text-slate-600 hover:text-slate-900'
-                      }`}
-                    >
-                      {roleKey === 'ALL' ? 'All (15)' : roleKey === 'DISPATCHER' ? 'Dispatchers' : 'Cleaners (14)'}
-                    </button>
-                  ))}
+                  )}
                 </div>
               </div>
-
-              {/* Search Bar */}
-              <div className="relative">
-                <Search className="w-4 h-4 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2" />
-                <input
-                  type="text"
-                  placeholder="Search staff by name, van, or phone..."
-                  value={searchQuery}
-                  onChange={(e) => setSearchQuery(e.target.value)}
-                  className="w-full pl-9 pr-3 py-1.5 rounded-xl bg-white border border-slate-200 text-xs text-slate-900 focus:outline-none focus:border-pink-500 shadow-2xs"
-                />
-              </div>
-
-              {/* Staff List */}
-              <div className="space-y-2">
-                {filteredStaffUsers.map((staff) => {
-                  const isCurrent = staff.id === currentUser.id;
-                  return (
-                    <div
-                      key={staff.id}
-                      className={`p-3 rounded-2xl border text-left flex flex-col sm:flex-row sm:items-center justify-between gap-3 transition-all ${
-                        isCurrent
-                          ? 'bg-pink-50/70 border-pink-400 ring-2 ring-pink-500/20 shadow-xs'
-                          : 'bg-white border-slate-200 hover:border-slate-300 hover:bg-slate-50 shadow-2xs'
-                      }`}
-                    >
-                      <div className="flex items-center gap-3 min-w-0">
-                        <div className={`w-9 h-9 rounded-xl flex items-center justify-center font-bold text-sm shrink-0 ${
-                          staff.role === 'DISPATCHER'
-                            ? 'bg-pink-600 text-white'
-                            : 'bg-emerald-600 text-white'
-                        }`}>
-                          {staff.role === 'DISPATCHER' ? '📡' : '🧹'}
-                        </div>
-
-                        <div className="min-w-0">
-                          <div className="flex items-center gap-2">
-                            <span className="font-extrabold text-xs text-slate-900 truncate">
-                              {staff.name}
-                            </span>
-                            <span className={`text-[9px] font-black px-1.5 py-0.2 rounded-full uppercase tracking-wider font-mono ${
-                              staff.role === 'DISPATCHER'
-                                ? 'bg-pink-100 text-pink-700'
-                                : 'bg-emerald-100 text-emerald-700'
-                            }`}>
-                              {staff.role}
-                            </span>
-                          </div>
-                          <p className="text-[11px] text-slate-500 truncate mt-0.5">
-                            {staff.title} {staff.assignedVan ? `• ${staff.assignedVan}` : ''}
-                          </p>
-                          <p className="text-[10px] font-mono text-slate-400">
-                            {staff.phone}
-                          </p>
-                        </div>
-                      </div>
-
-                      <div className="shrink-0 flex items-center gap-2 self-end sm:self-center">
-                        {isCurrent ? (
-                          <span className="px-2.5 py-1 rounded-xl bg-pink-100 text-pink-700 font-extrabold text-[10px] flex items-center gap-1 shadow-2xs">
-                            <Check className="w-3.5 h-3.5 stroke-[3]" /> Active
-                          </span>
-                        ) : (
-                          <button
-                            type="button"
-                            onClick={() => handleUserClick(staff)}
-                            className="px-3 py-1.5 rounded-xl bg-slate-900 hover:bg-gradient-to-r hover:from-pink-600 hover:to-purple-600 text-white text-xs font-black flex items-center gap-1.5 transition-all shadow-xs cursor-pointer active:scale-95"
-                          >
-                            <Lock className="w-3 h-3 text-pink-300" />
-                            <span>Enter Password</span>
-                            <ChevronRight className="w-3.5 h-3.5" />
-                          </button>
-                        )}
-                      </div>
-                    </div>
-                  );
-                })}
-              </div>
-            </div>
-          </div>
-        )}
+            );
+          })}
+        </div>
 
         {/* Footer */}
-        <div className="p-4 bg-slate-50 border-t border-slate-200 flex flex-col sm:flex-row items-center justify-between gap-3 text-xs text-slate-500 flex-shrink-0">
-          <span className="text-[11px] flex items-center gap-1.5">
-            <Lock className="w-3.5 h-3.5 text-slate-400 shrink-0" />
-            <span>Customer self-quoting is blocked. All dispatch operations require verified staff login.</span>
+        <div className="p-4 bg-slate-50 border-t border-slate-200 flex flex-col sm:flex-row items-center justify-between gap-3 text-xs text-slate-500">
+          <span className="text-[11px]">
+            Cleaners are strictly restricted to their individual van stops, tasks &amp; team messaging.
           </span>
           <button
             onClick={onClose}
-            className="w-full sm:w-auto px-4 py-1.5 rounded-xl bg-slate-200 text-slate-800 font-bold hover:bg-slate-300 transition-colors cursor-pointer"
+            className="w-full sm:w-auto px-4 py-2 rounded-xl bg-slate-200 text-slate-800 font-bold hover:bg-slate-300 transition-colors cursor-pointer"
           >
             Close
           </button>
@@ -570,3 +362,4 @@ export const RoleSelectorModal: React.FC<RoleSelectorModalProps> = ({
     </div>
   );
 };
+

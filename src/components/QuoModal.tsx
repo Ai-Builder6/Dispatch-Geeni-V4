@@ -23,24 +23,13 @@ import {
   ArrowRight,
   Play,
   Sparkles,
-  Link as LinkIcon,
-  Calendar,
-  Tag,
-  ShieldAlert
+  Link as LinkIcon
 } from 'lucide-react';
-import { getCustomerIntelligence } from '../services/customerIntelligenceService';
-import { CustomerIntelligenceBadge } from './CustomerIntelligenceBadge';
-import { TwilioSpamShieldModal } from './TwilioSpamShieldModal';
 
 interface QuoModalProps {
   isOpen: boolean;
   onClose: () => void;
   onJobSelected?: (jobId: string) => void;
-  onDataUpdated?: () => void;
-  onVisitCreated?: (newVisit: any) => void;
-  clients?: any[];
-  visits?: any[];
-  projectId?: 'dispatchgeeni' | 'tidyups';
 }
 
 export interface QuoPhoneNumber {
@@ -51,16 +40,7 @@ export interface QuoPhoneNumber {
   totalCallsToday: number;
 }
 
-export const QuoModal: React.FC<QuoModalProps> = ({
-  isOpen,
-  onClose,
-  onJobSelected,
-  onDataUpdated,
-  onVisitCreated,
-  clients = [],
-  visits = [],
-  projectId = 'dispatchgeeni',
-}) => {
+export const QuoModal: React.FC<QuoModalProps> = ({ isOpen, onClose, onJobSelected }) => {
   const [activeTab, setActiveTab] = useState<'LINES' | 'TRANSCRIPTS' | 'CONTACTS'>('TRANSCRIPTS');
   const [apiKeyInput, setApiKeyInput] = useState('');
   const [isConnected, setIsConnected] = useState(false);
@@ -69,25 +49,6 @@ export const QuoModal: React.FC<QuoModalProps> = ({
   const [syncNotice, setSyncNotice] = useState<string | null>(null);
   const [copiedWebhook, setCopiedWebhook] = useState(false);
   const [copiedProdWebhook, setCopiedProdWebhook] = useState(false);
-
-  // Conversion Modal State
-  const [conversionModal, setConversionModal] = useState<{
-    isOpen: boolean;
-    type: 'JOB' | 'QUOTE';
-    call: any;
-    clientName: string;
-    clientPhone: string;
-    serviceAddress: string;
-    serviceType: string;
-    scheduledDate: string;
-    scheduledTime: string;
-    assignedCleaners: string[];
-    basePrice: number;
-    applyDiscount: boolean;
-    discountPercent: number;
-    notes: string;
-  } | null>(null);
-  const [isSubmittingConversion, setIsSubmittingConversion] = useState(false);
 
   // Call Transcripts
   const [calls, setCalls] = useState<any[]>([]);
@@ -105,11 +66,7 @@ export const QuoModal: React.FC<QuoModalProps> = ({
   const [editingContactId, setEditingContactId] = useState<string | null>(null);
   const [editNameValue, setEditNameValue] = useState('');
 
-  // Twilio Spam Shield & Call Blocker modal state
-  const [isSpamShieldModalOpen, setIsSpamShieldModalOpen] = useState(false);
-  const [spamBlockNumber, setSpamBlockNumber] = useState('');
-
-  const prodWebhookUrl = 'https://dispatchgeeni.com/api/quo/webhook';
+  const prodWebhookUrl = 'https://app.tidyupscleaning.com/api/quo/webhook';
   const devWebhookUrl = typeof window !== 'undefined' ? `${window.location.origin}/api/quo/webhook` : prodWebhookUrl;
 
   const fetchQuoStatus = () => {
@@ -281,93 +238,6 @@ export const QuoModal: React.FC<QuoModalProps> = ({
     }
   };
 
-  const handleOpenConvertCallModal = (call: any, type: 'JOB' | 'QUOTE') => {
-    const intel = getCustomerIntelligence(call.callerPhone, call.callerName, { calls, visits, clients });
-    setConversionModal({
-      isOpen: true,
-      type,
-      call,
-      clientName: call.callerName || 'Inbound Caller',
-      clientPhone: call.callerPhone || '',
-      serviceAddress: 'Edmonton, AB',
-      serviceType: 'Residential Deep & Standard Cleaning',
-      scheduledDate: new Date().toISOString().slice(0, 10),
-      scheduledTime: '10:00',
-      assignedCleaners: ['Cindy Guay'],
-      basePrice: 280,
-      applyDiscount: intel.loyaltyDiscountEligible,
-      discountPercent: intel.loyaltyDiscountPercent || 10,
-      notes: call.summary ? `Customer called on ${call.lineName || 'Quo Line'}: ${call.summary}` : (call.transcriptText || ''),
-    });
-  };
-
-  const handleConfirmConvert = async () => {
-    if (!conversionModal) return;
-    setIsSubmittingConversion(true);
-    try {
-      if (conversionModal.type === 'JOB') {
-        const res = await fetch(`/api/quo/calls/convert-to-job?project=${projectId}`, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json', 'x-project-id': projectId },
-          body: JSON.stringify({
-            callId: conversionModal.call?.id || conversionModal.call?.callId,
-            callerName: conversionModal.clientName,
-            callerPhone: conversionModal.clientPhone,
-            serviceAddress: conversionModal.serviceAddress,
-            serviceType: conversionModal.serviceType,
-            scheduledDate: conversionModal.scheduledDate,
-            scheduledTime: conversionModal.scheduledTime,
-            assignedCleaners: conversionModal.assignedCleaners,
-            totalAmount: conversionModal.basePrice,
-            discountPercent: conversionModal.applyDiscount ? conversionModal.discountPercent : 0,
-            notes: conversionModal.notes,
-          }),
-        });
-        const data = await res.json();
-        if (data.success) {
-          setSyncNotice(`✓ ${data.message}`);
-          if (data.newVisit && onVisitCreated) {
-            onVisitCreated(data.newVisit);
-          }
-          if (onDataUpdated) onDataUpdated();
-          fetchCalls();
-          setConversionModal(null);
-        } else {
-          setSyncNotice(data.error || 'Failed to convert call to job.');
-        }
-      } else {
-        const res = await fetch(`/api/quo/calls/convert-to-quote?project=${projectId}`, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json', 'x-project-id': projectId },
-          body: JSON.stringify({
-            callId: conversionModal.call?.id || conversionModal.call?.callId,
-            clientName: conversionModal.clientName,
-            clientPhone: conversionModal.clientPhone,
-            serviceAddress: conversionModal.serviceAddress,
-            service: conversionModal.serviceType,
-            total: conversionModal.basePrice,
-            depositRequired: 50,
-            discountPercent: conversionModal.applyDiscount ? conversionModal.discountPercent : 0,
-            notes: conversionModal.notes,
-          }),
-        });
-        const data = await res.json();
-        if (data.success) {
-          setSyncNotice(`✓ ${data.message}`);
-          if (onDataUpdated) onDataUpdated();
-          fetchCalls();
-          setConversionModal(null);
-        } else {
-          setSyncNotice(data.error || 'Failed to create quote from call.');
-        }
-      }
-    } catch (err: any) {
-      setSyncNotice(`Conversion error: ${err.message}`);
-    } finally {
-      setIsSubmittingConversion(false);
-    }
-  };
-
   const filteredContacts = contacts.filter((c) => {
     if (!contactSearch.trim()) return true;
     const q = contactSearch.toLowerCase();
@@ -461,19 +331,6 @@ export const QuoModal: React.FC<QuoModalProps> = ({
             <Hash className="w-3.5 h-3.5" />
             <span>Phone Lines &amp; Webhook Config</span>
           </button>
-
-          <button
-            type="button"
-            onClick={() => {
-              setSpamBlockNumber('');
-              setIsSpamShieldModalOpen(true);
-            }}
-            className="py-1.5 px-3 bg-rose-50 hover:bg-rose-100 text-rose-700 border border-rose-200 rounded-lg text-xs font-bold transition-all flex items-center gap-1.5 cursor-pointer ml-auto my-auto"
-            title="Manage blocked country codes, rotating number prefixes, and spam blacklists"
-          >
-            <ShieldAlert className="w-3.5 h-3.5 text-rose-600" />
-            <span>Twilio Spam Shield</span>
-          </button>
         </div>
 
         {/* Content Body */}
@@ -546,18 +403,14 @@ export const QuoModal: React.FC<QuoModalProps> = ({
                       key={call.id || idx}
                       className="bg-white p-4 rounded-xl border border-slate-200 shadow-2xs space-y-2.5 transition-all hover:border-violet-300"
                     >
-                      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 text-xs">
-                        <div className="flex items-center gap-2 flex-wrap">
+                      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-1 text-xs">
+                        <div className="flex items-center gap-2">
                           <span className="font-bold text-slate-900 text-sm">
                             {call.callerName || 'Inbound Caller'}
                           </span>
                           <span className="font-mono text-xs text-slate-600 bg-slate-100 px-2 py-0.5 rounded border border-slate-200">
                             {call.callerPhone}
                           </span>
-                          <CustomerIntelligenceBadge
-                            intelligence={getCustomerIntelligence(call.callerPhone, call.callerName, { calls, visits, clients })}
-                            compact
-                          />
                           <span className="text-[11px] text-slate-500">
                             via {call.lineName || 'Primary Dispatch'}
                           </span>
@@ -602,7 +455,7 @@ export const QuoModal: React.FC<QuoModalProps> = ({
                         </details>
                       )}
 
-                      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 pt-2 border-t border-slate-100 text-[11px]">
+                      <div className="flex items-center justify-between pt-1 border-t border-slate-100 text-[11px]">
                         <div className="flex items-center gap-3 text-slate-500">
                           <span>Duration: {call.duration ? `${Math.floor(call.duration / 60)}m ${call.duration % 60}s` : 'Completed'}</span>
                           {call.recordingUrl && (
@@ -618,53 +471,18 @@ export const QuoModal: React.FC<QuoModalProps> = ({
                           )}
                         </div>
 
-                        <div className="flex items-center gap-2 flex-wrap">
-                          {call.matchedJobId && onJobSelected && (
-                            <button
-                              type="button"
-                              onClick={() => {
-                                onJobSelected(call.matchedJobId);
-                                onClose();
-                              }}
-                              className="text-violet-700 hover:text-violet-900 font-bold flex items-center gap-1 cursor-pointer mr-1"
-                            >
-                              <span>Open Job Visit →</span>
-                            </button>
-                          )}
-
-                          <button
-                            type="button"
-                            onClick={() => handleOpenConvertCallModal(call, 'JOB')}
-                            className="px-2.5 py-1 bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg text-xs font-bold transition-all shadow-2xs flex items-center gap-1 cursor-pointer active:scale-95"
-                            title="Convert inbound call into a scheduled cleaning job"
-                          >
-                            <Calendar className="w-3 h-3" />
-                            <span>Convert to Job</span>
-                          </button>
-
-                          <button
-                            type="button"
-                            onClick={() => handleOpenConvertCallModal(call, 'QUOTE')}
-                            className="px-2.5 py-1 bg-purple-600 hover:bg-purple-700 text-white rounded-lg text-xs font-bold transition-all shadow-2xs flex items-center gap-1 cursor-pointer active:scale-95"
-                            title="Create and stage Jobber quote from this call lead"
-                          >
-                            <FileText className="w-3 h-3" />
-                            <span>Create Quote</span>
-                          </button>
-
+                        {call.matchedJobId && onJobSelected && (
                           <button
                             type="button"
                             onClick={() => {
-                              setSpamBlockNumber(call.callerPhone || '');
-                              setIsSpamShieldModalOpen(true);
+                              onJobSelected(call.matchedJobId);
+                              onClose();
                             }}
-                            className="px-2 py-1 bg-rose-50 hover:bg-rose-100 text-rose-700 border border-rose-200 rounded-lg text-xs font-bold transition-all shadow-2xs flex items-center gap-1 cursor-pointer active:scale-95"
-                            title="Block caller or its rotating prefix in Twilio Spam Shield"
+                            className="text-violet-700 hover:text-violet-900 font-bold flex items-center gap-1 cursor-pointer"
                           >
-                            <ShieldAlert className="w-3 h-3 text-rose-600" />
-                            <span>Block Spam</span>
+                            <span>Open Matched Job Visit →</span>
                           </button>
-                        </div>
+                        )}
                       </div>
                     </div>
                   ))}
@@ -913,219 +731,6 @@ export const QuoModal: React.FC<QuoModalProps> = ({
           </button>
         </div>
       </div>
-
-      {/* Lead Conversion Dialog Overlay */}
-      {conversionModal?.isOpen && (
-        <div className="fixed inset-0 z-60 flex items-center justify-center p-4 bg-slate-900/70 backdrop-blur-xs animate-fadeIn">
-          <div className="bg-white rounded-2xl shadow-2xl border border-slate-200 w-full max-w-lg overflow-hidden flex flex-col max-h-[90vh]">
-            <div className="p-4 border-b border-slate-200 bg-slate-50 flex items-center justify-between">
-              <div className="flex items-center gap-2">
-                <div className="p-2 bg-purple-100 text-purple-700 rounded-xl">
-                  {conversionModal.type === 'JOB' ? <Calendar className="w-4 h-4" /> : <FileText className="w-4 h-4" />}
-                </div>
-                <div>
-                  <h3 className="font-extrabold text-slate-900 text-sm">
-                    {conversionModal.type === 'JOB'
-                      ? 'Convert Inbound Phone Lead into Scheduled Job'
-                      : 'Create Jobber Quote from Inbound Call'}
-                  </h3>
-                  <p className="text-[11px] text-slate-500">
-                    Dispatch team &amp; quote creation with customer loyalty intelligence.
-                  </p>
-                </div>
-              </div>
-              <button
-                onClick={() => setConversionModal(null)}
-                className="text-slate-400 hover:text-slate-600 text-lg font-bold cursor-pointer"
-              >
-                ×
-              </button>
-            </div>
-
-            <form
-              onSubmit={(e) => {
-                e.preventDefault();
-                handleConfirmConvert();
-              }}
-              className="p-4 space-y-3 text-xs text-slate-700 overflow-y-auto"
-            >
-              {/* Customer Intelligence Banner */}
-              <CustomerIntelligenceBadge
-                intelligence={getCustomerIntelligence(conversionModal.clientPhone, conversionModal.clientName, { calls, visits, clients })}
-                showDiscountPrompt={false}
-              />
-
-              <div className="grid grid-cols-2 gap-3">
-                <div>
-                  <label className="block font-bold text-slate-700 mb-1">Customer Name *</label>
-                  <input
-                    type="text"
-                    required
-                    value={conversionModal.clientName}
-                    onChange={(e) => setConversionModal({ ...conversionModal, clientName: e.target.value })}
-                    className="w-full px-3 py-2 border border-slate-300 rounded-xl focus:outline-none focus:border-purple-600 font-bold"
-                  />
-                </div>
-                <div>
-                  <label className="block font-bold text-slate-700 mb-1">Phone Number *</label>
-                  <input
-                    type="text"
-                    required
-                    value={conversionModal.clientPhone}
-                    onChange={(e) => setConversionModal({ ...conversionModal, clientPhone: e.target.value })}
-                    className="w-full px-3 py-2 border border-slate-300 rounded-xl focus:outline-none focus:border-purple-600 font-mono"
-                  />
-                </div>
-              </div>
-
-              <div>
-                <label className="block font-bold text-slate-700 mb-1">Service Address</label>
-                <input
-                  type="text"
-                  value={conversionModal.serviceAddress}
-                  onChange={(e) => setConversionModal({ ...conversionModal, serviceAddress: e.target.value })}
-                  className="w-full px-3 py-2 border border-slate-300 rounded-xl focus:outline-none focus:border-purple-600"
-                  placeholder="e.g. 10240 124 St, Edmonton, AB"
-                />
-              </div>
-
-              <div className="grid grid-cols-2 gap-3">
-                <div>
-                  <label className="block font-bold text-slate-700 mb-1">Service Package</label>
-                  <select
-                    value={conversionModal.serviceType}
-                    onChange={(e) => setConversionModal({ ...conversionModal, serviceType: e.target.value })}
-                    className="w-full px-3 py-2 border border-slate-300 rounded-xl focus:outline-none focus:border-purple-600"
-                  >
-                    <option value="Residential Deep & Standard Cleaning">Deep & Standard Cleaning</option>
-                    <option value="Standard Recurring Cleaning">Standard Recurring Cleaning</option>
-                    <option value="Move-Out Cleaning">Move-Out Clean</option>
-                    <option value="Post-Construction Clean">Post-Construction</option>
-                    <option value="Commercial Cleaning">Commercial Cleaning</option>
-                  </select>
-                </div>
-                <div>
-                  <label className="block font-bold text-slate-700 mb-1">Base Price ($)</label>
-                  <input
-                    type="number"
-                    min="50"
-                    value={conversionModal.basePrice}
-                    onChange={(e) => setConversionModal({ ...conversionModal, basePrice: Number(e.target.value) || 280 })}
-                    className="w-full px-3 py-2 border border-slate-300 rounded-xl focus:outline-none focus:border-purple-600 font-mono font-bold"
-                  />
-                </div>
-              </div>
-
-              {conversionModal.type === 'JOB' && (
-                <div className="grid grid-cols-3 gap-2.5">
-                  <div>
-                    <label className="block font-bold text-slate-700 mb-1">Date</label>
-                    <input
-                      type="date"
-                      value={conversionModal.scheduledDate}
-                      onChange={(e) => setConversionModal({ ...conversionModal, scheduledDate: e.target.value })}
-                      className="w-full px-2.5 py-2 border border-slate-300 rounded-xl focus:outline-none focus:border-purple-600 font-mono text-xs"
-                    />
-                  </div>
-                  <div>
-                    <label className="block font-bold text-slate-700 mb-1">Time</label>
-                    <input
-                      type="text"
-                      value={conversionModal.scheduledTime}
-                      onChange={(e) => setConversionModal({ ...conversionModal, scheduledTime: e.target.value })}
-                      className="w-full px-2.5 py-2 border border-slate-300 rounded-xl focus:outline-none focus:border-purple-600 font-mono text-xs"
-                      placeholder="10:00"
-                    />
-                  </div>
-                  <div>
-                    <label className="block font-bold text-slate-700 mb-1">Cleaner Assigned</label>
-                    <select
-                      value={conversionModal.assignedCleaners[0] || 'Cindy Guay'}
-                      onChange={(e) => setConversionModal({ ...conversionModal, assignedCleaners: [e.target.value] })}
-                      className="w-full px-2 py-2 border border-slate-300 rounded-xl focus:outline-none focus:border-purple-600 text-xs"
-                    >
-                      <option value="Cindy Guay">Cindy Guay</option>
-                      <option value="Cindy Guay & Crew">Cindy & Crew</option>
-                      <option value="Sarah Jenkins">Sarah Jenkins</option>
-                      <option value="David Miller">David Miller</option>
-                    </select>
-                  </div>
-                </div>
-              )}
-
-              {/* Loyalty Discount Selector */}
-              {conversionModal.discountPercent > 0 && (
-                <div className="p-3 bg-pink-50 border border-pink-200 rounded-xl space-y-1">
-                  <label className="flex items-center gap-2 cursor-pointer font-bold text-pink-950 text-xs">
-                    <input
-                      type="checkbox"
-                      checked={conversionModal.applyDiscount}
-                      onChange={(e) => setConversionModal({ ...conversionModal, applyDiscount: e.target.checked })}
-                      className="w-4 h-4 text-pink-600 rounded"
-                    />
-                    <span>
-                      Apply {conversionModal.discountPercent}% Repeat Customer Discount
-                    </span>
-                  </label>
-                  <p className="text-[11px] text-pink-800 pl-6">
-                    {conversionModal.applyDiscount ? (
-                      <span className="font-bold text-emerald-800">
-                        ✓ Discount Applied: ${conversionModal.basePrice} → ${Math.round(conversionModal.basePrice * (1 - conversionModal.discountPercent / 100))} (Saved ${Math.round(conversionModal.basePrice * (conversionModal.discountPercent / 100))})
-                      </span>
-                    ) : (
-                      <span>Unchecked: Standard billing rate (${conversionModal.basePrice})</span>
-                    )}
-                  </p>
-                </div>
-              )}
-
-              <div>
-                <label className="block font-bold text-slate-700 mb-1">Notes / Call Transcript Summary</label>
-                <textarea
-                  rows={2}
-                  value={conversionModal.notes}
-                  onChange={(e) => setConversionModal({ ...conversionModal, notes: e.target.value })}
-                  className="w-full px-3 py-2 border border-slate-300 rounded-xl focus:outline-none focus:border-purple-600 text-xs"
-                />
-              </div>
-
-              <div className="flex items-center justify-end gap-2 pt-2 border-t border-slate-100">
-                <button
-                  type="button"
-                  onClick={() => setConversionModal(null)}
-                  className="px-3 py-2 border border-slate-300 hover:bg-slate-100 rounded-xl font-bold text-slate-700 cursor-pointer text-xs"
-                >
-                  Cancel
-                </button>
-                <button
-                  type="submit"
-                  disabled={isSubmittingConversion}
-                  className="px-4 py-2 bg-gradient-to-r from-emerald-600 to-teal-700 hover:from-emerald-700 hover:to-teal-800 text-white rounded-xl font-bold shadow-md cursor-pointer flex items-center gap-1.5 active:scale-95 text-xs disabled:opacity-50"
-                >
-                  {conversionModal.type === 'JOB' ? <Calendar className="w-3.5 h-3.5" /> : <FileText className="w-3.5 h-3.5" />}
-                  <span>
-                    {isSubmittingConversion
-                      ? 'Processing...'
-                      : conversionModal.type === 'JOB'
-                      ? 'Confirm & Dispatch Job'
-                      : 'Confirm & Push Quote'}
-                  </span>
-                </button>
-              </div>
-            </form>
-          </div>
-        </div>
-      )}
-
-      {/* Twilio Spam Shield & Call Blocker Modal */}
-      {isSpamShieldModalOpen && (
-        <TwilioSpamShieldModal
-          isOpen={isSpamShieldModalOpen}
-          onClose={() => setIsSpamShieldModalOpen(false)}
-          projectId={projectId}
-          preFillNumber={spamBlockNumber}
-        />
-      )}
     </div>
   );
 };

@@ -94,7 +94,7 @@ export const INITIAL_CLIENTS: ClientRecord[] = [
     name: '833TIDYUPS',
     phone: '8338439877',
     secondaryPhone: '(780) 456-7890',
-    email: 'hq@dispatchgeeni.com',
+    email: 'hq@tidyupscleaning.com',
     address: '9722 154 St, Edmonton, AB T5P2G3',
     city: 'Edmonton',
     province: 'AB',

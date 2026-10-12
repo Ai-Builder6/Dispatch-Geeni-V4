@@ -23,8 +23,6 @@ import {
   Database,
   MessageSquare
 } from 'lucide-react';
-import { getCustomerIntelligence } from '../services/customerIntelligenceService';
-import { CustomerIntelligenceBadge } from './CustomerIntelligenceBadge';
 
 interface DispatchKanbanProps {
   technicians: Technician[];
@@ -44,9 +42,6 @@ interface DispatchKanbanProps {
   onClose?: () => void;
   activeTab?: 'BOARD' | 'UNASSIGNED';
   onActiveTabChange?: (tab: 'BOARD' | 'UNASSIGNED') => void;
-  calls?: any[];
-  visits?: any[];
-  clients?: any[];
 }
 
 export const DispatchKanban: React.FC<DispatchKanbanProps> = ({
@@ -67,9 +62,6 @@ export const DispatchKanban: React.FC<DispatchKanbanProps> = ({
   onClose,
   activeTab: controlledActiveTab,
   onActiveTabChange,
-  calls = [],
-  visits = [],
-  clients = [],
 }) => {
   const [internalActiveTab, setInternalActiveTab] = useState<'BOARD' | 'UNASSIGNED'>('BOARD');
   const activeTab = controlledActiveTab !== undefined ? controlledActiveTab : internalActiveTab;
@@ -504,12 +496,8 @@ export const DispatchKanban: React.FC<DispatchKanbanProps> = ({
                     </div>
 
                     {/* Customer & Location */}
-                    <div className="flex items-center gap-1.5 flex-wrap font-bold text-xs text-slate-900 mb-0.5">
-                      <span>{ticket.customerName}</span>
-                      <CustomerIntelligenceBadge
-                        intelligence={getCustomerIntelligence(ticket.customerPhone, ticket.customerName, { calls, visits, clients })}
-                        compact
-                      />
+                    <div className="font-bold text-xs text-slate-900 mb-0.5 line-clamp-1">
+                      {ticket.customerName}
                     </div>
                     <div className="text-[11px] text-slate-600 mb-1.5 flex items-center gap-1 line-clamp-1">
                       <MapPin className="w-3 h-3 text-slate-400 flex-shrink-0" />
@@ -862,10 +850,6 @@ export const DispatchKanban: React.FC<DispatchKanbanProps> = ({
                                   <span className={`font-semibold truncate ${isCompleted ? 'text-slate-500' : 'text-slate-800'}`}>
                                     {stopTicket.customerName}
                                   </span>
-                                  <CustomerIntelligenceBadge
-                                    intelligence={getCustomerIntelligence(stopTicket.customerPhone, stopTicket.customerName, { calls, visits, clients })}
-                                    compact
-                                  />
                                 </div>
                                 <div className="text-[10px] text-slate-500 truncate flex items-center gap-1">
                                   <span className="truncate">{stopTicket.location.address}</span>
