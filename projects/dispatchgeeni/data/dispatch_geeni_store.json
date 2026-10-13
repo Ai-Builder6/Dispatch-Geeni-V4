@@ -6363,5 +6363,42 @@
       "matchedJobTitle": "Kati Luknowsky - 2Bed 3Bath Deep Cleaning 2026",
       "status": "MATCHED_TO_JOB"
     }
-  ]
+  ],
+  "spamShieldConfig": {
+    "enabled": true,
+    "blockAllNonNorthAmerica": true,
+    "blockedCountryCodes": [
+      "+44",
+      "+91",
+      "+234",
+      "+86",
+      "+7",
+      "+37",
+      "+20",
+      "+33"
+    ],
+    "blockedPrefixes": [
+      "1800*",
+      "1888*",
+      "1877*",
+      "1844*",
+      "1855*",
+      "1866*"
+    ],
+    "blockedNumbers": [
+      "+18005550199",
+      "+18885550123"
+    ],
+    "blockRobocallFloods": true,
+    "rejectionAction": "busy",
+    "forwardDestinationNumber": "+15879007223",
+    "lineMappings": {
+      "+15872063733": "+15879007223",
+      "+15877130465": "+15876027792",
+      "+15878050247": "+15877422500",
+      "+18253053456": "+15875708005",
+      "+1 (825) 533 - 4317": "+18338439877",
+      "+18255334317": "+18338439877"
+    }
+  }
 }
