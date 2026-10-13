@@ -1,0 +1,39 @@
+# Google Cloud Build configuration — Deploys 1 Unified Cloud Run Service for all 3 domains
+# Domains served dynamically (each keeps its own URL & brand name):
+#   1. app.tidyupscleaning.com -> Shows "TidyUps Cleaning"
+#   2. easycleans.si           -> Shows "EasyCleans"
+#   3. dispatchgeeni.com       -> Shows "Dispatch Genie"
+#
+# Usage (Zero GitHub required):
+#   gcloud builds submit --config cloudbuild.yaml --project=gtm-kvj5cp62-zty5m
+
+steps:
+  # 1. Build container image
+  - name: 'gcr.io/cloud-builders/docker'
+    args:
+      - 'build'
+      - '-t'
+      - 'gcr.io/$PROJECT_ID/tidyups-cleaning:latest'
+      - '.'
+
+  # 2. Push container image to Google Container Registry
+  - name: 'gcr.io/cloud-builders/docker'
+    args:
+      - 'push'
+      - 'gcr.io/$PROJECT_ID/tidyups-cleaning:latest'
+
+  # 3. Deploy Single Cloud Run Service (hosts app.tidyupscleaning.com + easycleans.si + dispatchgeeni.com)
+  - name: 'gcr.io/google.com/cloudsdktool/cloud-sdk'
+    entrypoint: gcloud
+    args:
+      - 'run'
+      - 'deploy'
+      - 'tidyups-cleaning'
+      - '--image=gcr.io/$PROJECT_ID/tidyups-cleaning:latest'
+      - '--region=us-central1'
+      - '--platform=managed'
+      - '--allow-unauthenticated'
+      - '--set-env-vars=NODE_ENV=production,ACTIVE_PROJECT_ID=tidyups'
+
+images:
+  - 'gcr.io/$PROJECT_ID/tidyups-cleaning:latest'

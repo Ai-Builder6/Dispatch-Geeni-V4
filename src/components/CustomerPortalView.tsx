@@ -31,6 +31,7 @@ interface CustomerPortalViewProps {
   onNavigateToMap?: () => void;
   onOpenPhoneModal?: () => void;
   onOpenStaffLogin?: () => void;
+  projectId?: 'dispatchgeeni' | 'tidyups' | 'easycleans';
 }
 
 export type CleaningCategory = 
@@ -189,7 +190,14 @@ export const CustomerPortalView: React.FC<CustomerPortalViewProps> = ({
   onNavigateToMap,
   onOpenPhoneModal,
   onOpenStaffLogin,
+  projectId = 'tidyups',
 }) => {
+  const brandName =
+    projectId === 'tidyups'
+      ? 'TidyUps Cleaning'
+      : projectId === 'easycleans'
+      ? 'EasyCleans'
+      : 'Dispatch Genie';
   // Active selected service for detailed display and pre-filling
   const [selectedService, setSelectedService] = useState<CleaningCategory>('move-out');
   const [formSubmitted, setFormSubmitted] = useState<boolean>(false);
@@ -274,7 +282,7 @@ export const CustomerPortalView: React.FC<CustomerPortalViewProps> = ({
           <div className="max-w-2xl text-center md:text-left space-y-4">
             <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-white/10 backdrop-blur-md border border-white/15 text-pink-300 text-xs font-bold tracking-wide">
               <Sparkles className="w-3.5 h-3.5 text-pink-400" />
-              <span>Edmonton's #1 Rated Cleaning Service • Book Online in 60s</span>
+              <span>{brandName} • Edmonton's #1 Rated Cleaning Service</span>
             </div>
 
             <h1 className="text-3xl sm:text-4xl lg:text-5xl font-extrabold tracking-tight text-white leading-tight">
@@ -472,7 +480,7 @@ export const CustomerPortalView: React.FC<CustomerPortalViewProps> = ({
                 <HeartHandshake className="w-6 h-6 text-white" />
               </div>
               <div className="space-y-0.5">
-                <h4 className="font-bold text-sm text-slate-900">The Dispatch Genie 24-Hour Clean Guarantee</h4>
+                <h4 className="font-bold text-sm text-slate-900">The {brandName} 24-Hour Clean Guarantee</h4>
                 <p className="text-xs text-slate-600 leading-relaxed">
                   If your landlord or inspector flags any item on your checklist, notify us within 24 hours. We return and re-clean free of charge.
                 </p>

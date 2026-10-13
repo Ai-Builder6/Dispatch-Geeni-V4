@@ -105,6 +105,26 @@ app.get("/api/config", (req, res) => {
   });
 });
 
+// Unified 3-Site Google Cloud Run & Firestore Mirror Status Endpoint
+app.get("/api/cloud-sync/status", (req, res) => {
+  const store = loadStore();
+  res.json({
+    success: true,
+    hostingProvider: "Google Cloud Run",
+    googleCloudProjectId: "gtm-kvj5cp62-zty5m",
+    sharedFirestoreDatabaseId: "ai-studio-cleaningserviced-8a2493ab-cb9d-4c28-a60b-c28e7d08d30e",
+    activeSiteId: getProjectId(req),
+    mirroredSites: [
+      { id: "dispatchgeeni", name: "Dispatch Geeni (Primary)", domain: "dispatchgeeni.com", cloudRunService: "dispatch-geeni", synced: true },
+      { id: "tidyups", name: "TidyUps Cleaning (Copy 2)", domain: "app.tidyupscleaning.com", cloudRunService: "tidyups-cleaning", synced: true },
+      { id: "easycleans", name: "EasyCleans Spare Backup (Copy 3)", domain: "easycleans.ca", cloudRunService: "easy-cleans", synced: true },
+    ],
+    lastSyncedAt: store?.lastSavedAt || new Date().toISOString(),
+    twilioProtectedLinesCount: Object.keys(store?.spamShieldConfig?.lineMappings || {}).length,
+    quoLinesCount: store?.quoConfig?.phoneNumbers?.length || 5,
+  });
+});
+
 // Quota & circuit-breaker state for Google Maps & Routes APIs
 let routesApiQuotaExhausted = false;
 let routesApiQuotaResetTime = 0;
@@ -955,28 +975,39 @@ function getAppBaseUrl(req: express.Request): string {
   if (forwardedHost.includes("tidyupscleaning.com")) {
     return "https://app.tidyupscleaning.com";
   }
+  if (forwardedHost.includes("easycleans.")) {
+    return `https://${forwardedHost}`;
+  }
   if (forwardedHost.includes("run.app") || forwardedHost.includes("ais-")) {
     return `https://${forwardedHost}`;
   }
-  // Production domain connected via Hostinger
+  // Production domain fallback
   return "https://dispatchgeeni.com";
 }
 
-export function getProjectId(req: express.Request): "dispatchgeeni" | "tidyups" {
+export function getProjectId(req: express.Request): "dispatchgeeni" | "tidyups" | "easycleans" {
   const queryProj = (((req.query?.project as string) || (req.query?.projectId as string)) || "").trim().toLowerCase();
   if (queryProj.includes("tidyup")) return "tidyups";
+  if (queryProj.includes("easyclean") || queryProj.includes("easy-clean")) return "easycleans";
   if (queryProj.includes("dispatch")) return "dispatchgeeni";
 
   const headerProj = ((req.headers?.["x-project-id"] as string) || "").trim().toLowerCase();
   if (headerProj.includes("tidyup")) return "tidyups";
+  if (headerProj.includes("easyclean") || headerProj.includes("easy-clean")) return "easycleans";
   if (headerProj.includes("dispatch")) return "dispatchgeeni";
 
   const forwardedHost = (req.headers?.["x-forwarded-host"] as string) || req.get?.("host") || "";
   if (forwardedHost.includes("tidyupscleaning.com")) {
     return "tidyups";
   }
+  if (forwardedHost.includes("easycleans.")) {
+    return "easycleans";
+  }
   if (process.env.ACTIVE_PROJECT_ID === "tidyups") {
     return "tidyups";
+  }
+  if (process.env.ACTIVE_PROJECT_ID === "easycleans") {
+    return "easycleans";
   }
   return "dispatchgeeni";
 }

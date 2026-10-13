@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "lastSavedAt": "2026-10-13T11:34:11.441Z",
+  "lastSavedAt": "2026-10-13T19:14:26.959Z",
   "tickets": [],
   "cleanerOverrides": {
     "cleaner-1": {
@@ -20,68 +20,6 @@
     }
   },
   "scheduledVisits": [
-    {
-      "id": "vis-quo-mv4jjeo6-hn5i",
-      "visitNumber": "VISIT-4431",
-      "title": "Test Marcus Vance - Residential Move-Out Clean",
-      "clientName": "Test Marcus Vance",
-      "clientPhone": "(780) 492-8819",
-      "serviceAddress": "10423 124 St NW, Edmonton",
-      "lat": 53.56189981113087,
-      "lng": -113.4846127944365,
-      "startAt": "2026-10-14T10:00:00-06:00",
-      "endAt": "2026-10-14T12:00:00-06:00",
-      "assignedCleaners": [
-        "Cindy Guay"
-      ],
-      "serviceType": "Residential Move-Out Clean",
-      "status": "SCHEDULED",
-      "quoteTotal": 280,
-      "notes": "Converted from inbound phone lead.",
-      "source": "Quo Phone Lead Conversion"
-    },
-    {
-      "id": "vis-quo-mv4ippp8-hvph",
-      "visitNumber": "VISIT-4965",
-      "title": "Kati Luknowsky - 2 Bed 3 Bath Deep Cleaning",
-      "clientName": "Kati Luknowsky",
-      "clientPhone": "(780) 938-6742",
-      "serviceAddress": "10405 Jasper Ave, Edmonton, AB",
-      "lat": 53.52533653836692,
-      "lng": -113.46792846546836,
-      "startAt": "2026-10-16T14:00:00-06:00",
-      "endAt": "2026-10-16T16:00:00-06:00",
-      "assignedCleaners": [
-        "Cindy Guay"
-      ],
-      "serviceType": "2 Bed 3 Bath Deep Cleaning",
-      "status": "SCHEDULED",
-      "quoteTotal": 252,
-      "notes": "Converted from inbound phone lead. [Applied 10% Repeat Customer Loyalty Discount ($28 savings)] Requested focus on baseboards & oven",
-      "source": "Quo Phone Lead Conversion"
-    },
-    {
-      "id": "vis-mv4htb90-4q1x",
-      "visitNumber": "VISIT-4730",
-      "title": "Sarah Connor Live Quote Test - Residential Deep Clean",
-      "clientName": "Sarah Connor Live Quote Test",
-      "clientPhone": "(780) 555-0144",
-      "serviceAddress": "Edmonton, AB",
-      "lat": 53.4938355797773,
-      "lng": -113.52979616902547,
-      "startAt": "2026-10-15T11:00:00-06:00",
-      "endAt": "2026-10-15T13:30:00-06:00",
-      "assignedCleaners": [
-        "Cindy Guay"
-      ],
-      "serviceType": "Residential Deep Clean",
-      "status": "SCHEDULED",
-      "quoteNumber": "QT-9921",
-      "quoteTotal": 350,
-      "quoteStatus": "CONVERTED",
-      "jobberWebUri": "https://secure.getjobber.com/quotes",
-      "notes": "Converted from approved Jobber quote QT-9921. Assigned to Cindy Guay."
-    },
     {
       "id": "Z2lkOi8vSm9iYmVyL1Zpc2l0LzIzMDUyOTg4Nzk=",
       "visitNumber": "VISIT-91204",
@@ -883,22 +821,6 @@
       "status": "COMPLETED",
       "jobberWebUri": "https://secure.getjobber.com/visits/2891202",
       "callTranscripts": [
-        {
-          "id": "sim_call_1791764541073",
-          "callId": "sim_call_1791764541073",
-          "direction": "inbound",
-          "callerPhone": "(780) 938-6742",
-          "callerName": "Kati Luknowsky",
-          "duration": 142,
-          "recordingUrl": "https://files.getjobber.com/audio/sample_call.mp3",
-          "transcriptText": "Hi, this is Kati Luknowsky calling to check in on our 2 Bed 3 Bath Deep Cleaning scheduled for this Friday at 4 PM. We also wanted to ask if the team can pay special attention to the baseboards in the master bedroom and the oven.",
-          "summary": "Kati Luknowsky called to confirm Friday 2Bed 3Bath Deep Cleaning visit. Requested focus on baseboards and oven.",
-          "lineName": "Primary Dispatch",
-          "timestamp": "2026-10-12T00:22:21.073Z",
-          "matchedJobId": "Z2lkOi8vSm9iYmVyL1Zpc2l0LzIyODcxNzE2MjU=",
-          "matchedJobTitle": "Kati Luknowsky - 2Bed 3Bath Deep Cleaning 2026",
-          "status": "MATCHED_TO_JOB"
-        },
         {
           "id": "sim_call_1791684104948",
           "callId": "sim_call_1791684104948",
@@ -2067,42 +1989,6 @@
     }
   ],
   "quotes": [
-    {
-      "id": "qt-quick-mv4jjk0x",
-      "quoteNumber": "QT-2359",
-      "clientName": "Danielle Pettipas-Gray",
-      "clientPhone": "(780) 974-5892",
-      "clientEmail": "",
-      "serviceAddress": "Edmonton, AB",
-      "service": "3 Bed Deep Cleaning (3 hrs)",
-      "quoteStatus": "AWAITING_RESPONSE",
-      "total": 191.25,
-      "depositRequired": 0,
-      "createdAt": "2026-10-12T00:55:52.353Z",
-      "scheduledDate": "2026-10-12",
-      "jobberWebUri": "https://secure.getjobber.com/quotes",
-      "notes": "Quick Quoted: 3 hrs @ $52.5/hr + $12.5 fuel. Source: Facebook"
-    },
-    {
-      "id": "quote_local_1791763644063",
-      "quoteNumber": "QT-9921",
-      "clientName": "Sarah Connor Live Quote Test",
-      "clientPhone": "(780) 555-0144",
-      "clientEmail": "",
-      "service": "Residential Deep Clean",
-      "quoteStatus": "CONVERTED",
-      "total": 350,
-      "depositRequired": 50,
-      "createdAt": "2026-10-12T00:07:24.063Z",
-      "updatedAt": "2026-10-12T00:07:24.063Z",
-      "syncedAt": "2026-10-12T00:07:24.063Z",
-      "jobberWebUri": "https://secure.getjobber.com/quotes",
-      "notes": "Live quote sync test",
-      "isLocal": true,
-      "convertedToJobId": "vis-mv4htb90-4q1x",
-      "convertedToVisitNumber": "VISIT-4730",
-      "scheduledDate": "2026-10-15"
-    },
     {
       "id": "quote_local_1791743360097",
       "quoteNumber": "QT-3492",
@@ -4256,19 +4142,6 @@
   ],
   "clients": [
     {
-      "id": "cli-mv4jjeo6",
-      "name": "Test Marcus Vance",
-      "phone": "(780) 492-8819",
-      "address": "10423 124 St NW, Edmonton",
-      "verdict": "Client",
-      "tags": [
-        "phone-intake",
-        "converted-to-job"
-      ],
-      "totalJobs": 1,
-      "latestServiceDate": "2026-10-14"
-    },
-    {
       "id": "cli-quo-1791684104950-5wrc",
       "name": "Kati Luknowsky",
       "phone": "+1 (780) 938-6742",
@@ -4285,29 +4158,13 @@
       ],
       "isJobberLinked": true,
       "jobberId": "jobber-Z2lkOi8vSm9iYmVyL1Zpc2l0LzIyODcxNzE2MjU=",
-      "totalJobs": 3,
-      "latestServiceDate": "2026-10-16",
+      "totalJobs": 1,
+      "latestServiceDate": "2026-10-11",
       "notes": "Inbound lead on Primary Dispatch. Last transcript: Kati Luknowsky called to confirm Friday 2Bed 3Bath Deep Cleaning visit. Requested focus on baseboards and oven.",
       "source": "Quo",
       "createdAt": "2026-10-11T02:01:44.948Z",
-      "updatedAt": "2026-10-12T00:47:38.285Z",
+      "updatedAt": "2026-10-11T02:02:06.479Z",
       "callHistory": [
-        {
-          "id": "sim_call_1791764541073",
-          "callId": "sim_call_1791764541073",
-          "direction": "inbound",
-          "callerPhone": "(780) 938-6742",
-          "callerName": "Kati Luknowsky",
-          "duration": 142,
-          "recordingUrl": "https://files.getjobber.com/audio/sample_call.mp3",
-          "transcriptText": "Hi, this is Kati Luknowsky calling to check in on our 2 Bed 3 Bath Deep Cleaning scheduled for this Friday at 4 PM. We also wanted to ask if the team can pay special attention to the baseboards in the master bedroom and the oven.",
-          "summary": "Kati Luknowsky called to confirm Friday 2Bed 3Bath Deep Cleaning visit. Requested focus on baseboards and oven.",
-          "lineName": "Primary Dispatch",
-          "timestamp": "2026-10-12T00:22:21.073Z",
-          "matchedJobId": "Z2lkOi8vSm9iYmVyL1Zpc2l0LzIyODcxNzE2MjU=",
-          "matchedJobTitle": "Kati Luknowsky - 2Bed 3Bath Deep Cleaning 2026",
-          "status": "MATCHED_TO_JOB"
-        },
         {
           "id": "sim_call_1791684104948",
           "callId": "sim_call_1791684104948",
@@ -6449,22 +6306,6 @@
   ],
   "quoCallLogs": [
     {
-      "id": "sim_call_1791764541073",
-      "callId": "sim_call_1791764541073",
-      "direction": "inbound",
-      "callerPhone": "(780) 938-6742",
-      "callerName": "Kati Luknowsky",
-      "duration": 142,
-      "recordingUrl": "https://files.getjobber.com/audio/sample_call.mp3",
-      "transcriptText": "Hi, this is Kati Luknowsky calling to check in on our 2 Bed 3 Bath Deep Cleaning scheduled for this Friday at 4 PM. We also wanted to ask if the team can pay special attention to the baseboards in the master bedroom and the oven.",
-      "summary": "Kati Luknowsky called to confirm Friday 2Bed 3Bath Deep Cleaning visit. Requested focus on baseboards and oven.",
-      "lineName": "Primary Dispatch",
-      "timestamp": "2026-10-12T00:22:21.073Z",
-      "matchedJobId": "Z2lkOi8vSm9iYmVyL1Zpc2l0LzIyODcxNzE2MjU=",
-      "matchedJobTitle": "Kati Luknowsky - 2Bed 3Bath Deep Cleaning 2026",
-      "status": "MATCHED_TO_JOB"
-    },
-    {
       "id": "sim_call_1791684104948",
       "callId": "sim_call_1791684104948",
       "direction": "inbound",
@@ -6517,55 +6358,5 @@
       "+1 (825) 533 - 4317": "+18338439877",
       "+18255334317": "+18338439877"
     }
-  },
-  "blockedCallsHistory": [
-    {
-      "id": "blk-mv6lsage",
-      "timestamp": "2026-10-13T11:34:11.438Z",
-      "callerNumber": "+442079460919",
-      "callerName": "Inbound Robocaller",
-      "countryCode": "+442",
-      "reason": "Blocked International Country Code: +442 (Only +1 Canada & US Allowed)"
-    },
-    {
-      "id": "blk-mv6lm4h6",
-      "timestamp": "2026-10-13T11:29:23.754Z",
-      "callerNumber": " 442079460919",
-      "callerName": "Inbound Robocaller",
-      "countryCode": "+442",
-      "reason": "Blocked International Country Code: +442 (Only +1 Canada & US Allowed)"
-    },
-    {
-      "id": "blk-101",
-      "timestamp": "2026-10-11T17:42:00-06:00",
-      "callerNumber": "+44 20 7946 0919",
-      "callerName": "Unknown International",
-      "countryCode": "+44",
-      "reason": "Blocked International Country Code: +44 (United Kingdom)"
-    },
-    {
-      "id": "blk-102",
-      "timestamp": "2026-10-11T16:15:00-06:00",
-      "callerNumber": "+1 (800) 492-0199",
-      "callerName": "Toll-Free Robocaller",
-      "countryCode": "+1",
-      "reason": "Matched Blocked Prefix Pattern: 1800*"
-    },
-    {
-      "id": "blk-103",
-      "timestamp": "2026-10-11T14:30:00-06:00",
-      "callerNumber": "+91 98200 12345",
-      "callerName": "Offshore Call Center",
-      "countryCode": "+91",
-      "reason": "Blocked Country Code: +91 (India)"
-    },
-    {
-      "id": "blk-104",
-      "timestamp": "2026-10-11T11:05:00-06:00",
-      "callerNumber": "+1 (844) 932-8819",
-      "callerName": "Automated Telemarketer",
-      "countryCode": "+1",
-      "reason": "Matched Blocked Prefix Pattern: 1844*"
-    }
-  ]
+  }
 }

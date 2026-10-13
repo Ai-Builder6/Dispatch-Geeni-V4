@@ -277,23 +277,36 @@ export function App() {
   const [isSyncingFirestore, setIsSyncingFirestore] = useState<boolean>(false);
   const [firestoreSyncStatus, setFirestoreSyncStatus] = useState<string | null>(null);
 
-  // Active Project Identification (Dispatch Genie vs TidyUps Cleaning Operations)
-  const [activeProjectId, setActiveProjectId] = useState<'dispatchgeeni' | 'tidyups'>(() => {
+  // Active Brand & Domain Identification (TidyUps Cleaning, EasyCleans, Dispatch Genie)
+  const [activeBrandId, setActiveBrandId] = useState<'dispatchgeeni' | 'tidyups' | 'easycleans'>(() => {
     if (typeof window !== 'undefined') {
-      const host = window.location.hostname || '';
+      const params = new URLSearchParams(window.location.search);
+      const qBrand = (params.get('brand') || params.get('site') || '').toLowerCase();
+      if (qBrand.includes('easyclean')) return 'easycleans';
+      if (qBrand.includes('tidyup')) return 'tidyups';
+      if (qBrand.includes('dispatch')) return 'dispatchgeeni';
+
+      const host = (window.location.hostname || '').toLowerCase();
+      if (host.includes('easycleans')) return 'easycleans';
       if (host.includes('tidyupscleaning')) return 'tidyups';
       if (host.includes('dispatchgeeni') || host.includes('dispatchgenie')) return 'dispatchgeeni';
-      const saved = localStorage.getItem('active_project_id');
-      if (saved === 'tidyups' || saved === 'dispatchgeeni') return saved;
+      const savedBrand = localStorage.getItem('active_brand_id');
+      if (savedBrand === 'tidyups' || savedBrand === 'easycleans' || savedBrand === 'dispatchgeeni') {
+        return savedBrand;
+      }
     }
-    return 'dispatchgeeni';
+    return 'tidyups';
   });
 
-  // Switch between the two isolated projects, updating persistent state and isolated store
-  const handleSwitchProject = useCallback(async (targetProj: 'dispatchgeeni' | 'tidyups') => {
-    setActiveProjectId(targetProj);
+  const activeProjectId: 'dispatchgeeni' | 'tidyups' =
+    activeBrandId === 'dispatchgeeni' ? 'dispatchgeeni' : 'tidyups';
+
+  // Switch between the three domain brands while sharing the unified Cloud Run backend & database
+  const handleSwitchProject = useCallback(async (targetProj: 'dispatchgeeni' | 'tidyups' | 'easycleans') => {
+    setActiveBrandId(targetProj);
     if (typeof window !== 'undefined') {
-      localStorage.setItem('active_project_id', targetProj);
+      localStorage.setItem('active_brand_id', targetProj);
+      localStorage.setItem('active_project_id', targetProj === 'dispatchgeeni' ? 'dispatchgeeni' : 'tidyups');
     }
     try {
       const res = await fetch(`/api/store?project=${targetProj}`);
@@ -346,16 +359,18 @@ export function App() {
       .catch((err) => console.warn('Leads fetch error:', err));
   }, [activeProjectId]);
 
-  // Sync document title dynamically according to domain / activeProjectId
+  // Sync document title dynamically according to domain / activeBrandId
   useEffect(() => {
     if (typeof document !== 'undefined') {
-      if (activeProjectId === 'tidyups') {
-        document.title = 'TidyUps Cleaning Operations – Live Dispatch Board & Customer Booking';
+      if (activeBrandId === 'tidyups') {
+        document.title = 'TidyUps Cleaning – Edmonton Residential & Move-Out Cleaning (app.tidyupscleaning.com)';
+      } else if (activeBrandId === 'easycleans') {
+        document.title = 'EasyCleans – Professional Home & Commercial Cleaning (easycleans.si)';
       } else {
-        document.title = 'Dispatch Genie – Smart Field Service Dispatch & Scheduling';
+        document.title = 'Dispatch Genie – Smart Field Service Dispatch & Scheduling (dispatchgeeni.com)';
       }
     }
-  }, [activeProjectId]);
+  }, [activeBrandId]);
 
   // Convert an inbound Google Sheet / Ad Lead directly into a scheduled dispatched job visit
   const handleConvertLeadToJob = useCallback(async (lead: AdLeadItem) => {
@@ -1360,36 +1375,49 @@ export function App() {
             className="h-16 px-3 sm:px-6 bg-white border-b border-slate-200 flex items-center justify-between flex-shrink-0 z-20 shadow-xs gap-3"
           >
             <div className="flex items-center gap-2 sm:gap-3 cursor-pointer" onClick={() => setActiveTopView('CUSTOMER_PORTAL')}>
-              <BookMyCleaningLogo projectId={activeProjectId} size={36} withText={true} />
+              <BookMyCleaningLogo projectId={activeBrandId} size={36} withText={true} />
             </div>
 
-            {/* Dual Project Switcher (Independent Projects) */}
+            {/* 3-Domain Brand Switcher (1 Single Cloud Run Server, 3 Domain Identities) */}
             <div className="flex items-center bg-slate-100 p-0.5 rounded-xl border border-slate-200 text-xs font-bold shrink-0">
-              <button
-                type="button"
-                onClick={() => handleSwitchProject('dispatchgeeni')}
-                className={`px-2.5 py-1 rounded-lg transition-all flex items-center gap-1 cursor-pointer ${
-                  activeProjectId === 'dispatchgeeni'
-                    ? 'bg-purple-700 text-white shadow-2xs font-extrabold'
-                    : 'text-slate-600 hover:text-slate-900'
-                }`}
-                title="Switch to Dispatch Genie (dispatchgeeni.com) - Isolated Database"
-              >
-                <span>🚀</span>
-                <span className="hidden md:inline">dispatchgeeni.com</span>
-              </button>
               <button
                 type="button"
                 onClick={() => handleSwitchProject('tidyups')}
                 className={`px-2.5 py-1 rounded-lg transition-all flex items-center gap-1 cursor-pointer ${
-                  activeProjectId === 'tidyups'
+                  activeBrandId === 'tidyups'
                     ? 'bg-emerald-700 text-white shadow-2xs font-extrabold'
                     : 'text-slate-600 hover:text-slate-900'
                 }`}
-                title="Switch to TidyUps Operations (app.tidyupscleaning.com) - Isolated Database"
+                title="Preview as app.tidyupscleaning.com (TidyUps Cleaning)"
               >
                 <span>✨</span>
                 <span className="hidden md:inline">app.tidyupscleaning.com</span>
+              </button>
+              <button
+                type="button"
+                onClick={() => handleSwitchProject('easycleans')}
+                className={`px-2.5 py-1 rounded-lg transition-all flex items-center gap-1 cursor-pointer ${
+                  activeBrandId === 'easycleans'
+                    ? 'bg-sky-700 text-white shadow-2xs font-extrabold'
+                    : 'text-slate-600 hover:text-slate-900'
+                }`}
+                title="Preview as easycleans.si (EasyCleans)"
+              >
+                <span>🧼</span>
+                <span className="hidden md:inline">easycleans.si</span>
+              </button>
+              <button
+                type="button"
+                onClick={() => handleSwitchProject('dispatchgeeni')}
+                className={`px-2.5 py-1 rounded-lg transition-all flex items-center gap-1 cursor-pointer ${
+                  activeBrandId === 'dispatchgeeni'
+                    ? 'bg-purple-700 text-white shadow-2xs font-extrabold'
+                    : 'text-slate-600 hover:text-slate-900'
+                }`}
+                title="Preview as dispatchgeeni.com (Dispatch Genie)"
+              >
+                <span>🚀</span>
+                <span className="hidden md:inline">dispatchgeeni.com</span>
               </button>
             </div>
 
@@ -1446,36 +1474,49 @@ export function App() {
           >
             {/* Brand & Identity */}
             <div className="flex items-center gap-1.5 sm:gap-2.5 min-w-0 flex-shrink cursor-pointer" onClick={() => setActiveTopView('MAP')}>
-              <BookMyCleaningLogo projectId={activeProjectId} size={36} withText={true} />
+              <BookMyCleaningLogo projectId={activeBrandId} size={36} withText={true} />
             </div>
 
-            {/* Dual Project Switcher (Independent Projects) */}
+            {/* 3-Domain Brand Switcher (1 Single Cloud Run Server, 3 Domain Identities) */}
             <div className="hidden xl:flex items-center bg-slate-100 p-0.5 rounded-xl border border-slate-200 text-xs font-bold shrink-0">
               <button
                 type="button"
-                onClick={() => handleSwitchProject('dispatchgeeni')}
-                className={`px-2.5 py-1 rounded-lg transition-all flex items-center gap-1 cursor-pointer ${
-                  activeProjectId === 'dispatchgeeni'
-                    ? 'bg-purple-700 text-white shadow-2xs font-extrabold'
-                    : 'text-slate-600 hover:text-slate-900'
-                }`}
-                title="Switch to Dispatch Genie (dispatchgeeni.com) - Isolated Database"
-              >
-                <span>🚀</span>
-                <span>dispatchgeeni.com</span>
-              </button>
-              <button
-                type="button"
                 onClick={() => handleSwitchProject('tidyups')}
-                className={`px-2.5 py-1 rounded-lg transition-all flex items-center gap-1 cursor-pointer ${
-                  activeProjectId === 'tidyups'
+                className={`px-2 py-1 rounded-lg transition-all flex items-center gap-1 cursor-pointer ${
+                  activeBrandId === 'tidyups'
                     ? 'bg-emerald-700 text-white shadow-2xs font-extrabold'
                     : 'text-slate-600 hover:text-slate-900'
                 }`}
-                title="Switch to TidyUps Operations (app.tidyupscleaning.com) - Isolated Database"
+                title="Preview as app.tidyupscleaning.com (TidyUps Cleaning)"
               >
                 <span>✨</span>
                 <span>app.tidyupscleaning.com</span>
+              </button>
+              <button
+                type="button"
+                onClick={() => handleSwitchProject('easycleans')}
+                className={`px-2 py-1 rounded-lg transition-all flex items-center gap-1 cursor-pointer ${
+                  activeBrandId === 'easycleans'
+                    ? 'bg-sky-700 text-white shadow-2xs font-extrabold'
+                    : 'text-slate-600 hover:text-slate-900'
+                }`}
+                title="Preview as easycleans.si (EasyCleans)"
+              >
+                <span>🧼</span>
+                <span>easycleans.si</span>
+              </button>
+              <button
+                type="button"
+                onClick={() => handleSwitchProject('dispatchgeeni')}
+                className={`px-2 py-1 rounded-lg transition-all flex items-center gap-1 cursor-pointer ${
+                  activeBrandId === 'dispatchgeeni'
+                    ? 'bg-purple-700 text-white shadow-2xs font-extrabold'
+                    : 'text-slate-600 hover:text-slate-900'
+                }`}
+                title="Preview as dispatchgeeni.com (Dispatch Genie)"
+              >
+                <span>🚀</span>
+                <span>dispatchgeeni.com</span>
               </button>
             </div>
 
@@ -1912,6 +1953,7 @@ export function App() {
         {/* Unauthenticated public visitors are strictly restricted to the Customer Booking Portal or Support/Legal */}
         {!isStaffAuthenticated && activeTopView !== 'LEGAL' ? (
           <CustomerPortalView
+            projectId={activeBrandId}
             onBookingSubmitted={(ticket) => {
               setTickets((prev) => [ticket, ...prev]);
               saveStateToStore([ticket, ...tickets]);
@@ -1922,6 +1964,7 @@ export function App() {
           />
         ) : activeTopView === 'CUSTOMER_PORTAL' ? (
           <CustomerPortalView
+            projectId={activeBrandId}
             onBookingSubmitted={(ticket) => {
               setTickets((prev) => [ticket, ...prev]);
               saveStateToStore([ticket, ...tickets]);
@@ -2379,14 +2422,28 @@ export function App() {
               <span>Fleet Health: <span className="text-emerald-400 font-bold">Optimal</span></span>
               <span>Cleaners: <span className="text-slate-200 font-mono">15 Active Cleaners</span></span>
               <a
-                href={activeProjectId === 'tidyups' ? 'https://app.tidyupscleaning.com' : 'https://dispatchgeeni.com'}
+                href={
+                  activeBrandId === 'tidyups'
+                    ? 'https://app.tidyupscleaning.com'
+                    : activeBrandId === 'easycleans'
+                    ? 'https://easycleans.si'
+                    : 'https://dispatchgeeni.com'
+                }
                 target="_blank"
                 rel="noopener noreferrer"
                 className={`hidden lg:inline font-mono font-semibold ${
-                  activeProjectId === 'tidyups' ? 'text-emerald-400 hover:text-emerald-300' : 'text-purple-400 hover:text-purple-300'
+                  activeBrandId === 'tidyups'
+                    ? 'text-emerald-400 hover:text-emerald-300'
+                    : activeBrandId === 'easycleans'
+                    ? 'text-sky-400 hover:text-sky-300'
+                    : 'text-purple-400 hover:text-purple-300'
                 }`}
               >
-                {activeProjectId === 'tidyups' ? 'app.tidyupscleaning.com' : 'dispatchgeeni.com'}
+                {activeBrandId === 'tidyups'
+                  ? 'app.tidyupscleaning.com'
+                  : activeBrandId === 'easycleans'
+                  ? 'easycleans.si'
+                  : 'dispatchgeeni.com'}
               </a>
               <span className="hidden xl:inline text-pink-400 font-mono font-bold">1-833-TIDYUPS</span>
               <div className="hidden sm:flex items-center gap-2 border-l border-slate-700 pl-3">
