@@ -31,6 +31,7 @@ interface SpamShieldConfig {
   blockedNumbers: string[];
   blockRobocallFloods?: boolean;
   rejectionAction?: 'busy' | 'rejected';
+  forwardDestinationNumber?: string;
 }
 
 interface BlockedCallHistoryItem {
@@ -103,6 +104,7 @@ export const TwilioSpamShieldModal: React.FC<TwilioSpamShieldModalProps> = ({
   const [testResult, setTestResult] = useState<any | null>(null);
   const [isTesting, setIsTesting] = useState(false);
   const [copiedWebhook, setCopiedWebhook] = useState(false);
+  const [forwardNumberInput, setForwardNumberInput] = useState('+15879007223');
 
   const webhookUrl = typeof window !== 'undefined'
     ? `${window.location.origin}/api/twilio/voice`
@@ -116,6 +118,9 @@ export const TwilioSpamShieldModal: React.FC<TwilioSpamShieldModalProps> = ({
       const data = await res.json();
       if (data.success && data.config) {
         setConfig(data.config);
+        if (data.config.forwardDestinationNumber) {
+          setForwardNumberInput(data.config.forwardDestinationNumber);
+        }
         if (data.history) setHistory(data.history);
       }
     } catch (e) {
@@ -917,6 +922,44 @@ export const TwilioSpamShieldModal: React.FC<TwilioSpamShieldModalProps> = ({
                 )}
               </div>
 
+              {/* Call Routing & Quo Line Forwarding */}
+              <div className="bg-[#151926] p-5 rounded-2xl border border-slate-800 space-y-4">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-2">
+                    <Phone className="w-4 h-4 text-emerald-400" />
+                    <h3 className="font-bold text-sm text-white">Call Routing &amp; Quo Line Forwarding</h3>
+                  </div>
+                  <span className="text-[11px] text-emerald-400 font-semibold flex items-center gap-1">
+                    <CheckCircle2 className="w-3.5 h-3.5" />
+                    <span>Active Route</span>
+                  </span>
+                </div>
+
+                <p className="text-xs text-slate-400 leading-relaxed">
+                  When an incoming call passes the Spam Shield (it's a clean caller, not a spammer or robocaller), Twilio immediately dials and forwards the live call to your Quo phone number or dispatch line. Spammers and blocked countries are dropped instantly before your phone ever rings.
+                </p>
+
+                <div className="flex flex-col sm:flex-row items-center gap-2.5">
+                  <div className="w-full sm:flex-1">
+                    <input
+                      type="text"
+                      placeholder="Enter your Quo phone number (e.g. +15879007223)"
+                      value={forwardNumberInput}
+                      onChange={(e) => setForwardNumberInput(e.target.value)}
+                      className="w-full px-3.5 py-2.5 bg-[#0f121d] border border-slate-700/80 rounded-xl text-xs text-white placeholder-slate-500 focus:outline-none focus:border-emerald-500 font-mono"
+                    />
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => handleSaveConfig({ forwardDestinationNumber: forwardNumberInput.trim() })}
+                    className="w-full sm:w-auto px-5 py-2.5 bg-emerald-600 hover:bg-emerald-500 text-white rounded-xl text-xs font-bold transition-all flex items-center justify-center gap-1.5 cursor-pointer shrink-0 shadow-md"
+                  >
+                    <Check className="w-3.5 h-3.5" />
+                    <span>Save Quo Destination</span>
+                  </button>
+                </div>
+              </div>
+
               {/* Twilio Voice Webhook Configuration */}
               <div className="bg-[#151926] p-5 rounded-2xl border border-slate-800 space-y-4">
                 <div className="flex items-center justify-between">
@@ -940,15 +983,21 @@ export const TwilioSpamShieldModal: React.FC<TwilioSpamShieldModalProps> = ({
                   </button>
                 </div>
 
-                <div className="p-3 bg-[#111420] rounded-xl border border-slate-800 text-xs text-slate-400 space-y-1 leading-relaxed">
+                <div className="p-3 bg-[#111420] rounded-xl border border-slate-800 text-xs text-slate-400 space-y-2 leading-relaxed">
                   <p>
-                    <strong>Setup Instructions in Twilio Console:</strong>
+                    <strong>How Spam Shield Protects Your Quo Numbers:</strong>
                   </p>
                   <p>
-                    1. Go to Twilio Console → <em>Phone Numbers</em> → <em>Manage</em> → <em>Active Numbers</em>.
+                    1. In <strong>Twilio Console</strong> → <em>Phone Numbers</em> → <em>Manage</em> → <em>Active Numbers</em>, choose your incoming number.
                   </p>
                   <p>
-                    2. Select your dispatch phone number and under <strong>Voice &amp; Fax</strong> set <em>"A CALL COMES IN"</em> to <strong>Webhook</strong> and paste the URL above.
+                    2. Under <strong>Voice &amp; Fax</strong>, set <em>"A CALL COMES IN"</em> to <strong>Webhook</strong> and paste the endpoint URL above.
+                  </p>
+                  <p>
+                    3. Robocallers, international spoofers, and 1-800 telemarketers are dropped instantly (zero rings, zero voicemail spam).
+                  </p>
+                  <p>
+                    4. Genuine customers are forwarded directly to your Quo phone line (<span className="text-emerald-400 font-mono">{forwardNumberInput || '+15879007223'}</span>).
                   </p>
                 </div>
               </div>

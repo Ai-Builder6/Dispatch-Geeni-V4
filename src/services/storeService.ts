@@ -60,6 +60,7 @@ export interface AppPersistentStore {
     blockedNumbers: string[];
     blockRobocallFloods: boolean;
     rejectionAction: 'busy' | 'reject';
+    forwardDestinationNumber?: string;
   };
   blockedCallsHistory?: any[];
   jobberConfig?: {

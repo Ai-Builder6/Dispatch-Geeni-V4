@@ -4066,6 +4066,7 @@ const DEFAULT_SPAM_SHIELD_CONFIG = {
   blockedNumbers: ["+18005550199", "+18885550123"],
   blockRobocallFloods: true,
   rejectionAction: "busy" as const,
+  forwardDestinationNumber: "+15879007223",
 };
 
 const INITIAL_BLOCKED_CALLS_HISTORY = [
@@ -4294,9 +4295,10 @@ app.post("/api/twilio/test-number", (req, res) => {
 
   const evaluation = evaluateSpamCallRule(String(number), config);
   const rejectionAction = config.rejectionAction || "busy";
+  const forwardTarget = config.forwardDestinationNumber || "+15879007223";
   const twimlPreview = evaluation.isBlocked
     ? `<?xml version="1.0" encoding="UTF-8"?>\n<Response>\n  <Reject reason="${rejectionAction}"/>\n</Response>`
-    : `<?xml version="1.0" encoding="UTF-8"?>\n<Response>\n  <Say voice="alice">Connecting to Dispatch Genie...</Say>\n  <Dial>+15879007223</Dial>\n</Response>`;
+    : `<?xml version="1.0" encoding="UTF-8"?>\n<Response>\n  <Say voice="alice">Connecting call...</Say>\n  <Dial timeout="25" callerId="+18338439877">${forwardTarget}</Dial>\n</Response>`;
 
   res.json({
     success: true,
@@ -4304,7 +4306,7 @@ app.post("/api/twilio/test-number", (req, res) => {
     isBlocked: evaluation.isBlocked,
     reason: evaluation.reason || "Allowed caller — passes all filter rules",
     countryCode: evaluation.countryCode || "+1",
-    action: evaluation.isBlocked ? `Rejected (${rejectionAction})` : "Connected to Dispatch",
+    action: evaluation.isBlocked ? `Rejected (${rejectionAction})` : `Forwarded to Quo / Dispatch line (${forwardTarget})`,
     twimlPreview,
   });
 });
@@ -4364,11 +4366,12 @@ const handleTwilioVoiceWebhook = (req: express.Request, res: express.Response) =
     return res.send(twiml);
   }
 
-  // Allowed legitimate caller: Forward to Dispatch Line
+  // Allowed legitimate caller: Forward to Quo / Dispatch Line
+  const destination = config.forwardDestinationNumber || "+15879007223";
   const twiml = `<?xml version="1.0" encoding="UTF-8"?>
 <Response>
-  <Say voice="alice">Thank you for calling Dispatch Genie. Connecting you now.</Say>
-  <Dial timeout="25" callerId="+18338439877">+15879007223</Dial>
+  <Say voice="alice">Thank you for calling. Connecting you now.</Say>
+  <Dial timeout="25" callerId="+18338439877">${destination}</Dial>
 </Response>`;
   return res.send(twiml);
 };
