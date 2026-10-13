@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import {
   ShieldAlert,
   ShieldCheck,
@@ -14,6 +14,7 @@ import {
   Check,
   X,
   Phone,
+  PhoneCall,
   Radio,
   FileCode,
   Copy,
@@ -38,6 +39,7 @@ interface SpamShieldConfig {
   blockRobocallFloods?: boolean;
   rejectionAction?: 'busy' | 'rejected';
   forwardDestinationNumber?: string;
+  callerIdMode?: 'caller' | 'line';
   lineMappings?: Record<string, string>;
 }
 
@@ -236,10 +238,40 @@ export const TwilioSpamShieldModal: React.FC<TwilioSpamShieldModalProps> = ({
     setStatusNotice(`Mapped 1-to-1 route: ${mapTwilioNumber.trim()} ➔ ${mapQuoNumber.trim()}`);
   };
 
+  // Helper to resolve Quo marketing line labels
+  const getQuoLineLabel = (target: string) => {
+    const digits = target.replace(/\D/g, "");
+    if (digits.endsWith("5708005")) return "Primary Dispatch";
+    if (digits.endsWith("8439877")) return "Toll Free TIDYUPS";
+    if (digits.endsWith("7422500")) return "Cleaning Services Ads";
+    if (digits.endsWith("6027792")) return "Door Hangers & Signs";
+    if (digits.endsWith("9007223")) return "Google My Business Direct";
+    return "Custom Quo Line";
+  };
+
+  // Deduplicate and group line mappings by 10-digit number
+  const uniqueMappings = useMemo(() => {
+    const raw = config.lineMappings || {};
+    const seen = new Map<string, { inbound: string; target: string; allKeys: string[] }>();
+    for (const [inbound, target] of Object.entries(raw)) {
+      const normDigits = inbound.replace(/\D/g, "").slice(-10);
+      if (!seen.has(normDigits)) {
+        seen.set(normDigits, { inbound, target, allKeys: [inbound] });
+      } else {
+        seen.get(normDigits)!.allKeys.push(inbound);
+      }
+    }
+    return Array.from(seen.values());
+  }, [config.lineMappings]);
+
   // Remove 1-to-1 line mapping
-  const handleRemoveLineMapping = (inboundNumber: string) => {
+  const handleRemoveLineMapping = (inboundNumber: string, allKeys?: string[]) => {
     const currentMappings = { ...(config.lineMappings || {}) };
-    delete currentMappings[inboundNumber];
+    if (allKeys && allKeys.length > 0) {
+      allKeys.forEach((k) => delete currentMappings[k]);
+    } else {
+      delete currentMappings[inboundNumber];
+    }
     handleSaveConfig({ lineMappings: currentMappings });
     setStatusNotice(`Removed 1-to-1 route for ${inboundNumber}`);
   };
@@ -1061,6 +1093,39 @@ export const TwilioSpamShieldModal: React.FC<TwilioSpamShieldModalProps> = ({
           {/* TAB 6: PRICING & 6-LINE STRATEGY */}
           {activeTab === 'COST_LINES' && (
             <div className="space-y-6 animate-fadeIn">
+              {/* Connected Status Card if lines are mapped */}
+              {uniqueMappings.length > 0 && (
+                <div className="p-4 rounded-2xl bg-gradient-to-r from-emerald-950/60 via-slate-900 to-[#121622] border border-emerald-500/40 text-slate-200 shadow-lg flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
+                  <div className="flex items-center gap-3">
+                    <div className="w-10 h-10 rounded-xl bg-emerald-500/20 text-emerald-400 flex items-center justify-center shrink-0">
+                      <CheckCircle2 className="w-6 h-6" />
+                    </div>
+                    <div>
+                      <div className="flex items-center gap-2">
+                        <h4 className="font-bold text-sm text-white">
+                          All {uniqueMappings.length} Lines Live &amp; Protected by Twilio Shield
+                        </h4>
+                        <span className="px-2 py-0.5 rounded-full text-[10px] font-black bg-emerald-500/20 text-emerald-300 uppercase tracking-wide flex items-center gap-1">
+                          <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-ping"></span>
+                          LIVE
+                        </span>
+                      </div>
+                      <p className="text-xs text-slate-300 mt-0.5">
+                        Webhook configured across your numbers. Spam is dropped free, and genuine calls route 1-to-1 to your Quo inboxes.
+                      </p>
+                    </div>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => setActiveTab('TEST')}
+                    className="px-3 py-1.5 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-bold transition-all flex items-center gap-1.5 cursor-pointer self-start sm:self-auto shrink-0 shadow-md"
+                  >
+                    <Zap className="w-3.5 h-3.5 text-amber-300" />
+                    <span>Test Simulator</span>
+                  </button>
+                </div>
+              )}
+
               {/* Top Summary Banner */}
               <div className="p-5 rounded-2xl bg-gradient-to-r from-amber-950/40 via-purple-950/30 to-slate-900 border border-amber-500/30 text-slate-200 shadow-xl space-y-3">
                 <div className="flex items-center gap-2.5">
@@ -1296,18 +1361,71 @@ export const TwilioSpamShieldModal: React.FC<TwilioSpamShieldModalProps> = ({
                       <Split className="w-4 h-4 text-emerald-400" />
                       <h4 className="font-bold text-sm text-white">Active 1-to-1 Line Routes</h4>
                     </div>
-                    <span className="text-[11px] text-slate-400 font-mono">
-                      {Object.keys(config.lineMappings || {}).length} custom routes configured
+                    <span className="text-[11px] text-emerald-400 font-mono font-semibold bg-emerald-500/10 border border-emerald-500/20 px-2 py-0.5 rounded-full flex items-center gap-1.5">
+                      <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse"></span>
+                      {uniqueMappings.length} lines connected
                     </span>
                   </div>
 
                   <p className="text-xs text-slate-400 leading-relaxed">
-                    When someone dials any of your Twilio numbers, the Spam Shield inspects the caller. Clean calls are automatically routed 1-to-1 to that specific number's Quo destination, preserving marketing attribution and separate inboxes.
+                    When someone dials any of your Twilio numbers, the Spam Shield filters robocalls instantly. Genuine customer calls route 1-to-1 to that specific number's Quo destination, keeping each marketing campaign separate in OpenPhone.
                   </p>
+
+                  {/* Caller ID Presentation Selector */}
+                  <div className="p-3.5 bg-[#0f121d] rounded-xl border border-slate-800 space-y-2.5">
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-1.5">
+                        <PhoneCall className="w-4 h-4 text-sky-400" />
+                        <span className="text-xs font-bold text-white">Caller ID on Incoming Calls:</span>
+                      </div>
+                      <span className="text-[11px] text-slate-400">Controls what appears on your phone screen</span>
+                    </div>
+
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5 text-xs">
+                      <button
+                        type="button"
+                        onClick={() => handleSaveConfig({ callerIdMode: 'caller' })}
+                        className={`p-3 rounded-xl border text-left transition-all cursor-pointer ${
+                          (config.callerIdMode || 'caller') === 'caller'
+                            ? 'bg-sky-950/40 border-sky-500/60 text-sky-200'
+                            : 'bg-[#141824] border-slate-800 text-slate-400 hover:border-slate-700'
+                        }`}
+                      >
+                        <div className="flex items-center justify-between font-bold text-white mb-1">
+                          <span className="flex items-center gap-1.5">
+                            <span>Customer's Phone Number</span>
+                            <span className="text-[10px] text-emerald-400 bg-emerald-500/20 px-1.5 py-0.2 rounded font-normal">Recommended</span>
+                          </span>
+                          {(config.callerIdMode || 'caller') === 'caller' && <Check className="w-3.5 h-3.5 text-sky-400" />}
+                        </div>
+                        <p className="text-[11px] leading-relaxed text-slate-400">
+                          Shows the customer's phone number and caller ID so you can tap Call Back, text them, or see their contact history. Because each line forwards to a unique Quo line, Quo still labels the campaign.
+                        </p>
+                      </button>
+
+                      <button
+                        type="button"
+                        onClick={() => handleSaveConfig({ callerIdMode: 'line' })}
+                        className={`p-3 rounded-xl border text-left transition-all cursor-pointer ${
+                          config.callerIdMode === 'line'
+                            ? 'bg-purple-950/40 border-purple-500/60 text-purple-200'
+                            : 'bg-[#141824] border-slate-800 text-slate-400 hover:border-slate-700'
+                        }`}
+                      >
+                        <div className="flex items-center justify-between font-bold text-white mb-1">
+                          <span>Twilio Line Number</span>
+                          {config.callerIdMode === 'line' && <Check className="w-3.5 h-3.5 text-purple-400" />}
+                        </div>
+                        <p className="text-[11px] leading-relaxed text-slate-400">
+                          Displays your dialed Twilio number on incoming calls. Useful if answering on a standard cell phone outside the Quo app.
+                        </p>
+                      </button>
+                    </div>
+                  </div>
 
                   {/* Active Mappings Table */}
                   <div className="space-y-2">
-                    {Object.entries(config.lineMappings || {}).length === 0 ? (
+                    {uniqueMappings.length === 0 ? (
                       <div className="p-4 bg-[#0f121d] rounded-xl border border-dashed border-slate-800 text-center space-y-2">
                         <p className="text-xs text-slate-400">
                           No custom 1-to-1 line pairs added yet. All allowed callers currently route to your default destination (<span className="text-emerald-400 font-mono">{config.forwardDestinationNumber || '+15879007223'}</span>).
@@ -1318,43 +1436,51 @@ export const TwilioSpamShieldModal: React.FC<TwilioSpamShieldModalProps> = ({
                       </div>
                     ) : (
                       <div className="space-y-2">
-                        {Object.entries(config.lineMappings || {}).map(([inbound, target]) => (
-                          <div
-                            key={inbound}
-                            className="p-3 bg-[#0f121d] rounded-xl border border-slate-800 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3"
-                          >
-                            <div className="flex items-center gap-3 text-xs">
-                              <div className="px-2.5 py-1 bg-violet-500/20 text-violet-300 rounded-lg font-mono font-semibold">
-                                Twilio: {inbound}
+                        {uniqueMappings.map(({ inbound, target, allKeys }) => {
+                          const campaignLabel = getQuoLineLabel(target);
+                          return (
+                            <div
+                              key={inbound}
+                              className="p-3 bg-[#0f121d] rounded-xl border border-slate-800 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 hover:border-slate-700 transition-all"
+                            >
+                              <div className="flex flex-wrap items-center gap-2.5 text-xs">
+                                <div className="px-2.5 py-1 bg-violet-500/20 text-violet-300 rounded-lg font-mono font-semibold flex items-center gap-1.5">
+                                  <span className="w-1.5 h-1.5 rounded-full bg-violet-400"></span>
+                                  <span>Twilio: {inbound}</span>
+                                </div>
+                                <ArrowRight className="w-3.5 h-3.5 text-slate-500 shrink-0" />
+                                <div className="px-2.5 py-1 bg-emerald-500/20 text-emerald-300 rounded-lg font-mono font-semibold flex items-center gap-1.5">
+                                  <span className="w-1.5 h-1.5 rounded-full bg-emerald-400"></span>
+                                  <span>Quo: {target}</span>
+                                </div>
+                                <span className="px-2 py-0.5 rounded text-[10px] font-bold bg-slate-800 text-slate-300 border border-slate-700">
+                                  {campaignLabel}
+                                </span>
                               </div>
-                              <ArrowRight className="w-3.5 h-3.5 text-slate-500 shrink-0" />
-                              <div className="px-2.5 py-1 bg-emerald-500/20 text-emerald-300 rounded-lg font-mono font-semibold">
-                                Quo: {target}
+                              <div className="flex items-center gap-2 self-end sm:self-auto shrink-0">
+                                <button
+                                  type="button"
+                                  onClick={() => {
+                                    setTestDialedLine(inbound);
+                                    setActiveTab('TEST');
+                                  }}
+                                  className="px-2.5 py-1 bg-slate-800 hover:bg-slate-700 text-slate-300 text-[11px] font-bold rounded-lg transition-all cursor-pointer flex items-center gap-1"
+                                >
+                                  <Zap className="w-3 h-3 text-amber-400" />
+                                  <span>Simulate</span>
+                                </button>
+                                <button
+                                  type="button"
+                                  onClick={() => handleRemoveLineMapping(inbound, allKeys)}
+                                  className="p-1.5 bg-rose-500/20 hover:bg-rose-500/40 text-rose-300 rounded-lg transition-all cursor-pointer"
+                                  title="Delete Route"
+                                >
+                                  <Trash2 className="w-3.5 h-3.5" />
+                                </button>
                               </div>
                             </div>
-                            <div className="flex items-center gap-2 self-end sm:self-auto">
-                              <button
-                                type="button"
-                                onClick={() => {
-                                  setTestDialedLine(inbound);
-                                  setActiveTab('TEST');
-                                }}
-                                className="px-2.5 py-1 bg-slate-800 hover:bg-slate-700 text-slate-300 text-[11px] font-bold rounded-lg transition-all cursor-pointer flex items-center gap-1"
-                              >
-                                <Zap className="w-3 h-3 text-amber-400" />
-                                <span>Simulate</span>
-                              </button>
-                              <button
-                                type="button"
-                                onClick={() => handleRemoveLineMapping(inbound)}
-                                className="p-1.5 bg-rose-500/20 hover:bg-rose-500/40 text-rose-300 rounded-lg transition-all cursor-pointer"
-                                title="Delete Route"
-                              >
-                                <Trash2 className="w-3.5 h-3.5" />
-                              </button>
-                            </div>
-                          </div>
-                        ))}
+                          );
+                        })}
                       </div>
                     )}
                   </div>

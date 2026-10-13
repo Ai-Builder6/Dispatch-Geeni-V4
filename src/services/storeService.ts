@@ -61,8 +61,8 @@ export interface AppPersistentStore {
     blockRobocallFloods: boolean;
     rejectionAction: 'busy' | 'reject';
     forwardDestinationNumber?: string;
+    callerIdMode?: 'caller' | 'line';
     lineMappings?: Record<string, string>;
-    lineLabels?: Record<string, string>;
   };
   blockedCallsHistory?: any[];
   jobberConfig?: {

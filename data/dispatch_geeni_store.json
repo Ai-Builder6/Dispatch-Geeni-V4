@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "lastSavedAt": "2026-10-12T00:55:52.355Z",
+  "lastSavedAt": "2026-10-13T11:34:11.441Z",
   "tickets": [],
   "cleanerOverrides": {
     "cleaner-1": {
@@ -6479,6 +6479,93 @@
       "matchedJobId": "Z2lkOi8vSm9iYmVyL1Zpc2l0LzIyODcxNzE2MjU=",
       "matchedJobTitle": "Kati Luknowsky - 2Bed 3Bath Deep Cleaning 2026",
       "status": "MATCHED_TO_JOB"
+    }
+  ],
+  "spamShieldConfig": {
+    "enabled": true,
+    "blockAllNonNorthAmerica": true,
+    "blockedCountryCodes": [
+      "+44",
+      "+91",
+      "+234",
+      "+86",
+      "+7",
+      "+37",
+      "+20",
+      "+33"
+    ],
+    "blockedPrefixes": [
+      "1800*",
+      "1888*",
+      "1877*",
+      "1844*",
+      "1855*",
+      "1866*"
+    ],
+    "blockedNumbers": [
+      "+18005550199",
+      "+18885550123"
+    ],
+    "blockRobocallFloods": true,
+    "rejectionAction": "busy",
+    "forwardDestinationNumber": "+15879007223",
+    "lineMappings": {
+      "+15872063733": "+15879007223",
+      "+15877130465": "+15876027792",
+      "+15878050247": "+15877422500",
+      "+18253053456": "+15875708005",
+      "+1 (825) 533 - 4317": "+18338439877",
+      "+18255334317": "+18338439877"
+    }
+  },
+  "blockedCallsHistory": [
+    {
+      "id": "blk-mv6lsage",
+      "timestamp": "2026-10-13T11:34:11.438Z",
+      "callerNumber": "+442079460919",
+      "callerName": "Inbound Robocaller",
+      "countryCode": "+442",
+      "reason": "Blocked International Country Code: +442 (Only +1 Canada & US Allowed)"
+    },
+    {
+      "id": "blk-mv6lm4h6",
+      "timestamp": "2026-10-13T11:29:23.754Z",
+      "callerNumber": " 442079460919",
+      "callerName": "Inbound Robocaller",
+      "countryCode": "+442",
+      "reason": "Blocked International Country Code: +442 (Only +1 Canada & US Allowed)"
+    },
+    {
+      "id": "blk-101",
+      "timestamp": "2026-10-11T17:42:00-06:00",
+      "callerNumber": "+44 20 7946 0919",
+      "callerName": "Unknown International",
+      "countryCode": "+44",
+      "reason": "Blocked International Country Code: +44 (United Kingdom)"
+    },
+    {
+      "id": "blk-102",
+      "timestamp": "2026-10-11T16:15:00-06:00",
+      "callerNumber": "+1 (800) 492-0199",
+      "callerName": "Toll-Free Robocaller",
+      "countryCode": "+1",
+      "reason": "Matched Blocked Prefix Pattern: 1800*"
+    },
+    {
+      "id": "blk-103",
+      "timestamp": "2026-10-11T14:30:00-06:00",
+      "callerNumber": "+91 98200 12345",
+      "callerName": "Offshore Call Center",
+      "countryCode": "+91",
+      "reason": "Blocked Country Code: +91 (India)"
+    },
+    {
+      "id": "blk-104",
+      "timestamp": "2026-10-11T11:05:00-06:00",
+      "callerNumber": "+1 (844) 932-8819",
+      "callerName": "Automated Telemarketer",
+      "countryCode": "+1",
+      "reason": "Matched Blocked Prefix Pattern: 1844*"
     }
   ]
 }

@@ -4067,7 +4067,15 @@ const DEFAULT_SPAM_SHIELD_CONFIG = {
   blockRobocallFloods: true,
   rejectionAction: "busy" as const,
   forwardDestinationNumber: "+15879007223",
-  lineMappings: {} as Record<string, string>,
+  callerIdMode: "caller" as const,
+  lineMappings: {
+    "+15872063733": "+15879007223", // Google My Business Direct
+    "+15877130465": "+15876027792", // Door Hangers & Signs
+    "+15878050247": "+15877422500", // Cleaning Services Ads
+    "+18253053456": "+15875708005", // Primary Dispatch
+    "+18255334317": "+18338439877", // Toll Free TIDYUPS
+    "+1 (825) 533 - 4317": "+18338439877",
+  } as Record<string, string>,
 };
 
 const INITIAL_BLOCKED_CALLS_HISTORY = [
@@ -4203,6 +4211,19 @@ app.post("/api/twilio/spam-shield", (req, res) => {
   };
   store.lastSavedAt = new Date().toISOString();
   saveStore(store, projectId);
+
+  // Sync config across both store files (tidyups and dispatchgeeni) so webhooks always match
+  try {
+    const otherProject = projectId === "tidyups" ? "dispatchgeeni" : "tidyups";
+    const otherStore = loadStore(otherProject);
+    if (otherStore) {
+      otherStore.spamShieldConfig = JSON.parse(JSON.stringify(store.spamShieldConfig));
+      otherStore.lastSavedAt = new Date().toISOString();
+      saveStore(otherStore, otherProject);
+    }
+  } catch (syncErr) {
+    console.warn("Could not sync spam shield config to alternate store:", syncErr);
+  }
 
   res.json({
     success: true,
@@ -4347,14 +4368,27 @@ app.post("/api/twilio/clear-history", (req, res) => {
 // Inbound Twilio Voice Webhook (POST & GET) with TwiML generation
 const handleTwilioVoiceWebhook = (req: express.Request, res: express.Response) => {
   const projectId = getProjectId(req);
-  const store = loadStore(projectId);
-  const config = store?.spamShieldConfig || DEFAULT_SPAM_SHIELD_CONFIG;
+  let store = loadStore(projectId);
+  let config = store?.spamShieldConfig || DEFAULT_SPAM_SHIELD_CONFIG;
 
-  const fromNumber = req.body?.From || req.query?.From || req.body?.Caller || req.query?.Caller || "Unknown";
+  // Fallback to alternate project store or default mappings if lineMappings is empty
+  if (!config.lineMappings || Object.keys(config.lineMappings).length === 0) {
+    const alternateStore = loadStore(projectId === "tidyups" ? "dispatchgeeni" : "tidyups");
+    if (alternateStore?.spamShieldConfig?.lineMappings && Object.keys(alternateStore.spamShieldConfig.lineMappings).length > 0) {
+      config = alternateStore.spamShieldConfig;
+      store = alternateStore;
+    } else {
+      config = { ...DEFAULT_SPAM_SHIELD_CONFIG, ...config };
+    }
+  }
+
+  const rawFrom = req.body?.From || req.query?.From || req.body?.Caller || req.query?.Caller || "Unknown";
+  // Clean urlencoded leading spaces that express creates for '+'
+  const fromNumber = String(rawFrom).trim().replace(/^ 1/, "+1").replace(/^ (\d)/, "+$1");
   const callerCity = req.body?.FromCity || req.query?.FromCity || "";
   const callerCountry = req.body?.FromCountry || req.query?.FromCountry || "";
 
-  const check = evaluateSpamCallRule(String(fromNumber), config);
+  const check = evaluateSpamCallRule(fromNumber, config);
 
   res.setHeader("Content-Type", "text/xml");
 
@@ -4365,7 +4399,7 @@ const handleTwilioVoiceWebhook = (req: express.Request, res: express.Response) =
       store.blockedCallsHistory.unshift({
         id: `blk-${Date.now().toString(36)}`,
         timestamp: new Date().toISOString(),
-        callerNumber: String(fromNumber),
+        callerNumber: fromNumber,
         callerName: callerCity ? `${callerCity}, ${callerCountry}` : "Inbound Robocaller",
         countryCode: check.countryCode || callerCountry || "+1",
         reason: check.reason || "Rejected by Spam Shield rules",
@@ -4383,14 +4417,14 @@ const handleTwilioVoiceWebhook = (req: express.Request, res: express.Response) =
   }
 
   // Allowed legitimate caller: Forward to Quo / Dispatch Line
-  const dialedRaw = req.body?.To || req.query?.To || req.body?.Called || req.query?.Called || "";
-  const dialedDigits = normalizePhoneDigits(dialedRaw);
+  const rawDialed = req.body?.To || req.query?.To || req.body?.Called || req.query?.Called || "";
+  const dialedDigits = normalizePhoneDigits(rawDialed);
   let destination = config.forwardDestinationNumber || "+15879007223";
 
   // Check if there is a 1-to-1 route for this specific line dialed
   if (config.lineMappings && typeof config.lineMappings === "object") {
     for (const [inboundLine, target] of Object.entries(config.lineMappings)) {
-      if (normalizePhoneDigits(inboundLine) === dialedDigits || inboundLine === dialedRaw) {
+      if (normalizePhoneDigits(inboundLine) === dialedDigits || inboundLine === rawDialed) {
         if (target && typeof target === "string" && target.trim()) {
           destination = target.trim();
           break;
@@ -4399,13 +4433,24 @@ const handleTwilioVoiceWebhook = (req: express.Request, res: express.Response) =
     }
   }
 
-  // Preserve the dialed caller ID so Quo/OpenPhone identifies which line was called
-  const callerIdToPresent = dialedRaw ? dialedRaw : "+18338439877";
+  // Clean E.164 destination
+  let cleanDestination = destination.trim();
+  if (!cleanDestination.startsWith("+")) {
+    const destDigits = normalizePhoneDigits(cleanDestination);
+    cleanDestination = destDigits.length === 10 ? `+1${destDigits}` : `+${destDigits}`;
+  }
+
+  // Caller ID Presentation:
+  // - "caller" (default): Omit callerId in <Dial> so Twilio sends customer's real phone number to Quo/OpenPhone
+  // - "line": Force callerId to be the dialed Twilio number (in clean E.164 format with no spaces)
+  const callerIdMode = config.callerIdMode || "caller";
+  const cleanDialedNumber = dialedDigits.length === 10 ? `+1${dialedDigits}` : "+18338439877";
+  const callerIdAttr = callerIdMode === "line" ? ` callerId="${cleanDialedNumber}"` : "";
 
   const twiml = `<?xml version="1.0" encoding="UTF-8"?>
 <Response>
   <Say voice="alice">Thank you for calling. Connecting you now.</Say>
-  <Dial timeout="25" callerId="${callerIdToPresent}">${destination}</Dial>
+  <Dial timeout="25"${callerIdAttr}>${cleanDestination}</Dial>
 </Response>`;
   return res.send(twiml);
 };
