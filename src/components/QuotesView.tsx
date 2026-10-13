@@ -15,11 +15,15 @@ import {
   Zap,
   X,
   Check,
-  AlertCircle
+  AlertCircle,
+  MessageSquare,
+  FileSpreadsheet,
+  MapPin
 } from 'lucide-react';
-import { JobberQuote } from '../services/jobberSyncModules';
+import { JobberQuote, extractJobberNumericId } from '../services/jobberSyncModules';
 import { getCustomerIntelligence } from '../services/customerIntelligenceService';
 import { CustomerIntelligenceBadge } from './CustomerIntelligenceBadge';
+import { QuoteDetailModal } from './QuoteDetailModal';
 
 interface QuotesViewProps {
   quotes: JobberQuote[];
@@ -50,11 +54,15 @@ export const QuotesView: React.FC<QuotesViewProps> = ({
   const [isSyncing, setIsSyncing] = useState(false);
   const [syncFeedback, setSyncFeedback] = useState<string | null>(null);
 
+  // Selected Quote for Jobber Detail & Text Sender Modal
+  const [selectedQuote, setSelectedQuote] = useState<JobberQuote | null>(null);
+
   // New Quote Modal state
   const [isNewQuoteModalOpen, setIsNewQuoteModalOpen] = useState(false);
   const [newClientName, setNewClientName] = useState('');
   const [newClientPhone, setNewClientPhone] = useState('');
   const [newClientEmail, setNewClientEmail] = useState('');
+  const [newServiceAddress, setNewServiceAddress] = useState('');
   const [newService, setNewService] = useState('Residential Standard Cleaning');
   const [newTotal, setNewTotal] = useState('280');
   const [newDeposit, setNewDeposit] = useState('50');
@@ -184,6 +192,7 @@ export const QuotesView: React.FC<QuotesViewProps> = ({
           clientName: newClientName.trim(),
           clientPhone: newClientPhone.trim() || '(780) 555-0199',
           clientEmail: newClientEmail.trim(),
+          serviceAddress: newServiceAddress.trim() || 'Edmonton, AB',
           service: newService,
           total: Number(newTotal) || 280,
           depositRequired: Number(newDeposit) || 0,
@@ -195,14 +204,18 @@ export const QuotesView: React.FC<QuotesViewProps> = ({
       const data = await res.json();
       if (data.success && data.quote) {
         if (onQuotesUpdated) {
-          onQuotesUpdated([data.quote, ...quotes]);
+          onQuotesUpdated(data.quotes || [data.quote, ...quotes]);
         }
         setIsNewQuoteModalOpen(false);
         setNewClientName('');
         setNewClientPhone('');
         setNewClientEmail('');
+        setNewServiceAddress('');
         setNewNotes('');
-        setSyncFeedback(`✓ Created ${data.quote.quoteNumber} for ${data.quote.clientName} and saved in local database!`);
+        setSelectedQuote(data.quote);
+        setSyncFeedback(
+          `✓ Created ${data.quote.quoteNumber} for ${data.quote.clientName} — synced to Jobber Client & Google Sheets!`
+        );
       }
     } catch (err) {
       console.warn('Failed to create quote:', err);
@@ -369,93 +382,171 @@ export const QuotesView: React.FC<QuotesViewProps> = ({
           </div>
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
-            {filteredQuotes.map((q) => (
-              <div
-                key={q.id}
-                className="bg-white p-4 rounded-xl border border-slate-200 shadow-2xs hover:shadow-sm transition-all flex flex-col justify-between"
-              >
-                <div>
-                  <div className="flex items-center justify-between gap-1 mb-2">
-                    <span className="font-mono text-xs font-bold text-slate-600 bg-slate-100 px-2 py-0.5 rounded">
-                      {q.quoteNumber}
-                    </span>
-                    <span className={`text-[10px] font-bold uppercase px-2 py-0.5 rounded border ${getStatusBadge(q.quoteStatus)}`}>
-                      {q.quoteStatus.replace('_', ' ')}
-                    </span>
-                  </div>
+            {filteredQuotes.map((q) => {
+              const numericJobberId = extractJobberNumericId(q.id);
+              const jobberUrl = numericJobberId
+                ? `https://secure.getjobber.com/quotes/${numericJobberId}`
+                : q.jobberWebUri && !q.id?.startsWith('Z2lkOi8v')
+                ? q.jobberWebUri
+                : 'https://secure.getjobber.com/quotes';
+              const googleSheetUrl =
+                q.googleSheetUrl ||
+                'https://docs.google.com/spreadsheets/d/1TifULi7n2BylQdvla-8DRvYHul_A1wXXzypUdBJwEeA/edit';
+              const googleSearchUrl = `https://www.google.com/search?q=${encodeURIComponent(
+                `${q.clientName} ${q.serviceAddress || 'Edmonton AB'} ${q.clientPhone || ''}`.trim()
+              )}`;
 
-                  <div className="flex items-center gap-1.5 flex-wrap mb-1">
-                    <h3 className="font-bold text-sm text-slate-900 leading-snug">{q.clientName}</h3>
-                    <CustomerIntelligenceBadge
-                      intelligence={getCustomerIntelligence(q.clientPhone, q.clientName, { calls, visits, clients })}
-                      compact
-                    />
-                  </div>
-                  <p className="text-xs text-slate-500 mb-2">{q.service}</p>
-                  {q.clientPhone && (
-                    <p className="text-[11px] text-slate-400 font-mono mb-2">{q.clientPhone}</p>
-                  )}
-                </div>
-
-                <div className="pt-3 border-t border-slate-100 space-y-2.5">
-                  <div className="flex items-center justify-between text-xs">
-                    <div>
-                      <span className="text-[10px] text-slate-400 block">Total</span>
-                      <span className="font-extrabold text-slate-900 text-sm font-mono">${q.total}</span>
+              return (
+                <div
+                  key={q.id}
+                  onClick={() => setSelectedQuote(q)}
+                  className="bg-white p-4 rounded-xl border border-slate-200 shadow-2xs hover:shadow-md hover:border-pink-300 transition-all flex flex-col justify-between cursor-pointer group"
+                >
+                  <div>
+                    <div className="flex items-center justify-between gap-1 mb-2">
+                      <div className="flex items-center gap-1.5">
+                        <span className="font-mono text-xs font-bold text-slate-700 bg-slate-100 group-hover:bg-pink-50 group-hover:text-pink-700 px-2 py-0.5 rounded transition-colors">
+                          {q.quoteNumber}
+                        </span>
+                        <span className="text-[10px] font-bold text-emerald-700 bg-emerald-50 px-1.5 py-0.5 rounded border border-emerald-200">
+                          ↔ Jobber &amp; Google
+                        </span>
+                      </div>
+                      <span className={`text-[10px] font-bold uppercase px-2 py-0.5 rounded border ${getStatusBadge(q.quoteStatus)}`}>
+                        {q.quoteStatus.replace('_', ' ')}
+                      </span>
                     </div>
 
-                    {q.depositRequired > 0 && (
-                      <div>
-                        <span className="text-[10px] text-slate-400 block">Deposit</span>
-                        <span className="font-semibold text-emerald-700 font-mono">${q.depositRequired}</span>
-                      </div>
+                    <div className="flex items-center gap-1.5 flex-wrap mb-1">
+                      <h3 className="font-bold text-sm text-slate-900 group-hover:text-pink-600 transition-colors leading-snug">
+                        {q.clientName}
+                      </h3>
+                      <CustomerIntelligenceBadge
+                        intelligence={getCustomerIntelligence(q.clientPhone, q.clientName, { calls, visits, clients })}
+                        compact
+                      />
+                    </div>
+                    <p className="text-xs text-slate-600 font-medium mb-1">{q.service}</p>
+                    {q.serviceAddress && (
+                      <p className="text-[11px] text-slate-500 flex items-center gap-1 mb-1">
+                        <MapPin className="w-3 h-3 text-slate-400 shrink-0" />
+                        <span className="truncate">{q.serviceAddress}</span>
+                      </p>
                     )}
-
-                    <a
-                      href={q.jobberWebUri || 'https://secure.getjobber.com/quotes'}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="p-1.5 text-slate-500 hover:text-emerald-700 hover:bg-slate-100 rounded-lg transition-colors cursor-pointer"
-                      title="Open in Jobber"
-                    >
-                      <ExternalLink className="w-4 h-4" />
-                    </a>
+                    {q.clientPhone && (
+                      <p className="text-[11px] text-slate-500 font-mono mb-2">{q.clientPhone}</p>
+                    )}
                   </div>
 
-                  {/* Inline Quick Action Status Buttons */}
-                  <div className="flex items-center gap-1.5 pt-1 border-t border-slate-100/80">
-                    {q.quoteStatus !== 'APPROVED' && (
-                      <button
-                        onClick={() => handleStatusChange(q, 'APPROVED')}
-                        className="px-2 py-1 bg-emerald-50 hover:bg-emerald-100 text-emerald-700 border border-emerald-200 rounded text-[10px] font-bold transition-all cursor-pointer"
-                      >
-                        Approve
-                      </button>
-                    )}
-                    {q.quoteStatus !== 'CONVERTED' && (
-                      <button
-                        onClick={() => handleConvertToJob(q)}
-                        className="px-2 py-1 bg-purple-50 hover:bg-purple-100 text-purple-700 border border-purple-200 rounded text-[10px] font-bold transition-all cursor-pointer"
-                        title="Convert approved quote into scheduled visit on calendar & Jobber"
-                      >
-                        Convert to Job
-                      </button>
-                    )}
-                    {q.quoteStatus !== 'AWAITING_RESPONSE' && (
-                      <button
-                        onClick={() => handleStatusChange(q, 'AWAITING_RESPONSE')}
-                        className="px-2 py-1 bg-amber-50 hover:bg-amber-100 text-amber-700 border border-amber-200 rounded text-[10px] font-bold transition-all cursor-pointer"
-                      >
-                        Awaiting
-                      </button>
-                    )}
+                  <div className="pt-3 border-t border-slate-100 space-y-2.5" onClick={(e) => e.stopPropagation()}>
+                    <div className="flex items-center justify-between text-xs">
+                      <div>
+                        <span className="text-[10px] text-slate-400 block">Total</span>
+                        <span className="font-extrabold text-slate-900 text-sm font-mono">${Number(q.total).toFixed(2)}</span>
+                      </div>
+
+                      {q.depositRequired > 0 && (
+                        <div>
+                          <span className="text-[10px] text-slate-400 block">Deposit</span>
+                          <span className="font-semibold text-emerald-700 font-mono">${q.depositRequired}</span>
+                        </div>
+                      )}
+
+                      <div className="flex items-center gap-1">
+                        <button
+                          type="button"
+                          onClick={() => setSelectedQuote(q)}
+                          className="px-2.5 py-1 bg-gradient-to-r from-pink-600 to-rose-600 hover:from-pink-500 hover:to-rose-500 text-white rounded-lg text-[10px] font-bold flex items-center gap-1 shadow-2xs cursor-pointer"
+                          title='Open quote & send text saying "This is your quote"'
+                        >
+                          <MessageSquare className="w-3 h-3" />
+                          <span>Open &amp; Text Quote</span>
+                        </button>
+
+                        <a
+                          href={jobberUrl}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="p-1.5 text-slate-600 hover:text-emerald-700 hover:bg-emerald-50 rounded-lg transition-colors cursor-pointer"
+                          title="Open in Jobber"
+                        >
+                          <ExternalLink className="w-3.5 h-3.5" />
+                        </a>
+
+                        <a
+                          href={googleSheetUrl}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="p-1.5 text-slate-600 hover:text-blue-700 hover:bg-blue-50 rounded-lg transition-colors cursor-pointer"
+                          title="Open in Google Sheets"
+                        >
+                          <FileSpreadsheet className="w-3.5 h-3.5" />
+                        </a>
+
+                        <a
+                          href={googleSearchUrl}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="p-1.5 text-slate-600 hover:text-purple-700 hover:bg-purple-50 rounded-lg transition-colors cursor-pointer"
+                          title="Google search client & address"
+                        >
+                          <Search className="w-3.5 h-3.5" />
+                        </a>
+                      </div>
+                    </div>
+
+                    {/* Inline Quick Action Status Buttons */}
+                    <div className="flex items-center gap-1.5 pt-1 border-t border-slate-100/80 flex-wrap">
+                      {q.quoteStatus !== 'APPROVED' && (
+                        <button
+                          onClick={() => handleStatusChange(q, 'APPROVED')}
+                          className="px-2 py-1 bg-emerald-50 hover:bg-emerald-100 text-emerald-700 border border-emerald-200 rounded text-[10px] font-bold transition-all cursor-pointer"
+                        >
+                          Approve
+                        </button>
+                      )}
+                      {q.quoteStatus !== 'CONVERTED' && (
+                        <button
+                          onClick={() => handleConvertToJob(q)}
+                          className="px-2 py-1 bg-purple-50 hover:bg-purple-100 text-purple-700 border border-purple-200 rounded text-[10px] font-bold transition-all cursor-pointer"
+                          title="Convert approved quote into scheduled visit on calendar & Jobber"
+                        >
+                          Convert to Job
+                        </button>
+                      )}
+                      {q.quoteStatus !== 'AWAITING_RESPONSE' && (
+                        <button
+                          onClick={() => handleStatusChange(q, 'AWAITING_RESPONSE')}
+                          className="px-2 py-1 bg-amber-50 hover:bg-amber-100 text-amber-700 border border-amber-200 rounded text-[10px] font-bold transition-all cursor-pointer"
+                        >
+                          Awaiting
+                        </button>
+                      )}
+                    </div>
                   </div>
                 </div>
-              </div>
-            ))}
+              );
+            })}
           </div>
         )}
       </div>
+
+      {/* Jobber-Style Quote Detail & SMS Sender Modal */}
+      <QuoteDetailModal
+        isOpen={Boolean(selectedQuote)}
+        quote={selectedQuote}
+        onClose={() => setSelectedQuote(null)}
+        projectId={projectId}
+        onConvertToJob={(quoteToConvert) => handleConvertToJob(quoteToConvert)}
+        onQuoteUpdated={(updated, allQuotes) => {
+          setSelectedQuote(updated);
+          if (allQuotes && onQuotesUpdated) {
+            onQuotesUpdated(allQuotes);
+          } else if (onQuotesUpdated) {
+            onQuotesUpdated(quotes.map((item) => (item.id === updated.id ? updated : item)));
+          }
+        }}
+      />
 
       {/* Modal: Create New Job Quote Directly in Database */}
       {isNewQuoteModalOpen && (
@@ -510,6 +601,17 @@ export const QuotesView: React.FC<QuotesViewProps> = ({
                     className="w-full px-3 py-2 border border-slate-300 rounded-xl focus:outline-none focus:border-purple-600"
                   />
                 </div>
+              </div>
+
+              <div>
+                <label className="block font-bold text-slate-700 mb-1">Service Property Address</label>
+                <input
+                  type="text"
+                  placeholder="e.g. 9620 144 Ave NW, St. Albert, AB"
+                  value={newServiceAddress}
+                  onChange={(e) => setNewServiceAddress(e.target.value)}
+                  className="w-full px-3 py-2 border border-slate-300 rounded-xl focus:outline-none focus:border-purple-600"
+                />
               </div>
 
               {/* Real-Time Caller Intelligence & Loyalty Discount Banner */}

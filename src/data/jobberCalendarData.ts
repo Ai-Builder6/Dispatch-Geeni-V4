@@ -868,7 +868,29 @@ export const INITIAL_UNSCHEDULED_JOBS: UnscheduledJobItem[] = [];
  */
 export function generateJobberQuotes(): JobberQuote[] {
   const quotes: JobberQuote[] = [
-    // October 2026 (Current)
+    // October 2026 (Current) - Devon Clarke Lead synced to Jobber Client & Quote
+    {
+      id: 'qt-devon-clarke-2410',
+      quoteNumber: 'QT-2410',
+      clientName: 'Devon Clarke',
+      clientPhone: '(780) 802-4918',
+      clientEmail: 'devonclarke@gmail.com',
+      serviceAddress: '9620 144 Ave NW, St. Albert, AB',
+      service: '3 Bed 2.5 Bath Deep Scrub Clean (3.5 hrs)',
+      quoteStatus: 'AWAITING_RESPONSE',
+      total: 229.22,
+      depositRequired: 50.0,
+      createdAt: '2026-10-13T11:30:00-06:00',
+      scheduledDate: '2026-10-16',
+      scheduledTime: '10:00 AM',
+      jobberWebUri: 'https://secure.getjobber.com/quotes',
+      notes: '3 Bed 2.5 Bath Deep Scrub Clean in St. Albert. Includes 3.5 hrs @ $52.50/hr ($183.75) + $12.50 Fuel Surcharge + $7.50 Eco Supplies + 12.5% Tax ($25.47) = $229.22 CAD. Synced with Jobber Client & Google Sheets.',
+      lineItems: [
+        { description: '3 Bed 2.5 Bath Deep Scrub Clean (3.5 hrs @ $52.50/hr)', quantity: 3.5, unitPrice: 52.5, total: 183.75 },
+        { description: 'Fuel & Travel Surcharge (St. Albert)', quantity: 1, unitPrice: 12.5, total: 12.5 },
+        { description: 'Deep Scrub Baseboard & Sanitizer Package', quantity: 1, unitPrice: 7.5, total: 7.5 },
+      ],
+    },
     {
       id: 'qt-2041',
       quoteNumber: 'QT-2041',

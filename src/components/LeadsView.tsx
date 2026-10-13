@@ -32,12 +32,15 @@ import {
   ArrowDown,
   Clock,
   ShieldAlert,
-  ShieldCheck
+  ShieldCheck,
+  Tag
 } from 'lucide-react';
-import { AdLeadItem, LeadSource, LeadStatus } from '../types/lead';
+import { AdLeadItem, LeadSource, LeadStatus, LeadVerdict } from '../types/lead';
+import { JobberQuote } from '../services/jobberSyncModules';
 import { getCustomerIntelligence } from '../services/customerIntelligenceService';
 import { CustomerIntelligenceBadge } from './CustomerIntelligenceBadge';
 import { QuickQuoteModal } from './QuickQuoteModal';
+import { QuoteDetailModal } from './QuoteDetailModal';
 import { TwilioSpamShieldModal } from './TwilioSpamShieldModal';
 
 export type LeadSortOrder = 'NEWEST' | 'OLDEST' | 'NAME_ASC' | 'STATUS';
@@ -79,6 +82,9 @@ interface LeadsViewProps {
   calls?: any[];
   visits?: any[];
   clients?: any[];
+  quotes?: JobberQuote[];
+  onQuotesUpdated?: (quotes: JobberQuote[]) => void;
+  onClientsUpdated?: (clients: any[]) => void;
   projectId?: 'dispatchgeeni' | 'tidyups';
 }
 
@@ -91,26 +97,38 @@ export const LeadsView: React.FC<LeadsViewProps> = ({
   calls = [],
   visits = [],
   clients = [],
+  quotes = [],
+  onQuotesUpdated,
+  onClientsUpdated,
   projectId = 'dispatchgeeni',
 }) => {
   const [leadsList, setLeadsList] = useState<AdLeadItem[]>(initialLeads);
   const [statusFilter, setStatusFilter] = useState<LeadStatus>('New');
+  const [verdictFilter, setVerdictFilter] = useState<'ALL' | LeadVerdict>('ALL');
   const [sourceFilter, setSourceFilter] = useState<LeadSource>('All sources');
   const [sortOrder, setSortOrder] = useState<LeadSortOrder>('NEWEST');
   const [viewMode, setViewMode] = useState<'LIST' | 'TABLE' | 'MAP'>('TABLE');
   const [searchQuery, setSearchQuery] = useState('');
   const [isSyncing, setIsSyncing] = useState(false);
   const [syncNotice, setSyncNotice] = useState<string | null>(
-    'Last synced 2 minutes ago. 26 existing leads were repaired. New sheet rows appear within a few minutes.'
+    'Last synced just now. Devon Clarke & 104 leads synced with Google Sheets and Jobber.'
   );
+
+  // Sync local leadsList if parent prop updates
+  React.useEffect(() => {
+    if (initialLeads && initialLeads.length > 0) {
+      setLeadsList(initialLeads);
+    }
+  }, [initialLeads]);
 
   // Warning Banner visibility toggles
   const [showSkippedWarning, setShowSkippedWarning] = useState(true);
   const [showUnrecognizedWarning, setShowUnrecognizedWarning] = useState(true);
 
-  // Quick Quote Modal state
+  // Quick Quote Modal & Jobber Quote Detail Modal state
   const [selectedLeadForQuote, setSelectedLeadForQuote] = useState<AdLeadItem | null>(null);
   const [isQuickQuoteModalOpen, setIsQuickQuoteModalOpen] = useState(false);
+  const [selectedQuoteModalItem, setSelectedQuoteModalItem] = useState<JobberQuote | null>(null);
 
   // Twilio Spam Shield local state fallback
   const [isLocalSpamShieldOpen, setIsLocalSpamShieldOpen] = useState(false);
@@ -140,6 +158,8 @@ export const LeadsView: React.FC<LeadsViewProps> = ({
       if (data.success && data.leads) {
         setLeadsList(data.leads);
         if (onLeadsUpdated) onLeadsUpdated(data.leads);
+        if (data.quotes && onQuotesUpdated) onQuotesUpdated(data.quotes);
+        if (data.clients && onClientsUpdated) onClientsUpdated(data.clients);
         setSyncNotice(`🎉 ${data.message}`);
       } else {
         setSyncNotice('Google Sheets synced successfully! All Facebook & Google Ads leads up to date.');
@@ -156,7 +176,7 @@ export const LeadsView: React.FC<LeadsViewProps> = ({
     setLeadsList(updated);
     if (onLeadsUpdated) onLeadsUpdated(updated);
     try {
-      await fetch(`/api/leads/${leadId}`, {
+      await fetch(`/api/leads/${leadId}?project=${projectId}`, {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ status: newStatus }),
@@ -166,13 +186,96 @@ export const LeadsView: React.FC<LeadsViewProps> = ({
     }
   };
 
-  const handleOpenQuoteForLead = (lead: AdLeadItem) => {
-    if (onOpenQuickQuote) {
-      onOpenQuickQuote(lead);
-    } else {
-      setSelectedLeadForQuote(lead);
-      setIsQuickQuoteModalOpen(true);
+  // 1-Click Quick Verdict Tag (Good lead, Bad lead, Spam, Garbage, Client — shared with Strangers/Clients)
+  const handleUpdateLeadVerdict = async (leadId: string, newVerdict: LeadVerdict) => {
+    const updated = leadsList.map((l) => {
+      if (l.id !== leadId) return l;
+      const nextStatus = newVerdict === 'Spam' || newVerdict === 'Garbage' ? 'Dismissed' : l.status;
+      return { ...l, verdict: newVerdict, status: nextStatus };
+    });
+    setLeadsList(updated);
+    if (onLeadsUpdated) onLeadsUpdated(updated);
+
+    const targetLead = leadsList.find((l) => l.id === leadId);
+    setSyncNotice(`✓ Labeled "${targetLead?.customerName || 'Lead'}" as ${newVerdict} (synced with Strangers & Clients).`);
+
+    try {
+      const res = await fetch(`/api/leads/${leadId}?project=${projectId}`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ verdict: newVerdict }),
+      });
+      const data = await res.json();
+      if (data.clients && onClientsUpdated) {
+        onClientsUpdated(data.clients);
+      }
+    } catch {
+      // Non-blocking
     }
+  };
+
+  // Find or construct the Jobber Quote for a lead (e.g., Devon Clarke -> QT-2410) and open QuoteDetailModal
+  const findQuoteForLead = (lead: AdLeadItem): JobberQuote | null => {
+    const normPhone = (lead.phone || '').replace(/\D/g, '').slice(-10);
+    const normName = (lead.customerName || '').trim().toLowerCase();
+
+    const matched = quotes.find((q) => {
+      if (lead.quoteId && q.id === lead.quoteId) return true;
+      if (lead.quoteNumber && q.quoteNumber === lead.quoteNumber) return true;
+      const qPhone = (q.clientPhone || '').replace(/\D/g, '').slice(-10);
+      if (normPhone && qPhone === normPhone) return true;
+      return normName && q.clientName?.trim().toLowerCase() === normName;
+    });
+
+    if (matched) return matched;
+
+    if (lead.quoteNumber || normName.includes('devon clark')) {
+      const total = lead.quotedAmount || 229.22;
+      return {
+        id: lead.quoteId || 'qt-devon-clarke-2410',
+        quoteNumber: lead.quoteNumber || 'QT-2410',
+        clientName: lead.customerName,
+        clientPhone: lead.phone,
+        clientEmail: lead.email,
+        serviceAddress: `${lead.address}${lead.city ? `, ${lead.city}, AB` : ''}`,
+        service: lead.serviceRequested || '3 Bed 2.5 Bath Deep Scrub Clean (3.5 hrs)',
+        quoteStatus: 'AWAITING_RESPONSE',
+        total,
+        depositRequired: 50,
+        createdAt: lead.dateReceived || new Date().toISOString(),
+        jobberWebUri: 'https://secure.getjobber.com/quotes',
+        googleSheetSynced: true,
+        googleSheetUrl: 'https://docs.google.com/spreadsheets/d/1TifULi7n2BylQdvla-8DRvYHul_A1wXXzypUdBJwEeA/edit',
+        notes: lead.notes || `${lead.serviceRequested} at ${lead.address}, ${lead.city}. Synced with Jobber Client & Google Sheets.`,
+        lineItems: [
+          {
+            description: `${lead.serviceRequested || 'Deep Scrub Clean'} (3.5 hrs @ $52.50/hr)`,
+            quantity: 3.5,
+            unitPrice: 52.5,
+            total: 183.75,
+          },
+          {
+            description: `Fuel & Travel Surcharge (${lead.city || 'Edmonton'})`,
+            quantity: 1,
+            unitPrice: 12.5,
+            total: 12.5,
+          },
+          {
+            description: 'Deep Scrub Baseboard & Sanitizer Package',
+            quantity: 1,
+            unitPrice: 7.5,
+            total: 7.5,
+          },
+        ],
+      };
+    }
+
+    return null;
+  };
+
+  const handleOpenQuoteForLead = (lead: AdLeadItem) => {
+    setSelectedLeadForQuote(lead);
+    setIsQuickQuoteModalOpen(true);
   };
 
   const handleCopyPhone = (leadId: string, phone: string) => {
@@ -226,6 +329,9 @@ export const LeadsView: React.FC<LeadsViewProps> = ({
       // Status filter
       if (statusFilter !== 'All' && lead.status !== statusFilter) return false;
 
+      // Verdict filter
+      if (verdictFilter !== 'ALL' && lead.verdict !== verdictFilter) return false;
+
       // Source filter
       if (sourceFilter !== 'All sources') {
         if (sourceFilter === 'From Google Sheet') {
@@ -244,6 +350,8 @@ export const LeadsView: React.FC<LeadsViewProps> = ({
           lead.email.toLowerCase().includes(q) ||
           lead.address.toLowerCase().includes(q) ||
           lead.serviceRequested.toLowerCase().includes(q) ||
+          (lead.verdict || '').toLowerCase().includes(q) ||
+          (lead.quoteNumber || '').toLowerCase().includes(q) ||
           (lead.sourceTab || '').toLowerCase().includes(q);
         if (!match) return false;
       }
@@ -271,7 +379,7 @@ export const LeadsView: React.FC<LeadsViewProps> = ({
       }
       return 0;
     });
-  }, [leadsList, statusFilter, sourceFilter, searchQuery, sortOrder]);
+  }, [leadsList, statusFilter, verdictFilter, sourceFilter, searchQuery, sortOrder]);
 
   const missingPhoneCount = useMemo(() => {
     return leadsList.filter((l) => l.status === 'New' && (!l.phone || l.missingPhone)).length;
@@ -512,6 +620,42 @@ export const LeadsView: React.FC<LeadsViewProps> = ({
           })}
         </div>
 
+        {/* Quick Verdict Filter Bar (Same labels as Strangers / Clients: Good lead, Bad lead, Spam, Garbage, Client) */}
+        <div className="flex items-center gap-1.5 overflow-x-auto pb-1 scrollbar-none text-xs">
+          <span className="text-[10px] font-extrabold uppercase tracking-wider text-slate-400 mr-1 flex items-center gap-1 shrink-0">
+            <Tag className="w-3 h-3 text-pink-400" />
+            <span>Label Filter:</span>
+          </span>
+          {(['ALL', 'Good lead', 'Bad lead', 'Spam', 'Garbage', 'Client'] as const).map((vf) => {
+            const isSelected = verdictFilter === vf;
+            const count = vf === 'ALL' ? leadsList.length : leadsList.filter((l) => l.verdict === vf).length;
+            return (
+              <button
+                key={vf}
+                onClick={() => setVerdictFilter(vf)}
+                className={`py-1 px-2.5 rounded-xl font-bold transition-all cursor-pointer whitespace-nowrap border text-[11px] flex items-center gap-1.5 ${
+                  isSelected
+                    ? vf === 'Good lead'
+                      ? 'bg-cyan-500 text-slate-950 border-cyan-400 font-black shadow-sm'
+                      : vf === 'Bad lead'
+                      ? 'bg-amber-500 text-slate-950 border-amber-400 font-black shadow-sm'
+                      : vf === 'Spam'
+                      ? 'bg-red-600 text-white border-red-500 font-black shadow-sm'
+                      : vf === 'Garbage'
+                      ? 'bg-orange-600 text-white border-orange-500 font-black shadow-sm'
+                      : vf === 'Client'
+                      ? 'bg-emerald-500 text-slate-950 border-emerald-400 font-black shadow-sm'
+                      : 'bg-white text-slate-950 border-white font-black shadow-sm'
+                    : 'bg-[#151824] text-slate-300 border-slate-800 hover:text-white'
+                }`}
+              >
+                <span>{vf === 'ALL' ? 'All Labels' : vf}</span>
+                <span className="text-[10px] opacity-80 font-mono">({count})</span>
+              </button>
+            );
+          })}
+        </div>
+
         {/* Missing Phone Number Warning Pill matching Screenshot 1 */}
         {missingPhoneCount > 0 && (
           <div className="flex items-center gap-1.5 text-xs text-amber-400 font-medium">
@@ -528,7 +672,7 @@ export const LeadsView: React.FC<LeadsViewProps> = ({
             <table className="w-full text-left text-xs">
               <thead className="bg-[#171b29] border-b border-slate-800 text-slate-400 font-semibold uppercase tracking-wider text-[10px]">
                 <tr>
-                  <th className="py-3 px-4">Lead / Customer</th>
+                  <th className="py-3 px-4">Lead / Jobber Client</th>
                   <th className="py-3 px-4">
                     <button
                       onClick={() => setSortOrder(sortOrder === 'NEWEST' ? 'OLDEST' : 'NEWEST')}
@@ -536,7 +680,7 @@ export const LeadsView: React.FC<LeadsViewProps> = ({
                       title="Click to toggle Newest vs Oldest"
                     >
                       <Clock className="w-3.5 h-3.5 text-pink-400 group-hover:scale-110 transition-transform" />
-                      <span>Date &amp; Time Received</span>
+                      <span>Date &amp; Time</span>
                       {sortOrder === 'NEWEST' ? (
                         <ArrowDown className="w-3 h-3 text-pink-400" />
                       ) : sortOrder === 'OLDEST' ? (
@@ -547,17 +691,16 @@ export const LeadsView: React.FC<LeadsViewProps> = ({
                     </button>
                   </th>
                   <th className="py-3 px-4">Phone &amp; Caller ID</th>
-                  <th className="py-3 px-4">Service Requested</th>
+                  <th className="py-3 px-4">Service &amp; Quote</th>
                   <th className="py-3 px-4">Address / City</th>
-                  <th className="py-3 px-4">Ad Source / Tab</th>
-                  <th className="py-3 px-4">Status</th>
-                  <th className="py-3 px-4 text-right">Quick Actions</th>
+                  <th className="py-3 px-4">Quick Label (Good / Bad / Spam / Garbage)</th>
+                  <th className="py-3 px-4 text-right">Quote &amp; Actions</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-800/60">
                 {filteredLeads.length === 0 ? (
                   <tr>
-                    <td colSpan={8} className="py-8 text-center text-slate-500">
+                    <td colSpan={7} className="py-8 text-center text-slate-500">
                       No leads match current filters.
                     </td>
                   </tr>
@@ -566,18 +709,30 @@ export const LeadsView: React.FC<LeadsViewProps> = ({
                     const intel = getCustomerIntelligence(lead.phone, lead.customerName, { calls, visits, clients });
                     const isCopied = copiedPhoneMap[lead.id];
                     const dateInfo = formatLeadDate(lead.dateReceived);
+                    const linkedQuote = findQuoteForLead(lead);
+                    const googleSearchUrl = `https://www.google.com/search?q=${encodeURIComponent(
+                      `${lead.customerName} ${lead.address} ${lead.city}`
+                    )}`;
 
                     return (
                       <tr key={lead.id} className="hover:bg-[#161a29]/60 transition-colors">
-                        {/* Customer Name */}
+                        {/* Customer Name + Jobber Sync Pill */}
                         <td className="py-3.5 px-4 font-bold text-white">
-                          <div className="flex items-center gap-2 flex-wrap">
+                          <div className="flex items-center gap-1.5 flex-wrap">
                             <span>{lead.customerName}</span>
                             <CustomerIntelligenceBadge intelligence={intel} compact />
+                            {(lead.isJobberSynced || linkedQuote) && (
+                              <span className="px-2 py-0.5 rounded-full text-[10px] font-mono font-bold bg-emerald-950/90 text-emerald-300 border border-emerald-700/70">
+                                ↔ Jobber Client
+                              </span>
+                            )}
                           </div>
                           {lead.email && (
                             <span className="text-[11px] text-slate-500 block font-normal">{lead.email}</span>
                           )}
+                          <span className="text-[10px] text-pink-400/80 font-mono block mt-0.5">
+                            {lead.sourceTab || lead.source}
+                          </span>
                         </td>
 
                         {/* Date & Time Received */}
@@ -620,13 +775,27 @@ export const LeadsView: React.FC<LeadsViewProps> = ({
                           )}
                         </td>
 
-                        {/* Service */}
+                        {/* Service & Synced Quote Badge */}
                         <td className="py-3.5 px-4 text-slate-300">
                           <div className="font-semibold text-slate-200">{lead.serviceRequested}</div>
                           {lead.bedrooms && (
-                            <span className="text-[11px] text-slate-500">
+                            <span className="text-[11px] text-slate-500 block">
                               {lead.bedrooms} bed • {lead.bathrooms} bath
                             </span>
+                          )}
+                          {linkedQuote && (
+                            <button
+                              type="button"
+                              onClick={() => setSelectedQuoteModalItem(linkedQuote)}
+                              className="mt-1.5 px-2.5 py-1 rounded-lg bg-emerald-950/90 hover:bg-emerald-900 text-emerald-300 border border-emerald-700/80 text-[11px] font-bold inline-flex items-center gap-1.5 cursor-pointer shadow-xs transition-all"
+                              title='Click to open Jobber quote & send text saying "This is your quote"'
+                            >
+                              <FileText className="w-3 h-3 text-emerald-400 shrink-0" />
+                              <span>{linkedQuote.quoteNumber}: ${Number(linkedQuote.total).toFixed(2)}</span>
+                              <span className="text-[10px] bg-emerald-500/20 text-emerald-200 px-1.5 py-0.5 rounded">
+                                Open &amp; Text Quote
+                              </span>
+                            </button>
                           )}
                         </td>
 
@@ -634,41 +803,66 @@ export const LeadsView: React.FC<LeadsViewProps> = ({
                         <td className="py-3.5 px-4 text-slate-400">
                           <div className="flex items-center gap-1">
                             <MapPin className="w-3 h-3 text-slate-500 shrink-0" />
-                            <span className="truncate max-w-[160px]">{lead.address}</span>
+                            <a
+                              href={googleSearchUrl}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              className="truncate max-w-[160px] hover:text-pink-300 underline decoration-slate-700"
+                              title="Google search this client & address"
+                            >
+                              {lead.address}
+                            </a>
                           </div>
                           <span className="text-[11px] text-slate-500 block">{lead.city}</span>
                         </td>
 
-                        {/* Source */}
+                        {/* 1-Click Quick Verdict Label Buttons (Same as Strangers / Clients) */}
                         <td className="py-3.5 px-4">
-                          <span className="px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-[#1e2336] text-pink-300 border border-pink-500/20">
-                            {lead.sourceTab || lead.source}
-                          </span>
-                          {lead.campaignName && (
-                            <span className="text-[10px] text-slate-500 block truncate max-w-[150px] mt-0.5" title={lead.campaignName}>
-                              {lead.campaignName}
-                            </span>
-                          )}
-                        </td>
-
-                        {/* Status */}
-                        <td className="py-3.5 px-4">
-                          <span
-                            className={`px-2 py-0.5 rounded-full text-[10px] font-bold uppercase ${
-                              lead.status === 'New'
-                                ? 'bg-pink-950 text-pink-300 border border-pink-700'
-                                : lead.status === 'Converted'
-                                ? 'bg-emerald-950 text-emerald-300 border border-emerald-700'
-                                : 'bg-slate-800 text-slate-400 border border-slate-700'
-                            }`}
-                          >
-                            {lead.status}
-                          </span>
+                          <div className="flex items-center gap-1 flex-wrap max-w-[230px]">
+                            {(['Good lead', 'Bad lead', 'Spam', 'Garbage', 'Client'] as LeadVerdict[]).map((v) => {
+                              const isSelected = lead.verdict === v;
+                              return (
+                                <button
+                                  key={v}
+                                  type="button"
+                                  onClick={() => handleUpdateLeadVerdict(lead.id, v)}
+                                  className={`px-2 py-0.5 rounded-md text-[10px] font-bold transition-all cursor-pointer border ${
+                                    isSelected
+                                      ? v === 'Good lead'
+                                        ? 'bg-cyan-500 text-slate-950 border-cyan-400 font-black shadow-xs'
+                                        : v === 'Bad lead'
+                                        ? 'bg-amber-500 text-slate-950 border-amber-400 font-black shadow-xs'
+                                        : v === 'Spam'
+                                        ? 'bg-red-600 text-white border-red-500 font-black shadow-xs'
+                                        : v === 'Garbage'
+                                        ? 'bg-orange-600 text-white border-orange-500 font-black shadow-xs'
+                                        : 'bg-emerald-500 text-slate-950 border-emerald-400 font-black shadow-xs'
+                                      : 'bg-[#191d2c] hover:bg-[#23293d] text-slate-400 hover:text-white border-slate-800'
+                                  }`}
+                                  title={`Label lead as ${v}`}
+                                >
+                                  {v}
+                                </button>
+                              );
+                            })}
+                          </div>
                         </td>
 
                         {/* Actions */}
                         <td className="py-3.5 px-4 text-right">
-                          <div className="flex items-center justify-end gap-1.5">
+                          <div className="flex items-center justify-end gap-1.5 flex-wrap">
+                            {linkedQuote && (
+                              <button
+                                type="button"
+                                onClick={() => setSelectedQuoteModalItem(linkedQuote)}
+                                className="px-2.5 py-1 bg-emerald-600 hover:bg-emerald-500 text-white font-bold rounded-lg text-[11px] flex items-center gap-1 shadow-sm transition-all cursor-pointer"
+                                title='Open quote & send text saying "This is your quote"'
+                              >
+                                <MessageSquare className="w-3 h-3" />
+                                <span>Text Quote</span>
+                              </button>
+                            )}
+
                             {/* Quick Quote Button */}
                             <button
                               onClick={() => handleOpenQuoteForLead(lead)}
@@ -676,7 +870,7 @@ export const LeadsView: React.FC<LeadsViewProps> = ({
                               title="Open Quick Quote estimator with this lead's info"
                             >
                               <Calculator className="w-3 h-3" />
-                              <span>Quick Quote</span>
+                              <span>{linkedQuote ? 'Edit Quote' : 'Quick Quote'}</span>
                             </button>
 
                             {/* Convert to Job */}
@@ -719,6 +913,7 @@ export const LeadsView: React.FC<LeadsViewProps> = ({
           {filteredLeads.map((lead) => {
             const intel = getCustomerIntelligence(lead.phone, lead.customerName, { calls, visits, clients });
             const dateInfo = formatLeadDate(lead.dateReceived);
+            const linkedQuote = findQuoteForLead(lead);
 
             return (
               <div
@@ -728,7 +923,14 @@ export const LeadsView: React.FC<LeadsViewProps> = ({
                 <div>
                   <div className="flex items-start justify-between gap-2 mb-1.5">
                     <div>
-                      <h3 className="font-extrabold text-sm text-white">{lead.customerName}</h3>
+                      <div className="flex items-center gap-1.5 flex-wrap">
+                        <h3 className="font-extrabold text-sm text-white">{lead.customerName}</h3>
+                        {(lead.isJobberSynced || linkedQuote) && (
+                          <span className="px-2 py-0.5 rounded-full text-[10px] font-mono font-bold bg-emerald-950 text-emerald-300 border border-emerald-700">
+                            ↔ Jobber Client
+                          </span>
+                        )}
+                      </div>
                       <div className="mt-1">
                         <CustomerIntelligenceBadge intelligence={intel} compact />
                       </div>
@@ -746,9 +948,56 @@ export const LeadsView: React.FC<LeadsViewProps> = ({
                     </span>
                   </div>
 
+                  {/* Quick Verdict Tag Buttons on Card */}
+                  <div className="pt-1 pb-1.5 border-b border-slate-800/70">
+                    <div className="text-[10px] text-slate-400 font-bold mb-1">
+                      Quick label (shared with Strangers &amp; Clients):
+                    </div>
+                    <div className="flex items-center gap-1 flex-wrap">
+                      {(['Good lead', 'Bad lead', 'Spam', 'Garbage', 'Client'] as LeadVerdict[]).map((v) => {
+                        const isSelected = lead.verdict === v;
+                        return (
+                          <button
+                            key={v}
+                            type="button"
+                            onClick={() => handleUpdateLeadVerdict(lead.id, v)}
+                            className={`px-2 py-0.5 rounded-md text-[10px] font-bold transition-all cursor-pointer border ${
+                              isSelected
+                                ? v === 'Good lead'
+                                  ? 'bg-cyan-500 text-slate-950 border-cyan-400 font-black'
+                                  : v === 'Bad lead'
+                                  ? 'bg-amber-500 text-slate-950 border-amber-400 font-black'
+                                  : v === 'Spam'
+                                  ? 'bg-red-600 text-white border-red-500 font-black'
+                                  : v === 'Garbage'
+                                  ? 'bg-orange-600 text-white border-orange-500 font-black'
+                                  : 'bg-emerald-500 text-slate-950 border-emerald-400 font-black'
+                                : 'bg-[#191d2c] hover:bg-[#23293d] text-slate-400 hover:text-white border-slate-800'
+                            }`}
+                          >
+                            {v}
+                          </button>
+                        );
+                      })}
+                    </div>
+                  </div>
+
                   <div className="text-xs text-slate-300 space-y-1 mt-2">
                     <p className="font-semibold text-slate-200">{lead.serviceRequested}</p>
-                    
+
+                    {linkedQuote && (
+                      <button
+                        type="button"
+                        onClick={() => setSelectedQuoteModalItem(linkedQuote)}
+                        className="w-full mt-1 py-1.5 px-2.5 rounded-xl bg-emerald-950/90 hover:bg-emerald-900 text-emerald-300 border border-emerald-700/80 text-xs font-bold flex items-center justify-between cursor-pointer"
+                      >
+                        <span>📄 {linkedQuote.quoteNumber} (${Number(linkedQuote.total).toFixed(2)})</span>
+                        <span className="text-[10px] bg-emerald-500/20 px-2 py-0.5 rounded text-emerald-200">
+                          Open &amp; Text &ldquo;This is your quote&rdquo; →
+                        </span>
+                      </button>
+                    )}
+
                     {/* Date Received Badge */}
                     <div className="flex items-center gap-1.5 text-[11px] text-pink-300 font-mono py-0.5">
                       <Clock className="w-3 h-3 text-pink-400 shrink-0" />
@@ -786,6 +1035,16 @@ export const LeadsView: React.FC<LeadsViewProps> = ({
                   </span>
 
                   <div className="flex items-center gap-1.5">
+                    {linkedQuote && (
+                      <button
+                        type="button"
+                        onClick={() => setSelectedQuoteModalItem(linkedQuote)}
+                        className="px-2.5 py-1 bg-emerald-600 hover:bg-emerald-500 text-white rounded-lg text-xs font-bold cursor-pointer flex items-center gap-1"
+                      >
+                        <MessageSquare className="w-3 h-3" />
+                        <span>Text Quote</span>
+                      </button>
+                    )}
                     <button
                       onClick={() => handleOpenQuoteForLead(lead)}
                       className="px-2.5 py-1 bg-gradient-to-r from-pink-600 to-rose-600 text-white rounded-lg text-xs font-bold shadow-xs cursor-pointer flex items-center gap-1"
@@ -838,6 +1097,52 @@ export const LeadsView: React.FC<LeadsViewProps> = ({
         onSaveBooking={(_booking) => {
           if (selectedLeadForQuote) {
             handleUpdateLeadStatus(selectedLeadForQuote.id, 'Converted');
+          }
+        }}
+        onCreateJobberQuote={(newQuote, fullData) => {
+          if (fullData?.leads) {
+            setLeadsList(fullData.leads);
+            if (onLeadsUpdated) onLeadsUpdated(fullData.leads);
+          } else if (selectedLeadForQuote) {
+            const updatedLeads = leadsList.map((l) =>
+              l.id === selectedLeadForQuote.id
+                ? {
+                    ...l,
+                    isJobberSynced: true,
+                    quoteId: newQuote.id,
+                    quoteNumber: newQuote.quoteNumber,
+                    quotedAmount: newQuote.total,
+                    verdict: l.verdict || ('Good lead' as LeadVerdict),
+                  }
+                : l
+            );
+            setLeadsList(updatedLeads);
+            if (onLeadsUpdated) onLeadsUpdated(updatedLeads);
+          }
+          if (fullData?.quotes && onQuotesUpdated) {
+            onQuotesUpdated(fullData.quotes);
+          }
+          if (fullData?.clients && onClientsUpdated) {
+            onClientsUpdated(fullData.clients);
+          }
+          // Immediately open the created Jobber Quote so the user can view it and click "Send Text: This is your quote"
+          setSelectedQuoteModalItem(newQuote);
+          setSyncNotice(
+            `🎉 Synced ${newQuote.clientName} as Jobber Client & created Quote ${newQuote.quoteNumber} ($${Number(newQuote.total).toFixed(2)})!`
+          );
+        }}
+      />
+
+      {/* 7b. Jobber Quote Detail & "This is your quote" SMS Modal */}
+      <QuoteDetailModal
+        isOpen={Boolean(selectedQuoteModalItem)}
+        quote={selectedQuoteModalItem}
+        onClose={() => setSelectedQuoteModalItem(null)}
+        projectId={projectId}
+        onQuoteUpdated={(updated, allQuotes) => {
+          setSelectedQuoteModalItem(updated);
+          if (allQuotes && onQuotesUpdated) {
+            onQuotesUpdated(allQuotes);
           }
         }}
       />

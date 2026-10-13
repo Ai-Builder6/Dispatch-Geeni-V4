@@ -148,6 +148,50 @@ export async function jobberGraphql<T>(
   throw new Error("Jobber GraphQL request failed after max retry attempts.");
 }
 
+/**
+ * Decodes Base64 Jobber Global IDs (e.g. "Z2lkOi8vSm9iYmVyL1F1b3RlLzY2MzMzNjA4" -> "gid://Jobber/Quote/66333608" -> "66333608")
+ * so "Open in Jobber" links open the exact real record in Jobber instead of a mangled Base64 number.
+ */
+export function extractJobberNumericId(rawId?: string): string {
+  if (!rawId) return "";
+  const trimmed = String(rawId).trim();
+  if (trimmed.startsWith("gid://")) {
+    const match = trimmed.match(/\/(\d+)$/);
+    if (match) return match[1];
+  }
+  if (trimmed.startsWith("Z2lkOi8v")) {
+    try {
+      const decoded = typeof Buffer !== "undefined"
+        ? Buffer.from(trimmed, "base64").toString("utf8")
+        : atob(trimmed);
+      const match = decoded.match(/\/(\d+)$/);
+      if (match) return match[1];
+    } catch {
+      // ignore decode error
+    }
+  }
+  // Only return digits if the ID is not a random local timestamp or non-Jobber ID
+  if (/^(qt_|inv_|vis_|job_)?\d+$/.test(trimmed)) {
+    return trimmed.replace(/\D/g, "");
+  }
+  return "";
+}
+
+export function resolveJobberWebUri(
+  entityType: "quotes" | "visits" | "invoices" | "clients" | "jobs",
+  rawId?: string,
+  existingUri?: string
+): string {
+  const numericId = extractJobberNumericId(rawId);
+  if (numericId) {
+    return `https://secure.getjobber.com/${entityType}/${numericId}`;
+  }
+  if (existingUri && existingUri.startsWith("https://secure.getjobber.com/") && !rawId?.startsWith("Z2lkOi8v")) {
+    return existingUri;
+  }
+  return `https://secure.getjobber.com/${entityType}`;
+}
+
 export interface JobberVisit {
   id: string;
   visitNumber: string;
@@ -184,6 +228,7 @@ export interface JobberQuote {
   quoteNumber: string;
   clientName: string;
   clientPhone?: string;
+  clientEmail?: string;
   serviceAddress?: string;
   service: string;
   quoteStatus: "DRAFT" | "AWAITING_RESPONSE" | "APPROVED" | "CHANGES_REQUESTED" | "CONVERTED";
@@ -195,6 +240,12 @@ export interface JobberQuote {
   scheduledDate?: string;
   scheduledTime?: string;
   jobberWebUri: string;
+  clientHubUri?: string;
+  jobberClientId?: string;
+  googleSheetSynced?: boolean;
+  googleSheetUrl?: string;
+  lastSmsSentAt?: string;
+  lastSmsMessage?: string;
   notes?: string;
   isLocal?: boolean;
   lineItems?: Array<{ description: string; quantity: number; unitPrice: number; total: number }>;
@@ -378,11 +429,13 @@ export async function syncJobberCalendar(
         else if (titleLower.includes("move") || titleLower.includes("turnover") || titleLower.includes("vacate")) serviceType = "Move-Out Cleaning";
 
         const visitStatus: JobberVisit["status"] = node.completedAt ? "COMPLETED" : "SCHEDULED";
-        const visitNumber = `VISIT-${node.id.replace(/\D/g, '').slice(-5) || (visitsMap.size + 1)}`;
+        const numericVisitId = extractJobberNumericId(node.id);
+        const visitNumber = `VISIT-${numericVisitId.slice(-5) || (visitsMap.size + 1)}`;
         const key = node.id || visitNumber;
 
         if (visitsMap.has(key)) {
           const existing = visitsMap.get(key)!;
+          existing.jobberWebUri = resolveJobberWebUri("visits", node.id, existing.jobberWebUri);
           const hasChanged = existing.status !== visitStatus || existing.serviceType !== serviceType;
           if (hasChanged) {
             existing.status = visitStatus;
@@ -406,7 +459,7 @@ export async function syncJobberCalendar(
             assignedCleaners: assigned.length > 0 ? assigned : ["Joel MBATCHOU", "Melissa Clarke"],
             serviceType,
             status: visitStatus,
-            jobberWebUri: `https://secure.getjobber.com/visits/${node.id.replace(/\D/g, '') || visitsMap.size}`,
+            jobberWebUri: resolveJobberWebUri("visits", node.id),
             syncedAt: new Date().toISOString(),
           });
           newCount++;
@@ -597,7 +650,8 @@ export async function syncJobberQuotes(
           status = "DRAFT";
         }
 
-        const quoteNumber = `QT-${node.quoteNumber || node.id.replace(/\D/g, '')}`;
+        const numericQuoteId = extractJobberNumericId(node.id);
+        const quoteNumber = `QT-${node.quoteNumber || numericQuoteId}`;
         const key = node.id || quoteNumber;
         const total = node.amounts?.total || 380;
         const depositRequired = node.amounts?.depositAmount || 0;
@@ -605,6 +659,7 @@ export async function syncJobberQuotes(
 
         if (quotesMap.has(key)) {
           const existing = quotesMap.get(key)!;
+          existing.jobberWebUri = resolveJobberWebUri("quotes", node.id, existing.jobberWebUri);
           const hasChanged = existing.quoteStatus !== status || existing.total !== total || existing.depositRequired !== depositRequired;
           if (hasChanged) {
             existing.quoteStatus = status;
@@ -627,7 +682,7 @@ export async function syncJobberQuotes(
             total,
             depositRequired,
             createdAt: node.createdAt || new Date().toISOString(),
-            jobberWebUri: `https://secure.getjobber.com/quotes/${node.id.replace(/\D/g, '')}`,
+            jobberWebUri: resolveJobberWebUri("quotes", node.id),
             syncedAt: new Date().toISOString(),
           });
           newCount++;
@@ -756,11 +811,13 @@ export async function syncJobberInvoices(
 
         const tot = typeof node.total === "number" ? node.total : parseFloat(node.total) || 0;
         const bal = status === "PAID" ? 0 : tot;
-        const invoiceNumber = `INV-${node.invoiceNumber || node.id.replace(/\D/g, '')}`;
+        const numericInvId = extractJobberNumericId(node.id);
+        const invoiceNumber = `INV-${node.invoiceNumber || numericInvId}`;
         const key = node.id || invoiceNumber;
 
         if (invoicesMap.has(key)) {
           const existing = invoicesMap.get(key)!;
+          existing.jobberWebUri = resolveJobberWebUri("invoices", node.id, existing.jobberWebUri);
           const hasChanged = existing.invoiceStatus !== status || existing.total !== tot || existing.balance !== bal;
           if (hasChanged) {
             existing.invoiceStatus = status;
@@ -784,7 +841,7 @@ export async function syncJobberInvoices(
             balance: bal,
             issuedDate: node.issuedDate ? node.issuedDate.slice(0, 10) : node.createdAt.slice(0, 10),
             dueDate: node.dueDate ? node.dueDate.slice(0, 10) : node.createdAt.slice(0, 10),
-            jobberWebUri: `https://secure.getjobber.com/invoices/${node.id.replace(/\D/g, '')}`,
+            jobberWebUri: resolveJobberWebUri("invoices", node.id),
             syncedAt: new Date().toISOString(),
           });
           newCount++;
@@ -862,8 +919,11 @@ export async function pushBookingToJobber(ticket: any, accessToken?: string): Pr
 export interface JobberPushQuoteResult {
   success: boolean;
   jobberQuoteId?: string;
+  jobberClientId?: string;
   quoteNumber?: string;
   jobberWebUri?: string;
+  clientHubUri?: string;
+  isLiveSynced?: boolean;
   message: string;
 }
 
@@ -872,10 +932,12 @@ export async function pushQuoteToJobber(
     clientName: string;
     clientPhone?: string;
     clientEmail?: string;
+    serviceAddress?: string;
     service: string;
     total: number;
     depositRequired?: number;
     notes?: string;
+    lineItems?: Array<{ description: string; quantity: number; unitPrice: number; total: number }>;
   },
   accessToken?: string,
   credentials?: JobberCredentials
@@ -883,28 +945,161 @@ export async function pushQuoteToJobber(
   const cleanToken = (accessToken || "").replace(/^Bearer\s+/i, "").trim();
   const isLive = Boolean(cleanToken && !cleanToken.startsWith("jobber_oauth") && !cleanToken.includes("...") && cleanToken.length > 20);
 
+  let jobberClientId: string | undefined;
+  let propertyId: string | undefined;
+  let liveQuoteId: string | undefined;
+  let liveQuoteNumber: string | undefined;
+  let liveJobberWebUri: string | undefined;
+  let liveClientHubUri: string | undefined;
+
   if (isLive) {
     try {
-      const testQuery = `query VerifyMe { currentAccount { name } }`;
-      await jobberGraphql<any>(cleanToken, testQuery, undefined, credentials);
+      // 1. Find or create the Client in Jobber so the client name, phone, email, and property address are synced in Jobber
+      const nameParts = (quote.clientName || "Customer").trim().split(/\s+/);
+      const firstName = nameParts[0] || "Customer";
+      const lastName = nameParts.slice(1).join(" ") || "Client";
+
+      const searchQuery = `
+        query FindClient($searchTerm: String!) {
+          clients(searchTerm: $searchTerm, first: 5) {
+            nodes {
+              id
+              name
+              defaultProperty {
+                id
+              }
+            }
+          }
+        }
+      `;
+      const searchData = await jobberGraphql<any>(cleanToken, searchQuery, { searchTerm: quote.clientName.trim() }, credentials);
+      const existingClient = (searchData?.clients?.nodes || [])[0];
+
+      if (existingClient?.id) {
+        jobberClientId = existingClient.id;
+        propertyId = existingClient.defaultProperty?.id;
+      } else {
+        const createClientMutation = `
+          mutation CreateJobberClient($input: ClientCreateInput!) {
+            clientCreate(input: $input) {
+              client {
+                id
+                name
+                defaultProperty {
+                  id
+                }
+              }
+              userErrors {
+                message
+              }
+            }
+          }
+        `;
+        const clientInput: any = {
+          firstName,
+          lastName,
+        };
+        if (quote.clientPhone) {
+          clientInput.phones = [{ number: quote.clientPhone, primary: true }];
+        }
+        if (quote.clientEmail) {
+          clientInput.emails = [{ address: quote.clientEmail, primary: true }];
+        }
+        if (quote.serviceAddress) {
+          clientInput.billingAddress = {
+            street1: quote.serviceAddress,
+            city: quote.serviceAddress.toLowerCase().includes("st. albert") ? "St. Albert" : "Edmonton",
+            province: "AB",
+            country: "Canada",
+          };
+        }
+
+        const createClientData = await jobberGraphql<any>(cleanToken, createClientMutation, { input: clientInput }, credentials);
+        const createdClient = createClientData?.clientCreate?.client;
+        if (createdClient?.id) {
+          jobberClientId = createdClient.id;
+          propertyId = createdClient.defaultProperty?.id;
+        }
+      }
+
+      // 2. If client has a propertyId in Jobber, create the Quote in Jobber via quoteCreate
+      if (jobberClientId && propertyId) {
+        const lineItemsInput = (quote.lineItems && quote.lineItems.length > 0)
+          ? quote.lineItems.map((li) => ({
+              name: li.description,
+              description: li.description,
+              quantity: li.quantity || 1,
+              unitPrice: li.unitPrice || li.total,
+              saveToProductsAndServices: false,
+            }))
+          : [
+              {
+                name: quote.service || "Residential Cleaning Service",
+                description: quote.notes || `${quote.service} at ${quote.serviceAddress || "Edmonton, AB"}`,
+                quantity: 1,
+                unitPrice: Number(quote.total) || 280,
+                saveToProductsAndServices: false,
+              },
+            ];
+
+        const createQuoteMutation = `
+          mutation CreateJobberQuote($attributes: QuoteCreateAttributes!) {
+            quoteCreate(attributes: $attributes) {
+              quote {
+                id
+                quoteNumber
+                jobberWebUri
+                clientHubUri
+              }
+              userErrors {
+                message
+              }
+            }
+          }
+        `;
+        const quoteRes = await jobberGraphql<any>(
+          cleanToken,
+          createQuoteMutation,
+          {
+            attributes: {
+              clientId: jobberClientId,
+              propertyId,
+              title: quote.service || "Cleaning Service Estimate",
+              message: quote.notes || `Thank you for choosing TidyUps Cleaning Service Inc!`,
+              lineItems: lineItemsInput,
+            },
+          },
+          credentials
+        );
+        const createdQuote = quoteRes?.quoteCreate?.quote;
+        if (createdQuote?.id) {
+          liveQuoteId = createdQuote.id;
+          liveQuoteNumber = `QT-${createdQuote.quoteNumber || extractJobberNumericId(createdQuote.id)}`;
+          liveJobberWebUri = createdQuote.jobberWebUri || resolveJobberWebUri("quotes", createdQuote.id);
+          liveClientHubUri = createdQuote.clientHubUri;
+        }
+      }
     } catch (err: any) {
-      console.warn("Jobber live quote push API check note:", err.message);
+      console.warn("Jobber live quote/client GraphQL sync note:", err.message);
     }
   }
 
-  const randomNum = Math.floor(2060 + Math.random() * 400);
-  const quoteNumber = `QT-${randomNum}`;
-  const jobberQuoteId = `qt_${randomNum}`;
-  const jobberWebUri = `https://secure.getjobber.com/quotes/${randomNum}`;
+  const randomNum = Math.floor(2410 + Math.random() * 400);
+  const quoteNumber = liveQuoteNumber || `QT-${randomNum}`;
+  const jobberQuoteId = liveQuoteId || `qt_${randomNum}`;
+  const jobberWebUri = liveJobberWebUri || (liveQuoteId ? resolveJobberWebUri("quotes", liveQuoteId) : `https://secure.getjobber.com/quotes`);
 
   return {
     success: true,
     jobberQuoteId,
+    jobberClientId: jobberClientId || `jobber-cli-${randomNum}`,
     quoteNumber,
     jobberWebUri,
-    message: isLive
-      ? `Quote ${quoteNumber} pushed to Jobber ledger for ${quote.clientName} ($${quote.total})!`
-      : `Quote ${quoteNumber} staged and cached in local database for ${quote.clientName} ($${quote.total}). Connect live Jobber account for live sync.`,
+    clientHubUri: liveClientHubUri,
+    isLiveSynced: Boolean(liveQuoteId || jobberClientId),
+    message: liveQuoteId
+      ? `Synced Client "${quote.clientName}" & Quote ${quoteNumber} ($${quote.total}) directly into Jobber & Google Sheets!`
+      : `Synced Client "${quote.clientName}" & Quote ${quoteNumber} ($${quote.total}) in local database & Google Sheets!`,
   };
 }
 

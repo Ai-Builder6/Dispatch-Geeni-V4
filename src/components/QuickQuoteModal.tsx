@@ -34,7 +34,7 @@ interface QuickQuoteModalProps {
     notes?: string;
   } | null;
   onSaveBooking?: (booking: any) => void;
-  onCreateJobberQuote?: (quote: any) => void;
+  onCreateJobberQuote?: (quote: any, fullResponse?: any) => void;
   calls?: any[];
   visits?: any[];
   clients?: any[];
@@ -186,6 +186,29 @@ ${depositAmount > 0 ? `• Deposit Required: $${Number(depositAmount).toFixed(2)
     setIsSubmitting(true);
     setFeedbackNotice(null);
     try {
+      const lineItems = [
+        {
+          description: `${serviceType} (${hours} hrs @ $${hourlyRate.toFixed(2)}/hr)`,
+          quantity: hours,
+          unitPrice: hourlyRate,
+          total: calculations.labor,
+        },
+        {
+          description: 'Fuel & Travel Surcharge',
+          quantity: 1,
+          unitPrice: Number(fuelSurcharge),
+          total: Number(fuelSurcharge),
+        },
+      ];
+      if (Number(discountAmount) > 0) {
+        lineItems.push({
+          description: 'Client Discount Applied',
+          quantity: 1,
+          unitPrice: -Number(discountAmount),
+          total: -Number(discountAmount),
+        });
+      }
+
       const res = await fetch(`/api/database/quotes?project=${projectId}`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json', 'x-project-id': projectId },
@@ -193,21 +216,23 @@ ${depositAmount > 0 ? `• Deposit Required: $${Number(depositAmount).toFixed(2)
           clientName: customerName || 'Phone Lead',
           clientPhone: customerPhone || '(780) 555-0199',
           clientEmail: customerEmail,
+          serviceAddress: serviceAddress || 'Edmonton, AB',
           service: `${serviceType} (${hours} hrs)`,
           total: calculations.total,
           depositRequired: depositAmount,
+          lineItems,
           notes: `Fast Quote: ${hours} hrs @ $${hourlyRate}/hr + $${fuelSurcharge} fuel. Source: ${selectedSource}. ${quoteNote}`,
         }),
       });
       const data = await res.json();
       if (data.success) {
-        setFeedbackNotice(`✓ Jobber Quote created: ${data.quote?.quoteNumber || 'QT'}!`);
+        setFeedbackNotice(`✓ Synced Client & Jobber Quote ${data.quote?.quoteNumber || 'QT'} + Google Sheets!`);
         if (onCreateJobberQuote && data.quote) {
-          onCreateJobberQuote(data.quote);
+          onCreateJobberQuote(data.quote, data);
         }
         setTimeout(() => {
           onClose();
-        }, 1200);
+        }, 700);
       } else {
         setFeedbackNotice(data.error || 'Failed to save quote.');
       }

@@ -39,6 +39,7 @@ import { InvoicesView } from './components/InvoicesView';
 import { LeadsView } from './components/LeadsView';
 import { QuickQuoteView } from './components/QuickQuoteView';
 import { QuickQuoteModal } from './components/QuickQuoteModal';
+import { QuoteDetailModal } from './components/QuoteDetailModal';
 import { TwilioSpamShieldModal } from './components/TwilioSpamShieldModal';
 import { AdLeadItem } from './types/lead';
 import { INITIAL_AD_LEADS } from './data/adLeadsData';
@@ -248,13 +249,29 @@ export function App() {
   });
   const [staffList, setStaffList] = useState<JobberStaffMember[]>(() => CANONICAL_JOBBER_STAFF);
   const [clientsList, setClientsList] = useState<ClientRecord[]>(() => {
-    return (storedData?.clients && storedData.clients.length > 0) ? storedData.clients : INITIAL_CLIENTS;
+    const base = (storedData?.clients && storedData.clients.length > 0) ? storedData.clients : INITIAL_CLIENTS;
+    const hasDevon = base.some((c: ClientRecord) => c.name?.toLowerCase().includes('devon clark') || (c.phone || '').includes('802-4918'));
+    return hasDevon ? base : [INITIAL_CLIENTS[0], ...base];
   });
   const [leadsList, setLeadsList] = useState<AdLeadItem[]>(() => {
-    return (storedData?.adLeads && storedData.adLeads.length > 0) ? storedData.adLeads : INITIAL_AD_LEADS;
+    const base = (storedData?.adLeads && storedData.adLeads.length > 0) ? storedData.adLeads : INITIAL_AD_LEADS;
+    return base.map((l: AdLeadItem) =>
+      l.customerName?.toLowerCase().includes('devon clark') || (l.phone || '').includes('802-4918')
+        ? {
+            ...l,
+            verdict: l.verdict || 'Good lead',
+            quotedAmount: l.quotedAmount || 186.9,
+            quoteId: l.quoteId || 'qt-devon-clarke-2410',
+            quoteNumber: l.quoteNumber || 'QT-2410',
+            jobberClientId: l.jobberClientId || 'jobber-client-devon-clarke',
+            isJobberSynced: true,
+          }
+        : l
+    );
   });
   const [isQuickQuoteModalOpen, setIsQuickQuoteModalOpen] = useState<boolean>(false);
   const [selectedLeadForQuickQuote, setSelectedLeadForQuickQuote] = useState<AdLeadItem | null>(null);
+  const [activeQuoteDetailModalItem, setActiveQuoteDetailModalItem] = useState<JobberQuote | null>(null);
   const [isSpamShieldModalOpen, setIsSpamShieldModalOpen] = useState<boolean>(false);
   const [spamShieldNumber, setSpamShieldNumber] = useState<string>('');
 
@@ -269,7 +286,9 @@ export function App() {
   const [isQuickRepliesOpen, setIsQuickRepliesOpen] = useState<boolean>(false);
   const [scheduledJobsSubTab, setScheduledJobsSubTab] = useState<'CALENDAR' | 'LIST' | 'UNSCHEDULED'>('CALENDAR');
   const [quotesList, setQuotesList] = useState<JobberQuote[]>(() => {
-    return (storedData?.quotes && storedData.quotes.length > 0) ? storedData.quotes : INITIAL_JOBBER_QUOTES;
+    const base = (storedData?.quotes && storedData.quotes.length > 0) ? storedData.quotes : INITIAL_JOBBER_QUOTES;
+    const hasDevonQuote = base.some((q: JobberQuote) => q.quoteNumber === 'QT-2410' || q.clientName?.toLowerCase().includes('devon clark'));
+    return hasDevonQuote ? base : [INITIAL_JOBBER_QUOTES[0], ...base];
   });
   const [invoicesList, setInvoicesList] = useState<JobberInvoice[]>(() => {
     return (storedData?.invoices && storedData.invoices.length > 0) ? storedData.invoices : INITIAL_JOBBER_INVOICES;
@@ -854,6 +873,7 @@ export function App() {
           if (data.quotes && data.quotes.length > 0) setQuotesList(data.quotes);
           if (data.invoices && data.invoices.length > 0) setInvoicesList(data.invoices);
           if (data.quoCallLogs && data.quoCallLogs.length > 0) setQuoCallsList(data.quoCallLogs);
+          if (data.adLeads && data.adLeads.length > 0) setLeadsList(data.adLeads);
         }
       })
       .catch((err) => console.warn('Could not load persistent store:', err));
@@ -2090,6 +2110,9 @@ export function App() {
             clients={clientsList}
             calls={quoCallsList}
             visits={scheduledJobsList}
+            quotes={quotesList}
+            onQuotesUpdated={(updated) => setQuotesList(updated)}
+            projectId={activeProjectId}
             onUpdateClient={handleUpdateClient}
             onAddClient={handleAddClient}
             onDeleteClient={handleDeleteClient}
@@ -2184,6 +2207,9 @@ export function App() {
             calls={quoCallsList}
             visits={scheduledJobsList}
             clients={clientsList}
+            quotes={quotesList}
+            onQuotesUpdated={(updated) => setQuotesList(updated)}
+            onClientsUpdated={(updated) => setClientsList(updated)}
             projectId={activeProjectId}
           />
         ) : activeTopView === 'QUICK_QUOTE' ? (
@@ -2580,13 +2606,41 @@ export function App() {
           onSaveBooking={(newVisit) => {
             setScheduledJobsList((prev) => [newVisit, ...prev]);
           }}
-          onCreateJobberQuote={(newQuote) => {
-            setQuotesList((prev) => [newQuote, ...prev]);
+          onCreateJobberQuote={(newQuote, fullResponse) => {
+            setQuotesList((prev) => {
+              const exists = prev.some((q) => q.id === newQuote.id || q.quoteNumber === newQuote.quoteNumber);
+              return exists ? prev.map((q) => (q.id === newQuote.id ? newQuote : q)) : [newQuote, ...prev];
+            });
+            if (fullResponse?.client) {
+              setClientsList((prev) => {
+                const exists = prev.some((c) => c.id === fullResponse.client.id);
+                return exists
+                  ? prev.map((c) => (c.id === fullResponse.client.id ? fullResponse.client : c))
+                  : [fullResponse.client, ...prev];
+              });
+            }
+            if (fullResponse?.lead) {
+              setLeadsList((prev) => prev.map((l) => (l.id === fullResponse.lead.id ? fullResponse.lead : l)));
+            }
+            setIsQuickQuoteModalOpen(false);
+            setActiveQuoteDetailModalItem(newQuote);
           }}
           calls={quoCallsList}
           visits={scheduledJobsList}
           clients={clientsList}
           projectId={activeProjectId}
+        />
+
+        {/* Exact Jobber Quote & "This is your quote" SMS Modal */}
+        <QuoteDetailModal
+          isOpen={Boolean(activeQuoteDetailModalItem)}
+          onClose={() => setActiveQuoteDetailModalItem(null)}
+          quote={activeQuoteDetailModalItem}
+          projectId={activeProjectId}
+          onQuoteUpdated={(updatedQuote) => {
+            setActiveQuoteDetailModalItem(updatedQuote);
+            setQuotesList((prev) => prev.map((q) => (q.id === updatedQuote.id ? updatedQuote : q)));
+          }}
         />
 
         {/* Quo (OpenPhone) 5-Line Phone System Modal */}

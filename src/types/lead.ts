@@ -11,6 +11,8 @@ export type LeadSource =
 
 export type LeadStatus = 'New' | 'Converted' | 'Dismissed' | 'All';
 
+export type LeadVerdict = 'Client' | 'Good lead' | 'Bad lead' | 'Spam' | 'Garbage';
+
 export interface AdLeadItem {
   id: string;
   customerName: string;
@@ -28,6 +30,11 @@ export interface AdLeadItem {
   adId?: string;
   dateReceived: string;
   status: 'New' | 'Converted' | 'Dismissed';
+  verdict?: LeadVerdict;
+  isJobberSynced?: boolean;
+  jobberClientId?: string;
+  quoteId?: string;
+  quoteNumber?: string;
   notes?: string;
   missingPhone?: boolean;
   quotedAmount?: number;

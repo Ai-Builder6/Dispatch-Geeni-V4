@@ -275,14 +275,14 @@ export const ClientModal: React.FC<ClientModalProps> = ({
             </div>
           </div>
 
-          {/* Quick Verdict (Shared with calls & leads - Good Lead, Bad Lead, Spam, Client) */}
+          {/* Quick Verdict (Shared with calls & leads - Good Lead, Bad Lead, Spam, Garbage, Client) */}
           <div className="space-y-1.5">
             <label className="text-xs font-black uppercase text-slate-500 tracking-wider flex items-center justify-between">
-              <span>Quick Verdict Status (Syncs with Jobber)</span>
+              <span>Quick Verdict Status (Syncs with Jobber &amp; Leads)</span>
               <span className="text-[11px] text-slate-400 font-normal">Select status tag</span>
             </label>
-            <div className="grid grid-cols-4 gap-2">
-              {(['Client', 'Good lead', 'Bad lead', 'Spam'] as ClientVerdict[]).map((v) => {
+            <div className="grid grid-cols-5 gap-2">
+              {(['Client', 'Good lead', 'Bad lead', 'Spam', 'Garbage'] as ClientVerdict[]).map((v) => {
                 const isSelected = verdict === v;
                 return (
                   <button
@@ -297,6 +297,8 @@ export const ClientModal: React.FC<ClientModalProps> = ({
                           ? 'bg-amber-500 text-white border-amber-600 shadow-md scale-102'
                           : v === 'Spam'
                           ? 'bg-red-600 text-white border-red-700 shadow-md scale-102'
+                          : v === 'Garbage'
+                          ? 'bg-orange-700 text-white border-orange-800 shadow-md scale-102'
                           : 'bg-slate-900 text-white border-slate-900 shadow-md scale-102'
                         : 'bg-slate-50 hover:bg-slate-100 text-slate-600 border-slate-200'
                     }`}

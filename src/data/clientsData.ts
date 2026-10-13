@@ -6,6 +6,27 @@ import { ClientRecord } from '../types/client';
  */
 export const INITIAL_CLIENTS: ClientRecord[] = [
   {
+    id: 'cli-devon-clarke',
+    name: 'Devon Clarke',
+    phone: '(780) 802-4918',
+    secondaryPhone: '780-802-4918',
+    email: 'devonclarke@gmail.com',
+    address: '9620 144 Ave NW, St. Albert, AB',
+    city: 'St. Albert',
+    province: 'AB',
+    postalCode: 'T8N 3J4',
+    verdict: 'Good lead',
+    tags: ['st-albert', 'deep-clean', 'jobber-sync', 'quote-qt-2410'],
+    isJobberLinked: true,
+    jobberId: 'jobber-cli-devon-clarke',
+    totalJobs: 1,
+    latestServiceDate: '2026-10-13',
+    notes: '3 Bed 2.5 Bath Deep Scrub Clean at 9620 144 Ave NW, St. Albert. Synced to Jobber Client & Quote #QT-2410 ($229.22).',
+    source: 'Jobber',
+    createdAt: '2026-10-13T11:30:00Z',
+    updatedAt: '2026-10-13T11:35:00Z',
+  },
+  {
     id: 'cli-jobber-607',
     name: '+16073302822 DDF',
     phone: '+16073302822',

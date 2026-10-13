@@ -6,6 +6,28 @@ import { AdLeadItem } from '../types/lead';
  */
 export const INITIAL_AD_LEADS: AdLeadItem[] = [
   {
+    id: 'lead-auto-17',
+    customerName: 'Devon Clarke',
+    phone: '(780) 802-4918',
+    email: 'devonclarke@gmail.com',
+    address: '9620 144 Ave NW',
+    city: 'St. Albert',
+    serviceRequested: '3 Bed 2.5 Bath Deep Scrub Clean',
+    bedrooms: 3,
+    bathrooms: 2.5,
+    source: 'Google Ad',
+    sourceTab: 'FB Leads_V1',
+    campaignName: 'FB Leads_V1 - Adset #2',
+    dateReceived: '2026-10-13T11:30:00-06:00',
+    status: 'New',
+    verdict: 'Good lead',
+    isJobberSynced: true,
+    quoteId: 'qt-devon-clarke-2410',
+    quoteNumber: 'QT-2410',
+    quotedAmount: 229.22,
+    notes: 'Imported from Google Sheets "FB Leads_V1". 3 Bed 2.5 Bath Deep Scrub Clean in St. Albert. Synced to Jobber Client & Quote #QT-2410.',
+  },
+  {
     id: 'lead-fb-101',
     customerName: 'Danielle Pettipas-Gray',
     phone: '(780) 974-5892',
@@ -22,6 +44,11 @@ export const INITIAL_AD_LEADS: AdLeadItem[] = [
     adId: 'ad_edmonton_homeowners_fall',
     dateReceived: '2026-10-11T16:15:00-06:00',
     status: 'New',
+    verdict: 'Good lead',
+    isJobberSynced: true,
+    quoteId: 'qt-quick-mv4jjk0x',
+    quoteNumber: 'QT-2359',
+    quotedAmount: 191.25,
     notes: 'Came through Facebook Instant Form. Customer asked about baseboards and kitchen inside-oven add-on.',
   },
   {
@@ -41,6 +68,8 @@ export const INITIAL_AD_LEADS: AdLeadItem[] = [
     adId: 'ad_search_vacate_edmonton',
     dateReceived: '2026-10-11T15:42:00-06:00',
     status: 'New',
+    verdict: 'Good lead',
+    isJobberSynced: true,
     notes: 'Urgent rental inspection handover this Wednesday. Needs carpet steam extraction quote as well.',
   },
   {
@@ -60,6 +89,7 @@ export const INITIAL_AD_LEADS: AdLeadItem[] = [
     adId: 'ad_ig_edmonton_moms',
     dateReceived: '2026-10-11T14:20:00-06:00',
     status: 'New',
+    verdict: 'Good lead',
     notes: 'Saw Instagram before/after reel. Inquiring about 3 hours bi-weekly with 1 or 2 cleaners.',
   },
   {
@@ -77,6 +107,7 @@ export const INITIAL_AD_LEADS: AdLeadItem[] = [
     campaignName: 'book-my-cleaning.com quote widget',
     dateReceived: '2026-10-11T13:05:00-06:00',
     status: 'New',
+    verdict: 'Good lead',
     notes: 'Finished basement drywall renovation. Need thorough HEPA vacuuming and trim wiping.',
   },
   {
@@ -94,6 +125,8 @@ export const INITIAL_AD_LEADS: AdLeadItem[] = [
     campaignName: 'Facebook Fall Clean Campaign',
     dateReceived: '2026-10-11T12:30:00-06:00',
     status: 'Converted',
+    verdict: 'Client',
+    isJobberSynced: true,
     convertedJobId: 'VISIT-91202',
     notes: 'Converted to Friday 4PM scheduled clean with Cindy Guay & Robyn Adele.',
   },
@@ -112,6 +145,7 @@ export const INITIAL_AD_LEADS: AdLeadItem[] = [
     campaignName: 'FB Leads_V1: Downtown Highrise Promo',
     dateReceived: '2026-10-11T11:10:00-06:00',
     status: 'New',
+    verdict: 'Bad lead',
     missingPhone: true,
     notes: 'Submitted email only on Facebook lead form. Needs phone callback confirmation.',
   },
@@ -130,6 +164,7 @@ export const INITIAL_AD_LEADS: AdLeadItem[] = [
     campaignName: 'Google Search - Move In Cleaning',
     dateReceived: '2026-10-11T10:45:00-06:00',
     status: 'New',
+    verdict: 'Bad lead',
     missingPhone: true,
     notes: 'Phone number field was left blank on Webhook payload.',
   },
@@ -147,6 +182,8 @@ export const INITIAL_AD_LEADS: AdLeadItem[] = [
     sourceTab: 'Quo Line (Primary Dispatch)',
     dateReceived: '2026-10-11T09:15:00-06:00',
     status: 'Converted',
+    verdict: 'Client',
+    isJobberSynced: true,
     convertedJobId: 'VISIT-89120',
     notes: 'Called dispatch on (587) 570-8005. Converted into scheduled clean with Joel & Sergine.',
   },
@@ -164,6 +201,8 @@ export const INITIAL_AD_LEADS: AdLeadItem[] = [
     sourceTab: 'SMS Intake',
     dateReceived: '2026-10-10T19:20:00-06:00',
     status: 'Converted',
+    verdict: 'Client',
+    isJobberSynced: true,
     notes: 'Pasted from SMS client inquiry.',
   },
   {
@@ -180,6 +219,8 @@ export const INITIAL_AD_LEADS: AdLeadItem[] = [
     sourceTab: 'ScrubbyBuilder Leads',
     dateReceived: '2026-10-10T18:00:00-06:00',
     status: 'Converted',
+    verdict: 'Client',
+    isJobberSynced: true,
     notes: 'Row #42 in Google Sheet tab "ScrubbyBuilder Leads".',
   },
   {
@@ -197,6 +238,7 @@ export const INITIAL_AD_LEADS: AdLeadItem[] = [
     campaignName: 'Facebook Ad - Windermere & Heritage Pointe',
     dateReceived: '2026-10-10T15:30:00-06:00',
     status: 'New',
+    verdict: 'Good lead',
     notes: '2 storey home, dog friendly. Prefers Cindy Guay as cleaner if possible.',
   },
   {
@@ -214,6 +256,7 @@ export const INITIAL_AD_LEADS: AdLeadItem[] = [
     campaignName: 'Google Search - Commercial Cleaning Edmonton',
     dateReceived: '2026-10-10T14:15:00-06:00',
     status: 'New',
+    verdict: 'Good lead',
     notes: '1,800 sq ft office space. Nightly or 3x per week inquiry.',
   },
   {
@@ -231,6 +274,7 @@ export const INITIAL_AD_LEADS: AdLeadItem[] = [
     campaignName: 'Tidy FB Leads_V2',
     dateReceived: '2026-10-10T11:50:00-06:00',
     status: 'New',
+    verdict: 'Good lead',
     notes: 'Landlord inspection scheduled for October 18. Wants estimate for 4 hours.',
   },
   {
@@ -247,6 +291,8 @@ export const INITIAL_AD_LEADS: AdLeadItem[] = [
     sourceTab: 'Jobber Client Requests',
     dateReceived: '2026-10-09T16:40:00-06:00',
     status: 'Converted',
+    verdict: 'Client',
+    isJobberSynced: true,
     notes: 'Jobber request synced from online client portal.',
   },
   {
@@ -261,18 +307,19 @@ export const INITIAL_AD_LEADS: AdLeadItem[] = [
     sourceTab: 'Website form',
     dateReceived: '2026-10-09T12:00:00-06:00',
     status: 'Dismissed',
+    verdict: 'Spam',
     notes: 'Automated contact form marketing spam. Automatically flagged.',
   },
   // Generate remaining realistic leads to hit 104 total leads (99+ display)
-  ...Array.from({ length: 90 }, (_, i) => {
-    const idx = i + 16;
+  ...Array.from({ length: 89 }, (_, i) => {
+    const idx = i + 18;
     const names = [
-      'Brittany Taylor', 'Devon Clarke', 'Nathaniel Ward', 'Amara Patel', 'Lucas Bennett', 
+      'Brittany Taylor', 'Nathaniel Ward', 'Amara Patel', 'Lucas Bennett',
       'Sophia Chen', 'Noah Tremblay', 'Emma Roy', 'Jackson Fisher', 'Olivia Martin',
       'Benjamin Cote', 'Ava MacLeod', 'Ethan Gauthier', 'Mia Beaulieu', 'Jacob Levesque',
       'Charlotte Bouchard', 'William Morin', 'Amelia Fortin', 'James Gagnon', 'Harper Belanger'
     ];
-    const name = `${names[i % names.length]} #${idx}`;
+    const name = names[i % names.length];
     const services = [
       '2 Bed 2 Bath Standard Clean',
       '3 Bed 2.5 Bath Deep Scrub Clean',
@@ -286,13 +333,15 @@ export const INITIAL_AD_LEADS: AdLeadItem[] = [
     ];
     const tabs = ['Tidy FB Leads_V2', 'FB Leads_V1', 'Google Leads_V3', 'ScrubbyBuilder Leads', 'Sheets-New App-V1'];
     const cities = ['Edmonton', 'St. Albert', 'Sherwood Park', 'Spruce Grove', 'Leduc'];
-    
+    const status = (i % 6 === 0 ? 'Converted' : i % 15 === 0 ? 'Dismissed' : 'New') as AdLeadItem['status'];
+    const verdict = (status === 'Converted' ? 'Client' : status === 'Dismissed' ? 'Garbage' : 'Good lead') as AdLeadItem['verdict'];
+
     return {
       id: `lead-auto-${idx}`,
       customerName: name,
-      phone: `(780) ${Math.floor(200 + Math.random() * 700)}-${Math.floor(1000 + Math.random() * 9000)}`,
+      phone: `(780) ${210 + (i * 7) % 680}-${1100 + (i * 137) % 8800}`,
       email: `${name.toLowerCase().replace(/[^a-z]/g, '')}@gmail.com`,
-      address: `${Math.floor(1000 + Math.random() * 9000)} ${Math.floor(50 + Math.random() * 120)} Ave NW`,
+      address: `${1010 + (i * 83) % 8900} ${52 + (i * 3) % 115} Ave NW`,
       city: cities[i % cities.length],
       serviceRequested: services[i % services.length],
       bedrooms: (i % 4) + 1,
@@ -300,8 +349,9 @@ export const INITIAL_AD_LEADS: AdLeadItem[] = [
       source: sources[i % sources.length],
       sourceTab: tabs[i % tabs.length],
       campaignName: `${tabs[i % tabs.length]} - Adset #${(i % 5) + 1}`,
-      dateReceived: new Date(Date.now() - (i + 1) * 3600000 * 4).toISOString(),
-      status: (i % 6 === 0 ? 'Converted' : i % 15 === 0 ? 'Dismissed' : 'New') as AdLeadItem['status'],
+      dateReceived: new Date(new Date('2026-10-09T10:00:00-06:00').getTime() - (i + 1) * 3600000 * 3).toISOString(),
+      status,
+      verdict,
       notes: `Imported from Google Sheets "${tabs[i % tabs.length]}". Adset targeting ${cities[i % cities.length]}.`,
     };
   })

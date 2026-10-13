@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "lastSavedAt": "2026-10-13T19:14:26.959Z",
+  "lastSavedAt": "2026-10-13T22:51:21.771Z",
   "tickets": [],
   "cleanerOverrides": {
     "cleaner-1": {
@@ -34,7 +34,7 @@
       ],
       "serviceType": "Move-Out Cleaning",
       "status": "COMPLETED",
-      "jobberWebUri": "https://secure.getjobber.com/visits/2891204"
+      "jobberWebUri": "https://secure.getjobber.com/visits/2305298879"
     },
     {
       "id": "Z2lkOi8vSm9iYmVyL1Zpc2l0LzIzMTA0ODIzNDY=",
@@ -50,7 +50,7 @@
       ],
       "serviceType": "Deep Cleaning",
       "status": "COMPLETED",
-      "jobberWebUri": "https://secure.getjobber.com/visits/2891200"
+      "jobberWebUri": "https://secure.getjobber.com/visits/2310482346"
     },
     {
       "id": "Z2lkOi8vSm9iYmVyL1Zpc2l0LzIzMTE5MzQ0ODU=",
@@ -66,7 +66,7 @@
       ],
       "serviceType": "Standard Cleaning",
       "status": "COMPLETED",
-      "jobberWebUri": "https://secure.getjobber.com/visits/28912050"
+      "jobberWebUri": "https://secure.getjobber.com/visits/2311934485"
     },
     {
       "id": "Z2lkOi8vSm9iYmVyL1Zpc2l0LzIzMTA4MjY0MDA=",
@@ -82,7 +82,7 @@
       ],
       "serviceType": "Standard Cleaning",
       "status": "COMPLETED",
-      "jobberWebUri": "https://secure.getjobber.com/visits/28912040"
+      "jobberWebUri": "https://secure.getjobber.com/visits/2310826400"
     },
     {
       "id": "Z2lkOi8vSm9iYmVyL1Zpc2l0LzIwMDAwNTgwMjE=",
@@ -98,7 +98,7 @@
       ],
       "serviceType": "Deep Cleaning",
       "status": "COMPLETED",
-      "jobberWebUri": "https://secure.getjobber.com/visits/289120"
+      "jobberWebUri": "https://secure.getjobber.com/visits/2000058021"
     },
     {
       "id": "Z2lkOi8vSm9iYmVyL1Zpc2l0LzIxNDgzNDI2NDk=",
@@ -114,7 +114,7 @@
       ],
       "serviceType": "Deep Cleaning",
       "status": "COMPLETED",
-      "jobberWebUri": "https://secure.getjobber.com/visits/2891202"
+      "jobberWebUri": "https://secure.getjobber.com/visits/2148342649"
     },
     {
       "id": "Z2lkOi8vSm9iYmVyL1Zpc2l0LzIyMjU5MzQyNjU=",
@@ -131,7 +131,7 @@
       ],
       "serviceType": "Standard Cleaning",
       "status": "COMPLETED",
-      "jobberWebUri": "https://secure.getjobber.com/visits/2891205"
+      "jobberWebUri": "https://secure.getjobber.com/visits/2225934265"
     },
     {
       "id": "Z2lkOi8vSm9iYmVyL1Zpc2l0LzIzMTA3ODQyOTE=",
@@ -147,7 +147,7 @@
       ],
       "serviceType": "Move-Out Cleaning",
       "status": "COMPLETED",
-      "jobberWebUri": "https://secure.getjobber.com/visits/2891203"
+      "jobberWebUri": "https://secure.getjobber.com/visits/2310784291"
     },
     {
       "id": "Z2lkOi8vSm9iYmVyL1Zpc2l0LzIyMDg4NTE3MzU=",
@@ -164,7 +164,7 @@
       ],
       "serviceType": "Standard Cleaning",
       "status": "COMPLETED",
-      "jobberWebUri": "https://secure.getjobber.com/visits/28912043"
+      "jobberWebUri": "https://secure.getjobber.com/visits/2208851735"
     },
     {
       "id": "Z2lkOi8vSm9iYmVyL1Zpc2l0LzIyNTkyOTY5NDQ=",
@@ -181,7 +181,7 @@
       ],
       "serviceType": "Standard Cleaning",
       "status": "COMPLETED",
-      "jobberWebUri": "https://secure.getjobber.com/visits/2891205"
+      "jobberWebUri": "https://secure.getjobber.com/visits/2259296944"
     },
     {
       "id": "Z2lkOi8vSm9iYmVyL1Zpc2l0LzE3NzU1MzEyODg=",
@@ -198,7 +198,7 @@
       ],
       "serviceType": "Standard Cleaning",
       "status": "COMPLETED",
-      "jobberWebUri": "https://secure.getjobber.com/visits/28912031"
+      "jobberWebUri": "https://secure.getjobber.com/visits/1775531288"
     },
     {
       "id": "Z2lkOi8vSm9iYmVyL1Zpc2l0LzIzMTMyOTkyMjI=",
@@ -214,7 +214,7 @@
       ],
       "serviceType": "Deep Cleaning",
       "status": "COMPLETED",
-      "jobberWebUri": "https://secure.getjobber.com/visits/289120"
+      "jobberWebUri": "https://secure.getjobber.com/visits/2313299222"
     },
     {
       "id": "Z2lkOi8vSm9iYmVyL1Zpc2l0LzIzMTQxNDU0NDg=",
@@ -231,7 +231,7 @@
       ],
       "serviceType": "Move-Out Cleaning",
       "status": "COMPLETED",
-      "jobberWebUri": "https://secure.getjobber.com/visits/2891200"
+      "jobberWebUri": "https://secure.getjobber.com/visits/2314145448"
     },
     {
       "id": "Z2lkOi8vSm9iYmVyL1Zpc2l0LzIzMTQzMzEzODA=",
@@ -247,7 +247,7 @@
       ],
       "serviceType": "Standard Cleaning",
       "status": "COMPLETED",
-      "jobberWebUri": "https://secure.getjobber.com/visits/289120"
+      "jobberWebUri": "https://secure.getjobber.com/visits/2314331380"
     },
     {
       "id": "Z2lkOi8vSm9iYmVyL1Zpc2l0LzIzMDUyOTg4ODc=",
@@ -263,7 +263,7 @@
       ],
       "serviceType": "Move-Out Cleaning",
       "status": "COMPLETED",
-      "jobberWebUri": "https://secure.getjobber.com/visits/2891204"
+      "jobberWebUri": "https://secure.getjobber.com/visits/2305298887"
     },
     {
       "id": "Z2lkOi8vSm9iYmVyL1Zpc2l0LzE5MjAxNTgxMzY=",
@@ -279,7 +279,7 @@
       ],
       "serviceType": "Standard Cleaning",
       "status": "COMPLETED",
-      "jobberWebUri": "https://secure.getjobber.com/visits/2891205"
+      "jobberWebUri": "https://secure.getjobber.com/visits/1920158136"
     },
     {
       "id": "Z2lkOi8vSm9iYmVyL1Zpc2l0LzE4MjA5OTAzNzc=",
@@ -295,7 +295,7 @@
       ],
       "serviceType": "Standard Cleaning",
       "status": "COMPLETED",
-      "jobberWebUri": "https://secure.getjobber.com/visits/28912045"
+      "jobberWebUri": "https://secure.getjobber.com/visits/1820990377"
     },
     {
       "id": "Z2lkOi8vSm9iYmVyL1Zpc2l0LzIzMTY1Mjc5ODE=",
@@ -311,7 +311,7 @@
       ],
       "serviceType": "Standard Cleaning",
       "status": "COMPLETED",
-      "jobberWebUri": "https://secure.getjobber.com/visits/28912015"
+      "jobberWebUri": "https://secure.getjobber.com/visits/2316527981"
     },
     {
       "id": "Z2lkOi8vSm9iYmVyL1Zpc2l0LzE4NjM2MjkzNTk=",
@@ -327,7 +327,7 @@
       ],
       "serviceType": "Standard Cleaning",
       "status": "COMPLETED",
-      "jobberWebUri": "https://secure.getjobber.com/visits/28912042"
+      "jobberWebUri": "https://secure.getjobber.com/visits/1863629359"
     },
     {
       "id": "Z2lkOi8vSm9iYmVyL1Zpc2l0LzIzMTk3MDgzMDU=",
@@ -343,7 +343,7 @@
       ],
       "serviceType": "Standard Cleaning",
       "status": "COMPLETED",
-      "jobberWebUri": "https://secure.getjobber.com/visits/2891203"
+      "jobberWebUri": "https://secure.getjobber.com/visits/2319708305"
     },
     {
       "id": "Z2lkOi8vSm9iYmVyL1Zpc2l0LzIyNDk1NDU3NjY=",
@@ -359,7 +359,7 @@
       ],
       "serviceType": "Standard Cleaning",
       "status": "COMPLETED",
-      "jobberWebUri": "https://secure.getjobber.com/visits/28912013"
+      "jobberWebUri": "https://secure.getjobber.com/visits/2249545766"
     },
     {
       "id": "Z2lkOi8vSm9iYmVyL1Zpc2l0LzIyNTc0MTAxNzk=",
@@ -376,7 +376,7 @@
       ],
       "serviceType": "Standard Cleaning",
       "status": "COMPLETED",
-      "jobberWebUri": "https://secure.getjobber.com/visits/2891200"
+      "jobberWebUri": "https://secure.getjobber.com/visits/2257410179"
     },
     {
       "id": "Z2lkOi8vSm9iYmVyL1Zpc2l0LzIyODc4NTk3Mzk=",
@@ -393,7 +393,7 @@
       ],
       "serviceType": "Deep Cleaning",
       "status": "COMPLETED",
-      "jobberWebUri": "https://secure.getjobber.com/visits/28912043"
+      "jobberWebUri": "https://secure.getjobber.com/visits/2287859739"
     },
     {
       "id": "Z2lkOi8vSm9iYmVyL1Zpc2l0LzIxNjIxMDczNTc=",
@@ -409,7 +409,7 @@
       ],
       "serviceType": "Standard Cleaning",
       "status": "COMPLETED",
-      "jobberWebUri": "https://secure.getjobber.com/visits/289120"
+      "jobberWebUri": "https://secure.getjobber.com/visits/2162107357"
     },
     {
       "id": "Z2lkOi8vSm9iYmVyL1Zpc2l0LzIzMjAxNjYzNTQ=",
@@ -425,7 +425,7 @@
       ],
       "serviceType": "Standard Cleaning",
       "status": "COMPLETED",
-      "jobberWebUri": "https://secure.getjobber.com/visits/289120"
+      "jobberWebUri": "https://secure.getjobber.com/visits/2320166354"
     },
     {
       "id": "Z2lkOi8vSm9iYmVyL1Zpc2l0LzE3OTU0Njk5MTA=",
@@ -441,7 +441,7 @@
       ],
       "serviceType": "Standard Cleaning",
       "status": "COMPLETED",
-      "jobberWebUri": "https://secure.getjobber.com/visits/289120305"
+      "jobberWebUri": "https://secure.getjobber.com/visits/1795469910"
     },
     {
       "id": "Z2lkOi8vSm9iYmVyL1Zpc2l0LzIzMjM4MTk2NDA=",
@@ -458,7 +458,7 @@
       ],
       "serviceType": "Move-Out Cleaning",
       "status": "COMPLETED",
-      "jobberWebUri": "https://secure.getjobber.com/visits/28912042"
+      "jobberWebUri": "https://secure.getjobber.com/visits/2323819640"
     },
     {
       "id": "Z2lkOi8vSm9iYmVyL1Zpc2l0LzIzMDUyOTg4ODk=",
@@ -474,7 +474,7 @@
       ],
       "serviceType": "Move-Out Cleaning",
       "status": "COMPLETED",
-      "jobberWebUri": "https://secure.getjobber.com/visits/2891204"
+      "jobberWebUri": "https://secure.getjobber.com/visits/2305298889"
     },
     {
       "id": "Z2lkOi8vSm9iYmVyL1Zpc2l0LzE5MjAxNTgxMzg=",
@@ -490,7 +490,7 @@
       ],
       "serviceType": "Standard Cleaning",
       "status": "COMPLETED",
-      "jobberWebUri": "https://secure.getjobber.com/visits/2891205"
+      "jobberWebUri": "https://secure.getjobber.com/visits/1920158138"
     },
     {
       "id": "Z2lkOi8vSm9iYmVyL1Zpc2l0LzIzMjU5NDc3NjA=",
@@ -506,7 +506,7 @@
       ],
       "serviceType": "Standard Cleaning",
       "status": "COMPLETED",
-      "jobberWebUri": "https://secure.getjobber.com/visits/28912053"
+      "jobberWebUri": "https://secure.getjobber.com/visits/2325947760"
     },
     {
       "id": "Z2lkOi8vSm9iYmVyL1Zpc2l0LzE3MTI5ODU5NjU=",
@@ -523,7 +523,7 @@
       ],
       "serviceType": "Standard Cleaning",
       "status": "COMPLETED",
-      "jobberWebUri": "https://secure.getjobber.com/visits/289120355"
+      "jobberWebUri": "https://secure.getjobber.com/visits/1712985965"
     },
     {
       "id": "Z2lkOi8vSm9iYmVyL1Zpc2l0LzIwMDAwNTgwMjg=",
@@ -539,7 +539,7 @@
       ],
       "serviceType": "Deep Cleaning",
       "status": "COMPLETED",
-      "jobberWebUri": "https://secure.getjobber.com/visits/289120"
+      "jobberWebUri": "https://secure.getjobber.com/visits/2000058028"
     },
     {
       "id": "Z2lkOi8vSm9iYmVyL1Zpc2l0LzIyMjU5MzQyNjg=",
@@ -556,7 +556,7 @@
       ],
       "serviceType": "Standard Cleaning",
       "status": "COMPLETED",
-      "jobberWebUri": "https://secure.getjobber.com/visits/2891205"
+      "jobberWebUri": "https://secure.getjobber.com/visits/2225934268"
     },
     {
       "id": "Z2lkOi8vSm9iYmVyL1Zpc2l0LzIyNjA2NjE0Njk=",
@@ -572,7 +572,7 @@
       ],
       "serviceType": "Standard Cleaning",
       "status": "COMPLETED",
-      "jobberWebUri": "https://secure.getjobber.com/visits/28912020"
+      "jobberWebUri": "https://secure.getjobber.com/visits/2260661469"
     },
     {
       "id": "Z2lkOi8vSm9iYmVyL1Zpc2l0LzIyMDg4NTE3Mzk=",
@@ -589,7 +589,7 @@
       ],
       "serviceType": "Standard Cleaning",
       "status": "COMPLETED",
-      "jobberWebUri": "https://secure.getjobber.com/visits/28912043"
+      "jobberWebUri": "https://secure.getjobber.com/visits/2208851739"
     },
     {
       "id": "Z2lkOi8vSm9iYmVyL1Zpc2l0LzIwMTYwMjAxOTI=",
@@ -605,7 +605,7 @@
       ],
       "serviceType": "Standard Cleaning",
       "status": "COMPLETED",
-      "jobberWebUri": "https://secure.getjobber.com/visits/289120"
+      "jobberWebUri": "https://secure.getjobber.com/visits/2016020192"
     },
     {
       "id": "Z2lkOi8vSm9iYmVyL1Zpc2l0LzIzMjQxMjI5ODE=",
@@ -622,7 +622,7 @@
       ],
       "serviceType": "Deep Cleaning",
       "status": "COMPLETED",
-      "jobberWebUri": "https://secure.getjobber.com/visits/2891205"
+      "jobberWebUri": "https://secure.getjobber.com/visits/2324122981"
     },
     {
       "id": "Z2lkOi8vSm9iYmVyL1Zpc2l0LzIzMTMyOTkyMzA=",
@@ -638,7 +638,7 @@
       ],
       "serviceType": "Deep Cleaning",
       "status": "COMPLETED",
-      "jobberWebUri": "https://secure.getjobber.com/visits/289120"
+      "jobberWebUri": "https://secure.getjobber.com/visits/2313299230"
     },
     {
       "id": "Z2lkOi8vSm9iYmVyL1Zpc2l0LzIzMzY1MDg0ODE=",
@@ -655,7 +655,7 @@
       ],
       "serviceType": "Deep Cleaning",
       "status": "COMPLETED",
-      "jobberWebUri": "https://secure.getjobber.com/visits/28912010"
+      "jobberWebUri": "https://secure.getjobber.com/visits/2336508481"
     },
     {
       "id": "Z2lkOi8vSm9iYmVyL1Zpc2l0LzIzMDUyOTg4OTM=",
@@ -671,7 +671,7 @@
       ],
       "serviceType": "Move-Out Cleaning",
       "status": "COMPLETED",
-      "jobberWebUri": "https://secure.getjobber.com/visits/2891204"
+      "jobberWebUri": "https://secure.getjobber.com/visits/2305298893"
     },
     {
       "id": "Z2lkOi8vSm9iYmVyL1Zpc2l0LzE5MjAxNTgxNDE=",
@@ -687,7 +687,7 @@
       ],
       "serviceType": "Standard Cleaning",
       "status": "COMPLETED",
-      "jobberWebUri": "https://secure.getjobber.com/visits/2891205"
+      "jobberWebUri": "https://secure.getjobber.com/visits/1920158141"
     },
     {
       "id": "Z2lkOi8vSm9iYmVyL1Zpc2l0LzIzMTY1Mjc5ODM=",
@@ -703,7 +703,7 @@
       ],
       "serviceType": "Standard Cleaning",
       "status": "COMPLETED",
-      "jobberWebUri": "https://secure.getjobber.com/visits/28912015"
+      "jobberWebUri": "https://secure.getjobber.com/visits/2316527983"
     },
     {
       "id": "Z2lkOi8vSm9iYmVyL1Zpc2l0LzIzMzk1NTY1MTc=",
@@ -720,7 +720,7 @@
       ],
       "serviceType": "Move-Out Cleaning",
       "status": "COMPLETED",
-      "jobberWebUri": "https://secure.getjobber.com/visits/28912011"
+      "jobberWebUri": "https://secure.getjobber.com/visits/2339556517"
     },
     {
       "id": "Z2lkOi8vSm9iYmVyL1Zpc2l0LzIyNDk1NDU3Njg=",
@@ -736,7 +736,7 @@
       ],
       "serviceType": "Standard Cleaning",
       "status": "COMPLETED",
-      "jobberWebUri": "https://secure.getjobber.com/visits/28912013"
+      "jobberWebUri": "https://secure.getjobber.com/visits/2249545768"
     },
     {
       "id": "Z2lkOi8vSm9iYmVyL1Zpc2l0LzIyNjA3MzY4MjE=",
@@ -752,7 +752,7 @@
       ],
       "serviceType": "Standard Cleaning",
       "status": "COMPLETED",
-      "jobberWebUri": "https://secure.getjobber.com/visits/28912034"
+      "jobberWebUri": "https://secure.getjobber.com/visits/2260736821"
     },
     {
       "id": "Z2lkOi8vSm9iYmVyL1Zpc2l0LzIyNTc0MTAxODA=",
@@ -769,7 +769,7 @@
       ],
       "serviceType": "Standard Cleaning",
       "status": "COMPLETED",
-      "jobberWebUri": "https://secure.getjobber.com/visits/2891200"
+      "jobberWebUri": "https://secure.getjobber.com/visits/2257410180"
     },
     {
       "id": "Z2lkOi8vSm9iYmVyL1Zpc2l0LzIzMzcwNDY5NjI=",
@@ -786,7 +786,7 @@
       ],
       "serviceType": "Move-Out Cleaning",
       "status": "COMPLETED",
-      "jobberWebUri": "https://secure.getjobber.com/visits/2891205"
+      "jobberWebUri": "https://secure.getjobber.com/visits/2337046962"
     },
     {
       "id": "Z2lkOi8vSm9iYmVyL1Zpc2l0LzIxNjIxMDczNTk=",
@@ -802,7 +802,7 @@
       ],
       "serviceType": "Standard Cleaning",
       "status": "COMPLETED",
-      "jobberWebUri": "https://secure.getjobber.com/visits/289120"
+      "jobberWebUri": "https://secure.getjobber.com/visits/2162107359"
     },
     {
       "id": "Z2lkOi8vSm9iYmVyL1Zpc2l0LzIyODcxNzE2MjU=",
@@ -819,7 +819,7 @@
       ],
       "serviceType": "Deep Cleaning",
       "status": "COMPLETED",
-      "jobberWebUri": "https://secure.getjobber.com/visits/2891202",
+      "jobberWebUri": "https://secure.getjobber.com/visits/2287171625",
       "callTranscripts": [
         {
           "id": "sim_call_1791684104948",
@@ -854,7 +854,7 @@
       ],
       "serviceType": "Move-Out Cleaning",
       "status": "COMPLETED",
-      "jobberWebUri": "https://secure.getjobber.com/visits/28912050"
+      "jobberWebUri": "https://secure.getjobber.com/visits/2139948450"
     },
     {
       "id": "Z2lkOi8vSm9iYmVyL1Zpc2l0LzIzMzQwOTAyOTg=",
@@ -870,7 +870,7 @@
       ],
       "serviceType": "Move-Out Cleaning",
       "status": "COMPLETED",
-      "jobberWebUri": "https://secure.getjobber.com/visits/289120"
+      "jobberWebUri": "https://secure.getjobber.com/visits/2334090298"
     },
     {
       "id": "Z2lkOi8vSm9iYmVyL1Zpc2l0LzIzMDUyOTg4OTY=",
@@ -886,7 +886,7 @@
       ],
       "serviceType": "Move-Out Cleaning",
       "status": "COMPLETED",
-      "jobberWebUri": "https://secure.getjobber.com/visits/2891204"
+      "jobberWebUri": "https://secure.getjobber.com/visits/2305298896"
     },
     {
       "id": "Z2lkOi8vSm9iYmVyL1Zpc2l0LzE5MjAxNTgxNDQ=",
@@ -902,7 +902,7 @@
       ],
       "serviceType": "Standard Cleaning",
       "status": "SCHEDULED",
-      "jobberWebUri": "https://secure.getjobber.com/visits/2891205"
+      "jobberWebUri": "https://secure.getjobber.com/visits/1920158144"
     },
     {
       "id": "Z2lkOi8vSm9iYmVyL1Zpc2l0LzE3MTI5ODU5Njc=",
@@ -919,7 +919,7 @@
       ],
       "serviceType": "Standard Cleaning",
       "status": "COMPLETED",
-      "jobberWebUri": "https://secure.getjobber.com/visits/289120355"
+      "jobberWebUri": "https://secure.getjobber.com/visits/1712985967"
     },
     {
       "id": "Z2lkOi8vSm9iYmVyL1Zpc2l0LzIxNDgzNDI2NTE=",
@@ -935,7 +935,7 @@
       ],
       "serviceType": "Deep Cleaning",
       "status": "COMPLETED",
-      "jobberWebUri": "https://secure.getjobber.com/visits/2891202"
+      "jobberWebUri": "https://secure.getjobber.com/visits/2148342651"
     },
     {
       "id": "Z2lkOi8vSm9iYmVyL1Zpc2l0LzIzNDQzNTk3MzU=",
@@ -952,7 +952,7 @@
       ],
       "serviceType": "Deep Cleaning",
       "status": "COMPLETED",
-      "jobberWebUri": "https://secure.getjobber.com/visits/2891203"
+      "jobberWebUri": "https://secure.getjobber.com/visits/2344359735"
     },
     {
       "id": "Z2lkOi8vSm9iYmVyL1Zpc2l0LzIzNDU3NTAxMjY=",
@@ -968,7 +968,7 @@
       ],
       "serviceType": "Deep Cleaning",
       "status": "COMPLETED",
-      "jobberWebUri": "https://secure.getjobber.com/visits/2891203"
+      "jobberWebUri": "https://secure.getjobber.com/visits/2345750126"
     },
     {
       "id": "Z2lkOi8vSm9iYmVyL1Zpc2l0LzIzNDU3NTk0NTM=",
@@ -984,7 +984,7 @@
       ],
       "serviceType": "Move-Out Cleaning",
       "status": "COMPLETED",
-      "jobberWebUri": "https://secure.getjobber.com/visits/28912030"
+      "jobberWebUri": "https://secure.getjobber.com/visits/2345759453"
     },
     {
       "id": "Z2lkOi8vSm9iYmVyL1Zpc2l0LzE3NzU1MzEyODk=",
@@ -1001,7 +1001,7 @@
       ],
       "serviceType": "Standard Cleaning",
       "status": "COMPLETED",
-      "jobberWebUri": "https://secure.getjobber.com/visits/28912031"
+      "jobberWebUri": "https://secure.getjobber.com/visits/1775531289"
     },
     {
       "id": "Z2lkOi8vSm9iYmVyL1Zpc2l0LzIyMDg4NTE3NDQ=",
@@ -1018,7 +1018,7 @@
       ],
       "serviceType": "Standard Cleaning",
       "status": "COMPLETED",
-      "jobberWebUri": "https://secure.getjobber.com/visits/28912043"
+      "jobberWebUri": "https://secure.getjobber.com/visits/2208851744"
     },
     {
       "id": "Z2lkOi8vSm9iYmVyL1Zpc2l0LzIzMTMyOTkyMzM=",
@@ -1034,7 +1034,7 @@
       ],
       "serviceType": "Deep Cleaning",
       "status": "COMPLETED",
-      "jobberWebUri": "https://secure.getjobber.com/visits/289120"
+      "jobberWebUri": "https://secure.getjobber.com/visits/2313299233"
     },
     {
       "id": "Z2lkOi8vSm9iYmVyL1Zpc2l0LzIzNDQ1OTYzOTk=",
@@ -1050,7 +1050,7 @@
       ],
       "serviceType": "Standard Cleaning",
       "status": "COMPLETED",
-      "jobberWebUri": "https://secure.getjobber.com/visits/2891201"
+      "jobberWebUri": "https://secure.getjobber.com/visits/2344596399"
     },
     {
       "id": "Z2lkOi8vSm9iYmVyL1Zpc2l0LzIzNDg3NDczMzA=",
@@ -1066,7 +1066,7 @@
       ],
       "serviceType": "Standard Cleaning",
       "status": "COMPLETED",
-      "jobberWebUri": "https://secure.getjobber.com/visits/2891203"
+      "jobberWebUri": "https://secure.getjobber.com/visits/2348747330"
     },
     {
       "id": "Z2lkOi8vSm9iYmVyL1Zpc2l0LzIzNTA0MzE0NzE=",
@@ -1082,7 +1082,7 @@
       ],
       "serviceType": "Move-Out Cleaning",
       "status": "COMPLETED",
-      "jobberWebUri": "https://secure.getjobber.com/visits/28912000"
+      "jobberWebUri": "https://secure.getjobber.com/visits/2350431471"
     },
     {
       "id": "Z2lkOi8vSm9iYmVyL1Zpc2l0LzIyNTkyOTY5NDg=",
@@ -1099,7 +1099,7 @@
       ],
       "serviceType": "Standard Cleaning",
       "status": "COMPLETED",
-      "jobberWebUri": "https://secure.getjobber.com/visits/2891205"
+      "jobberWebUri": "https://secure.getjobber.com/visits/2259296948"
     },
     {
       "id": "Z2lkOi8vSm9iYmVyL1Zpc2l0LzIzNTQ0NDMxNzU=",
@@ -1115,7 +1115,7 @@
       ],
       "serviceType": "Standard Cleaning",
       "status": "COMPLETED",
-      "jobberWebUri": "https://secure.getjobber.com/visits/2891200"
+      "jobberWebUri": "https://secure.getjobber.com/visits/2354443175"
     },
     {
       "id": "Z2lkOi8vSm9iYmVyL1Zpc2l0LzIzMDUyOTg4OTk=",
@@ -1131,7 +1131,7 @@
       ],
       "serviceType": "Move-Out Cleaning",
       "status": "COMPLETED",
-      "jobberWebUri": "https://secure.getjobber.com/visits/2891204"
+      "jobberWebUri": "https://secure.getjobber.com/visits/2305298899"
     },
     {
       "id": "Z2lkOi8vSm9iYmVyL1Zpc2l0LzE5MjAxNTgxNDc=",
@@ -1147,7 +1147,7 @@
       ],
       "serviceType": "Standard Cleaning",
       "status": "SCHEDULED",
-      "jobberWebUri": "https://secure.getjobber.com/visits/2891205"
+      "jobberWebUri": "https://secure.getjobber.com/visits/1920158147"
     },
     {
       "id": "Z2lkOi8vSm9iYmVyL1Zpc2l0LzE4MjA5OTAzNzk=",
@@ -1163,7 +1163,7 @@
       ],
       "serviceType": "Standard Cleaning",
       "status": "COMPLETED",
-      "jobberWebUri": "https://secure.getjobber.com/visits/28912045"
+      "jobberWebUri": "https://secure.getjobber.com/visits/1820990379"
     },
     {
       "id": "Z2lkOi8vSm9iYmVyL1Zpc2l0LzIzMTY1Mjc5ODU=",
@@ -1179,7 +1179,7 @@
       ],
       "serviceType": "Standard Cleaning",
       "status": "COMPLETED",
-      "jobberWebUri": "https://secure.getjobber.com/visits/28912015"
+      "jobberWebUri": "https://secure.getjobber.com/visits/2316527985"
     },
     {
       "id": "Z2lkOi8vSm9iYmVyL1Zpc2l0LzIzNTQ1OTU3MDk=",
@@ -1196,7 +1196,7 @@
       ],
       "serviceType": "Move-Out Cleaning",
       "status": "COMPLETED",
-      "jobberWebUri": "https://secure.getjobber.com/visits/28912013"
+      "jobberWebUri": "https://secure.getjobber.com/visits/2354595709"
     },
     {
       "id": "Z2lkOi8vSm9iYmVyL1Zpc2l0LzE5NTk0NzE3MzM=",
@@ -1213,7 +1213,7 @@
       ],
       "serviceType": "Standard Cleaning",
       "status": "COMPLETED",
-      "jobberWebUri": "https://secure.getjobber.com/visits/289120503"
+      "jobberWebUri": "https://secure.getjobber.com/visits/1959471733"
     },
     {
       "id": "Z2lkOi8vSm9iYmVyL1Zpc2l0LzIyNDk1NDU3NzA=",
@@ -1229,7 +1229,7 @@
       ],
       "serviceType": "Standard Cleaning",
       "status": "COMPLETED",
-      "jobberWebUri": "https://secure.getjobber.com/visits/28912013"
+      "jobberWebUri": "https://secure.getjobber.com/visits/2249545770"
     },
     {
       "id": "Z2lkOi8vSm9iYmVyL1Zpc2l0LzIzNTc1MTg3NTU=",
@@ -1245,7 +1245,7 @@
       ],
       "serviceType": "Standard Cleaning",
       "status": "COMPLETED",
-      "jobberWebUri": "https://secure.getjobber.com/visits/28912013"
+      "jobberWebUri": "https://secure.getjobber.com/visits/2357518755"
     },
     {
       "id": "Z2lkOi8vSm9iYmVyL1Zpc2l0LzIzNTQ0Mjk2MDc=",
@@ -1262,7 +1262,7 @@
       ],
       "serviceType": "Move-Out Cleaning",
       "status": "COMPLETED",
-      "jobberWebUri": "https://secure.getjobber.com/visits/28912002"
+      "jobberWebUri": "https://secure.getjobber.com/visits/2354429607"
     },
     {
       "id": "Z2lkOi8vSm9iYmVyL1Zpc2l0LzIwMDAwNTgwMzQ=",
@@ -1278,7 +1278,7 @@
       ],
       "serviceType": "Deep Cleaning",
       "status": "COMPLETED",
-      "jobberWebUri": "https://secure.getjobber.com/visits/289120"
+      "jobberWebUri": "https://secure.getjobber.com/visits/2000058034"
     },
     {
       "id": "Z2lkOi8vSm9iYmVyL1Zpc2l0LzIzMzgxNTAyNjE=",
@@ -1295,7 +1295,7 @@
       ],
       "serviceType": "Move-Out Cleaning",
       "status": "COMPLETED",
-      "jobberWebUri": "https://secure.getjobber.com/visits/289120"
+      "jobberWebUri": "https://secure.getjobber.com/visits/2338150261"
     },
     {
       "id": "Z2lkOi8vSm9iYmVyL1Zpc2l0LzIzNTQ5NTg0Mzk=",
@@ -1311,7 +1311,7 @@
       ],
       "serviceType": "Standard Cleaning",
       "status": "COMPLETED",
-      "jobberWebUri": "https://secure.getjobber.com/visits/28912050"
+      "jobberWebUri": "https://secure.getjobber.com/visits/2354958439"
     },
     {
       "id": "Z2lkOi8vSm9iYmVyL1Zpc2l0LzIwMTYwMjAxOTQ=",
@@ -1327,7 +1327,7 @@
       ],
       "serviceType": "Standard Cleaning",
       "status": "COMPLETED",
-      "jobberWebUri": "https://secure.getjobber.com/visits/289120"
+      "jobberWebUri": "https://secure.getjobber.com/visits/2016020194"
     },
     {
       "id": "Z2lkOi8vSm9iYmVyL1Zpc2l0LzIzNTYzMjk3Mzc=",
@@ -1344,7 +1344,7 @@
       ],
       "serviceType": "Deep Cleaning",
       "status": "COMPLETED",
-      "jobberWebUri": "https://secure.getjobber.com/visits/2891203"
+      "jobberWebUri": "https://secure.getjobber.com/visits/2356329737"
     },
     {
       "id": "Z2lkOi8vSm9iYmVyL1Zpc2l0LzIzNTg4MjgwNzQ=",
@@ -1361,7 +1361,7 @@
       ],
       "serviceType": "Move-Out Cleaning",
       "status": "COMPLETED",
-      "jobberWebUri": "https://secure.getjobber.com/visits/2891204"
+      "jobberWebUri": "https://secure.getjobber.com/visits/2358828074"
     },
     {
       "id": "Z2lkOi8vSm9iYmVyL1Zpc2l0LzIxNjIxMDczNjE=",
@@ -1377,7 +1377,7 @@
       ],
       "serviceType": "Standard Cleaning",
       "status": "COMPLETED",
-      "jobberWebUri": "https://secure.getjobber.com/visits/289120"
+      "jobberWebUri": "https://secure.getjobber.com/visits/2162107361"
     },
     {
       "id": "Z2lkOi8vSm9iYmVyL1Zpc2l0LzIzNTkyNDk4MDg=",
@@ -1394,7 +1394,7 @@
       ],
       "serviceType": "Standard Cleaning",
       "status": "COMPLETED",
-      "jobberWebUri": "https://secure.getjobber.com/visits/2891204"
+      "jobberWebUri": "https://secure.getjobber.com/visits/2359249808"
     },
     {
       "id": "Z2lkOi8vSm9iYmVyL1Zpc2l0LzIzMDUyOTg5MDM=",
@@ -1410,7 +1410,7 @@
       ],
       "serviceType": "Move-Out Cleaning",
       "status": "SCHEDULED",
-      "jobberWebUri": "https://secure.getjobber.com/visits/2891205"
+      "jobberWebUri": "https://secure.getjobber.com/visits/2305298903"
     },
     {
       "id": "Z2lkOi8vSm9iYmVyL1Zpc2l0LzE5MjAxNTgxNTE=",
@@ -1426,7 +1426,7 @@
       ],
       "serviceType": "Standard Cleaning",
       "status": "SCHEDULED",
-      "jobberWebUri": "https://secure.getjobber.com/visits/2891205"
+      "jobberWebUri": "https://secure.getjobber.com/visits/1920158151"
     },
     {
       "id": "Z2lkOi8vSm9iYmVyL1Zpc2l0LzE3MTI5ODU5Njk=",
@@ -1443,7 +1443,7 @@
       ],
       "serviceType": "Standard Cleaning",
       "status": "SCHEDULED",
-      "jobberWebUri": "https://secure.getjobber.com/visits/289120355"
+      "jobberWebUri": "https://secure.getjobber.com/visits/1712985969"
     },
     {
       "id": "Z2lkOi8vSm9iYmVyL1Zpc2l0LzIyNTc0MTAxODE=",
@@ -1460,7 +1460,7 @@
       ],
       "serviceType": "Standard Cleaning",
       "status": "SCHEDULED",
-      "jobberWebUri": "https://secure.getjobber.com/visits/2891200"
+      "jobberWebUri": "https://secure.getjobber.com/visits/2257410181"
     },
     {
       "id": "Z2lkOi8vSm9iYmVyL1Zpc2l0LzIwMDAwNTgwMzc=",
@@ -1476,7 +1476,7 @@
       ],
       "serviceType": "Deep Cleaning",
       "status": "SCHEDULED",
-      "jobberWebUri": "https://secure.getjobber.com/visits/289120"
+      "jobberWebUri": "https://secure.getjobber.com/visits/2000058037"
     },
     {
       "id": "Z2lkOi8vSm9iYmVyL1Zpc2l0LzIzNTc2MjY0NTI=",
@@ -1492,7 +1492,7 @@
       ],
       "serviceType": "Standard Cleaning",
       "status": "SCHEDULED",
-      "jobberWebUri": "https://secure.getjobber.com/visits/28912020"
+      "jobberWebUri": "https://secure.getjobber.com/visits/2357626452"
     },
     {
       "id": "Z2lkOi8vSm9iYmVyL1Zpc2l0LzIzMjEwMTYzNjk=",
@@ -1508,7 +1508,7 @@
       ],
       "serviceType": "Standard Cleaning",
       "status": "SCHEDULED",
-      "jobberWebUri": "https://secure.getjobber.com/visits/289120"
+      "jobberWebUri": "https://secure.getjobber.com/visits/2321016369"
     },
     {
       "id": "Z2lkOi8vSm9iYmVyL1Zpc2l0LzIzNjA2OTk4ODI=",
@@ -1525,7 +1525,7 @@
       ],
       "serviceType": "Standard Cleaning",
       "status": "SCHEDULED",
-      "jobberWebUri": "https://secure.getjobber.com/visits/28912024"
+      "jobberWebUri": "https://secure.getjobber.com/visits/2360699882"
     },
     {
       "id": "Z2lkOi8vSm9iYmVyL1Zpc2l0LzIyNjA2NjE0NzA=",
@@ -1541,7 +1541,7 @@
       ],
       "serviceType": "Standard Cleaning",
       "status": "SCHEDULED",
-      "jobberWebUri": "https://secure.getjobber.com/visits/28912020"
+      "jobberWebUri": "https://secure.getjobber.com/visits/2260661470"
     },
     {
       "id": "Z2lkOi8vSm9iYmVyL1Zpc2l0LzIyMDg4NTE3NDg=",
@@ -1558,7 +1558,7 @@
       ],
       "serviceType": "Standard Cleaning",
       "status": "SCHEDULED",
-      "jobberWebUri": "https://secure.getjobber.com/visits/28912043"
+      "jobberWebUri": "https://secure.getjobber.com/visits/2208851748"
     },
     {
       "id": "Z2lkOi8vSm9iYmVyL1Zpc2l0LzIzMTMyOTkyNDI=",
@@ -1574,7 +1574,7 @@
       ],
       "serviceType": "Deep Cleaning",
       "status": "SCHEDULED",
-      "jobberWebUri": "https://secure.getjobber.com/visits/289120"
+      "jobberWebUri": "https://secure.getjobber.com/visits/2313299242"
     },
     {
       "id": "Z2lkOi8vSm9iYmVyL1Zpc2l0LzIzMDUyOTg5MDY=",
@@ -1590,7 +1590,7 @@
       ],
       "serviceType": "Move-Out Cleaning",
       "status": "SCHEDULED",
-      "jobberWebUri": "https://secure.getjobber.com/visits/2891205"
+      "jobberWebUri": "https://secure.getjobber.com/visits/2305298906"
     },
     {
       "id": "Z2lkOi8vSm9iYmVyL1Zpc2l0LzE5MjAxNTgxNTU=",
@@ -1606,7 +1606,7 @@
       ],
       "serviceType": "Standard Cleaning",
       "status": "SCHEDULED",
-      "jobberWebUri": "https://secure.getjobber.com/visits/2891205"
+      "jobberWebUri": "https://secure.getjobber.com/visits/1920158155"
     },
     {
       "id": "Z2lkOi8vSm9iYmVyL1Zpc2l0LzIzMTY1Mjc5ODg=",
@@ -1622,7 +1622,7 @@
       ],
       "serviceType": "Standard Cleaning",
       "status": "SCHEDULED",
-      "jobberWebUri": "https://secure.getjobber.com/visits/28912015"
+      "jobberWebUri": "https://secure.getjobber.com/visits/2316527988"
     },
     {
       "id": "Z2lkOi8vSm9iYmVyL1Zpc2l0LzIzNTc2MjY0NTM=",
@@ -1638,7 +1638,7 @@
       ],
       "serviceType": "Standard Cleaning",
       "status": "SCHEDULED",
-      "jobberWebUri": "https://secure.getjobber.com/visits/28912020"
+      "jobberWebUri": "https://secure.getjobber.com/visits/2357626453"
     },
     {
       "id": "Z2lkOi8vSm9iYmVyL1Zpc2l0LzIyNDk1NDU3NzM=",
@@ -1654,7 +1654,7 @@
       ],
       "serviceType": "Standard Cleaning",
       "status": "SCHEDULED",
-      "jobberWebUri": "https://secure.getjobber.com/visits/28912013"
+      "jobberWebUri": "https://secure.getjobber.com/visits/2249545773"
     },
     {
       "id": "Z2lkOi8vSm9iYmVyL1Zpc2l0LzIzNTQ0NDMxODQ=",
@@ -1671,7 +1671,7 @@
       ],
       "serviceType": "Standard Cleaning",
       "status": "SCHEDULED",
-      "jobberWebUri": "https://secure.getjobber.com/visits/2891200"
+      "jobberWebUri": "https://secure.getjobber.com/visits/2354443184"
     },
     {
       "id": "Z2lkOi8vSm9iYmVyL1Zpc2l0LzIzMDIwMzQzMDI=",
@@ -1687,7 +1687,7 @@
       ],
       "serviceType": "Standard Cleaning",
       "status": "SCHEDULED",
-      "jobberWebUri": "https://secure.getjobber.com/visits/289120"
+      "jobberWebUri": "https://secure.getjobber.com/visits/2302034302"
     },
     {
       "id": "Z2lkOi8vSm9iYmVyL1Zpc2l0LzIyNTc0MTAxODI=",
@@ -1704,7 +1704,7 @@
       ],
       "serviceType": "Standard Cleaning",
       "status": "SCHEDULED",
-      "jobberWebUri": "https://secure.getjobber.com/visits/2891200"
+      "jobberWebUri": "https://secure.getjobber.com/visits/2257410182"
     },
     {
       "id": "Z2lkOi8vSm9iYmVyL1Zpc2l0LzIxNjIxMDczNjQ=",
@@ -1720,7 +1720,7 @@
       ],
       "serviceType": "Standard Cleaning",
       "status": "SCHEDULED",
-      "jobberWebUri": "https://secure.getjobber.com/visits/289120"
+      "jobberWebUri": "https://secure.getjobber.com/visits/2162107364"
     },
     {
       "id": "Z2lkOi8vSm9iYmVyL1Zpc2l0LzIyODcxNzE2Mjg=",
@@ -1737,7 +1737,7 @@
       ],
       "serviceType": "Deep Cleaning",
       "status": "SCHEDULED",
-      "jobberWebUri": "https://secure.getjobber.com/visits/2891202"
+      "jobberWebUri": "https://secure.getjobber.com/visits/2287171628"
     },
     {
       "id": "Z2lkOi8vSm9iYmVyL1Zpc2l0LzIzNDIwNjEwMzQ=",
@@ -1754,7 +1754,7 @@
       ],
       "serviceType": "Move-Out Cleaning",
       "status": "SCHEDULED",
-      "jobberWebUri": "https://secure.getjobber.com/visits/289120"
+      "jobberWebUri": "https://secure.getjobber.com/visits/2342061034"
     },
     {
       "id": "Z2lkOi8vSm9iYmVyL1Zpc2l0LzIzNDY1OTU1NzI=",
@@ -1770,7 +1770,7 @@
       ],
       "serviceType": "Move-Out Cleaning",
       "status": "SCHEDULED",
-      "jobberWebUri": "https://secure.getjobber.com/visits/28912011"
+      "jobberWebUri": "https://secure.getjobber.com/visits/2346595572"
     },
     {
       "id": "Z2lkOi8vSm9iYmVyL1Zpc2l0LzE5NTk0NzE3MzQ=",
@@ -1787,7 +1787,7 @@
       ],
       "serviceType": "Standard Cleaning",
       "status": "SCHEDULED",
-      "jobberWebUri": "https://secure.getjobber.com/visits/289120503"
+      "jobberWebUri": "https://secure.getjobber.com/visits/1959471734"
     },
     {
       "id": "Z2lkOi8vSm9iYmVyL1Zpc2l0LzE5MjAxNTgxNTc=",
@@ -1803,7 +1803,7 @@
       ],
       "serviceType": "Standard Cleaning",
       "status": "SCHEDULED",
-      "jobberWebUri": "https://secure.getjobber.com/visits/2891205"
+      "jobberWebUri": "https://secure.getjobber.com/visits/1920158157"
     },
     {
       "id": "Z2lkOi8vSm9iYmVyL1Zpc2l0LzE3MTI5ODU5NzI=",
@@ -1820,7 +1820,7 @@
       ],
       "serviceType": "Standard Cleaning",
       "status": "SCHEDULED",
-      "jobberWebUri": "https://secure.getjobber.com/visits/289120355"
+      "jobberWebUri": "https://secure.getjobber.com/visits/1712985972"
     },
     {
       "id": "Z2lkOi8vSm9iYmVyL1Zpc2l0LzIzNTAzNjEwMTU=",
@@ -1837,7 +1837,7 @@
       ],
       "serviceType": "Deep Cleaning",
       "status": "SCHEDULED",
-      "jobberWebUri": "https://secure.getjobber.com/visits/289120"
+      "jobberWebUri": "https://secure.getjobber.com/visits/2350361015"
     },
     {
       "id": "Z2lkOi8vSm9iYmVyL1Zpc2l0LzIwMDAwNTgwMzk=",
@@ -1853,7 +1853,7 @@
       ],
       "serviceType": "Deep Cleaning",
       "status": "SCHEDULED",
-      "jobberWebUri": "https://secure.getjobber.com/visits/289120"
+      "jobberWebUri": "https://secure.getjobber.com/visits/2000058039"
     },
     {
       "id": "Z2lkOi8vSm9iYmVyL1Zpc2l0LzIzNTc2MjY0NTU=",
@@ -1869,7 +1869,7 @@
       ],
       "serviceType": "Standard Cleaning",
       "status": "SCHEDULED",
-      "jobberWebUri": "https://secure.getjobber.com/visits/28912020"
+      "jobberWebUri": "https://secure.getjobber.com/visits/2357626455"
     },
     {
       "id": "Z2lkOi8vSm9iYmVyL1Zpc2l0LzIxNDgzNDI2NTM=",
@@ -1885,7 +1885,7 @@
       ],
       "serviceType": "Deep Cleaning",
       "status": "SCHEDULED",
-      "jobberWebUri": "https://secure.getjobber.com/visits/2891202"
+      "jobberWebUri": "https://secure.getjobber.com/visits/2148342653"
     },
     {
       "id": "Z2lkOi8vSm9iYmVyL1Zpc2l0LzIzNDQzNTk3NDI=",
@@ -1902,7 +1902,7 @@
       ],
       "serviceType": "Deep Cleaning",
       "status": "SCHEDULED",
-      "jobberWebUri": "https://secure.getjobber.com/visits/2891203"
+      "jobberWebUri": "https://secure.getjobber.com/visits/2344359742"
     },
     {
       "id": "Z2lkOi8vSm9iYmVyL1Zpc2l0LzIyMDg4NTE3NTM=",
@@ -1919,7 +1919,7 @@
       ],
       "serviceType": "Standard Cleaning",
       "status": "SCHEDULED",
-      "jobberWebUri": "https://secure.getjobber.com/visits/28912043"
+      "jobberWebUri": "https://secure.getjobber.com/visits/2208851753"
     },
     {
       "id": "Z2lkOi8vSm9iYmVyL1Zpc2l0LzE3NzU1MzEyOTA=",
@@ -1936,7 +1936,7 @@
       ],
       "serviceType": "Standard Cleaning",
       "status": "SCHEDULED",
-      "jobberWebUri": "https://secure.getjobber.com/visits/28912031"
+      "jobberWebUri": "https://secure.getjobber.com/visits/1775531290"
     },
     {
       "id": "Z2lkOi8vSm9iYmVyL1Zpc2l0LzIwMTYwMjAxOTc=",
@@ -1952,7 +1952,7 @@
       ],
       "serviceType": "Standard Cleaning",
       "status": "SCHEDULED",
-      "jobberWebUri": "https://secure.getjobber.com/visits/289120"
+      "jobberWebUri": "https://secure.getjobber.com/visits/2016020197"
     },
     {
       "id": "Z2lkOi8vSm9iYmVyL1Zpc2l0LzIyNTkyOTY5NTQ=",
@@ -1969,7 +1969,7 @@
       ],
       "serviceType": "Standard Cleaning",
       "status": "SCHEDULED",
-      "jobberWebUri": "https://secure.getjobber.com/visits/2891205"
+      "jobberWebUri": "https://secure.getjobber.com/visits/2259296954"
     },
     {
       "id": "Z2lkOi8vSm9iYmVyL1Zpc2l0LzIzMTMyOTkyNTA=",
@@ -1985,10 +1985,49 @@
       ],
       "serviceType": "Deep Cleaning",
       "status": "SCHEDULED",
-      "jobberWebUri": "https://secure.getjobber.com/visits/289120"
+      "jobberWebUri": "https://secure.getjobber.com/visits/2313299250"
     }
   ],
   "quotes": [
+    {
+      "id": "qt-devon-clarke-2410",
+      "quoteNumber": "QT-2410",
+      "clientName": "Devon Clarke",
+      "clientPhone": "(780) 802-4918",
+      "clientEmail": "devonclarke@gmail.com",
+      "serviceAddress": "9620 144 Ave NW, St. Albert, AB",
+      "service": "3 Bed 2.5 Bath Deep Scrub Clean (3.5 hrs)",
+      "quoteStatus": "AWAITING_RESPONSE",
+      "total": 229.22,
+      "depositRequired": 50,
+      "createdAt": "2026-10-13T11:30:00-06:00",
+      "scheduledDate": "2026-10-16",
+      "scheduledTime": "10:00 AM",
+      "jobberWebUri": "https://secure.getjobber.com/quotes",
+      "notes": "3 Bed 2.5 Bath Deep Scrub Clean in St. Albert. Includes 3.5 hrs @ $52.50/hr ($183.75) + $12.50 Fuel Surcharge + $7.50 Eco Supplies + 12.5% Tax ($25.47) = $229.22 CAD. Synced with Jobber Client & Google Sheets.",
+      "lineItems": [
+        {
+          "description": "3 Bed 2.5 Bath Deep Scrub Clean (3.5 hrs @ $52.50/hr)",
+          "quantity": 3.5,
+          "unitPrice": 52.5,
+          "total": 183.75
+        },
+        {
+          "description": "Fuel & Travel Surcharge (St. Albert)",
+          "quantity": 1,
+          "unitPrice": 12.5,
+          "total": 12.5
+        },
+        {
+          "description": "Deep Scrub Baseboard & Sanitizer Package",
+          "quantity": 1,
+          "unitPrice": 7.5,
+          "total": 7.5
+        }
+      ],
+      "googleSheetSynced": true,
+      "googleSheetUrl": "https://docs.google.com/spreadsheets/d/1TifULi7n2BylQdvla-8DRvYHul_A1wXXzypUdBJwEeA/edit"
+    },
     {
       "id": "quote_local_1791743360097",
       "quoteNumber": "QT-3492",
@@ -2004,7 +2043,9 @@
       "syncedAt": "2026-10-11T18:29:20.097Z",
       "jobberWebUri": "https://secure.getjobber.com/quotes",
       "notes": "",
-      "isLocal": true
+      "isLocal": true,
+      "googleSheetSynced": true,
+      "googleSheetUrl": "https://docs.google.com/spreadsheets/d/1TifULi7n2BylQdvla-8DRvYHul_A1wXXzypUdBJwEeA/edit"
     },
     {
       "id": "Z2lkOi8vSm9iYmVyL1F1b3RlLzY2MzMzNjA4",
@@ -2016,7 +2057,9 @@
       "total": 333.57,
       "depositRequired": 100,
       "createdAt": "2026-09-26T19:15:49Z",
-      "jobberWebUri": "https://secure.getjobber.com/quotes/28911324"
+      "jobberWebUri": "https://secure.getjobber.com/quotes/66333608",
+      "googleSheetSynced": true,
+      "googleSheetUrl": "https://docs.google.com/spreadsheets/d/1TifULi7n2BylQdvla-8DRvYHul_A1wXXzypUdBJwEeA/edit"
     },
     {
       "id": "Z2lkOi8vSm9iYmVyL1F1b3RlLzY3MDg2ODY4",
@@ -2028,7 +2071,9 @@
       "total": 222.19,
       "depositRequired": 50,
       "createdAt": "2026-10-10T03:39:20Z",
-      "jobberWebUri": "https://secure.getjobber.com/quotes/289113324"
+      "jobberWebUri": "https://secure.getjobber.com/quotes/67086868",
+      "googleSheetSynced": true,
+      "googleSheetUrl": "https://docs.google.com/spreadsheets/d/1TifULi7n2BylQdvla-8DRvYHul_A1wXXzypUdBJwEeA/edit"
     },
     {
       "id": "Z2lkOi8vSm9iYmVyL1F1b3RlLzY3MDg3MDY4",
@@ -2040,7 +2085,9 @@
       "total": 461.25,
       "depositRequired": 100,
       "createdAt": "2026-10-10T04:13:25Z",
-      "jobberWebUri": "https://secure.getjobber.com/quotes/289113334"
+      "jobberWebUri": "https://secure.getjobber.com/quotes/67087068",
+      "googleSheetSynced": true,
+      "googleSheetUrl": "https://docs.google.com/spreadsheets/d/1TifULi7n2BylQdvla-8DRvYHul_A1wXXzypUdBJwEeA/edit"
     },
     {
       "id": "Z2lkOi8vSm9iYmVyL1F1b3RlLzY2MzE3NDgx",
@@ -2052,7 +2099,9 @@
       "total": 365.63,
       "depositRequired": 100,
       "createdAt": "2026-09-25T23:15:11Z",
-      "jobberWebUri": "https://secure.getjobber.com/quotes/28911323"
+      "jobberWebUri": "https://secure.getjobber.com/quotes/66317481",
+      "googleSheetSynced": true,
+      "googleSheetUrl": "https://docs.google.com/spreadsheets/d/1TifULi7n2BylQdvla-8DRvYHul_A1wXXzypUdBJwEeA/edit"
     },
     {
       "id": "Z2lkOi8vSm9iYmVyL1F1b3RlLzY2MzE3MzA2",
@@ -2064,7 +2113,9 @@
       "total": 227.82,
       "depositRequired": 50,
       "createdAt": "2026-09-25T23:10:24Z",
-      "jobberWebUri": "https://secure.getjobber.com/quotes/289113232"
+      "jobberWebUri": "https://secure.getjobber.com/quotes/66317306",
+      "googleSheetSynced": true,
+      "googleSheetUrl": "https://docs.google.com/spreadsheets/d/1TifULi7n2BylQdvla-8DRvYHul_A1wXXzypUdBJwEeA/edit"
     },
     {
       "id": "Z2lkOi8vSm9iYmVyL1F1b3RlLzY2MzA0OTUy",
@@ -2076,7 +2127,9 @@
       "total": 333.57,
       "depositRequired": 85,
       "createdAt": "2026-09-25T19:49:29Z",
-      "jobberWebUri": "https://secure.getjobber.com/quotes/28911320"
+      "jobberWebUri": "https://secure.getjobber.com/quotes/66304952",
+      "googleSheetSynced": true,
+      "googleSheetUrl": "https://docs.google.com/spreadsheets/d/1TifULi7n2BylQdvla-8DRvYHul_A1wXXzypUdBJwEeA/edit"
     },
     {
       "id": "Z2lkOi8vSm9iYmVyL1F1b3RlLzY3MDU4NDU2",
@@ -2088,7 +2141,9 @@
       "total": 340.32,
       "depositRequired": 100,
       "createdAt": "2026-10-09T17:39:41Z",
-      "jobberWebUri": "https://secure.getjobber.com/quotes/289113342"
+      "jobberWebUri": "https://secure.getjobber.com/quotes/67058456",
+      "googleSheetSynced": true,
+      "googleSheetUrl": "https://docs.google.com/spreadsheets/d/1TifULi7n2BylQdvla-8DRvYHul_A1wXXzypUdBJwEeA/edit"
     },
     {
       "id": "Z2lkOi8vSm9iYmVyL1F1b3RlLzY3MDI4MDIx",
@@ -2100,7 +2155,9 @@
       "total": 357.19,
       "depositRequired": 100,
       "createdAt": "2026-10-09T02:07:49Z",
-      "jobberWebUri": "https://secure.getjobber.com/quotes/28911334"
+      "jobberWebUri": "https://secure.getjobber.com/quotes/67028021",
+      "googleSheetSynced": true,
+      "googleSheetUrl": "https://docs.google.com/spreadsheets/d/1TifULi7n2BylQdvla-8DRvYHul_A1wXXzypUdBJwEeA/edit"
     },
     {
       "id": "Z2lkOi8vSm9iYmVyL1F1b3RlLzY3MDIyNTc1",
@@ -2112,7 +2169,9 @@
       "total": 223.32,
       "depositRequired": 50,
       "createdAt": "2026-10-08T23:19:27Z",
-      "jobberWebUri": "https://secure.getjobber.com/quotes/28911331"
+      "jobberWebUri": "https://secure.getjobber.com/quotes/67022575",
+      "googleSheetSynced": true,
+      "googleSheetUrl": "https://docs.google.com/spreadsheets/d/1TifULi7n2BylQdvla-8DRvYHul_A1wXXzypUdBJwEeA/edit"
     },
     {
       "id": "Z2lkOi8vSm9iYmVyL1F1b3RlLzY2MjM4MTg2",
@@ -2124,7 +2183,9 @@
       "total": 368.44,
       "depositRequired": 100,
       "createdAt": "2026-09-24T21:09:50Z",
-      "jobberWebUri": "https://secure.getjobber.com/quotes/289113242"
+      "jobberWebUri": "https://secure.getjobber.com/quotes/66238186",
+      "googleSheetSynced": true,
+      "googleSheetUrl": "https://docs.google.com/spreadsheets/d/1TifULi7n2BylQdvla-8DRvYHul_A1wXXzypUdBJwEeA/edit"
     },
     {
       "id": "Z2lkOi8vSm9iYmVyL1F1b3RlLzY2MTg1Nzc4",
@@ -2136,7 +2197,9 @@
       "total": 483.75,
       "depositRequired": 150,
       "createdAt": "2026-09-24T03:09:15Z",
-      "jobberWebUri": "https://secure.getjobber.com/quotes/289113214"
+      "jobberWebUri": "https://secure.getjobber.com/quotes/66185778",
+      "googleSheetSynced": true,
+      "googleSheetUrl": "https://docs.google.com/spreadsheets/d/1TifULi7n2BylQdvla-8DRvYHul_A1wXXzypUdBJwEeA/edit"
     },
     {
       "id": "Z2lkOi8vSm9iYmVyL1F1b3RlLzY2OTYwNjE5",
@@ -2148,7 +2211,9 @@
       "total": 376.88,
       "depositRequired": 100,
       "createdAt": "2026-10-08T01:16:10Z",
-      "jobberWebUri": "https://secure.getjobber.com/quotes/28911325"
+      "jobberWebUri": "https://secure.getjobber.com/quotes/66960619",
+      "googleSheetSynced": true,
+      "googleSheetUrl": "https://docs.google.com/spreadsheets/d/1TifULi7n2BylQdvla-8DRvYHul_A1wXXzypUdBJwEeA/edit"
     },
     {
       "id": "Z2lkOi8vSm9iYmVyL1F1b3RlLzY2OTM1OTM4",
@@ -2160,7 +2225,9 @@
       "total": 351.57,
       "depositRequired": 100,
       "createdAt": "2026-10-07T19:09:53Z",
-      "jobberWebUri": "https://secure.getjobber.com/quotes/289113214"
+      "jobberWebUri": "https://secure.getjobber.com/quotes/66935938",
+      "googleSheetSynced": true,
+      "googleSheetUrl": "https://docs.google.com/spreadsheets/d/1TifULi7n2BylQdvla-8DRvYHul_A1wXXzypUdBJwEeA/edit"
     },
     {
       "id": "Z2lkOi8vSm9iYmVyL1F1b3RlLzY2OTIwMjI0",
@@ -2172,7 +2239,9 @@
       "total": 357.19,
       "depositRequired": 100,
       "createdAt": "2026-10-07T16:41:53Z",
-      "jobberWebUri": "https://secure.getjobber.com/quotes/28911320"
+      "jobberWebUri": "https://secure.getjobber.com/quotes/66920224",
+      "googleSheetSynced": true,
+      "googleSheetUrl": "https://docs.google.com/spreadsheets/d/1TifULi7n2BylQdvla-8DRvYHul_A1wXXzypUdBJwEeA/edit"
     },
     {
       "id": "Z2lkOi8vSm9iYmVyL1F1b3RlLzY2ODc5NTM1",
@@ -2184,7 +2253,9 @@
       "total": 261.57,
       "depositRequired": 0,
       "createdAt": "2026-10-06T22:18:36Z",
-      "jobberWebUri": "https://secure.getjobber.com/quotes/289113251"
+      "jobberWebUri": "https://secure.getjobber.com/quotes/66879535",
+      "googleSheetSynced": true,
+      "googleSheetUrl": "https://docs.google.com/spreadsheets/d/1TifULi7n2BylQdvla-8DRvYHul_A1wXXzypUdBJwEeA/edit"
     },
     {
       "id": "Z2lkOi8vSm9iYmVyL1F1b3RlLzY2ODgzNTQz",
@@ -2196,7 +2267,9 @@
       "total": 217.69,
       "depositRequired": 50,
       "createdAt": "2026-10-06T23:28:36Z",
-      "jobberWebUri": "https://secure.getjobber.com/quotes/2891132"
+      "jobberWebUri": "https://secure.getjobber.com/quotes/66883543",
+      "googleSheetSynced": true,
+      "googleSheetUrl": "https://docs.google.com/spreadsheets/d/1TifULi7n2BylQdvla-8DRvYHul_A1wXXzypUdBJwEeA/edit"
     },
     {
       "id": "Z2lkOi8vSm9iYmVyL1F1b3RlLzY2NzcxNTcy",
@@ -2208,7 +2281,9 @@
       "total": 222.19,
       "depositRequired": 50,
       "createdAt": "2026-10-05T16:50:54Z",
-      "jobberWebUri": "https://secure.getjobber.com/quotes/2891132"
+      "jobberWebUri": "https://secure.getjobber.com/quotes/66771572",
+      "googleSheetSynced": true,
+      "googleSheetUrl": "https://docs.google.com/spreadsheets/d/1TifULi7n2BylQdvla-8DRvYHul_A1wXXzypUdBJwEeA/edit"
     },
     {
       "id": "Z2lkOi8vSm9iYmVyL1F1b3RlLzY2ODEyMTA5",
@@ -2220,7 +2295,9 @@
       "total": 223.32,
       "depositRequired": 50,
       "createdAt": "2026-10-06T00:18:59Z",
-      "jobberWebUri": "https://secure.getjobber.com/quotes/28911325"
+      "jobberWebUri": "https://secure.getjobber.com/quotes/66812109",
+      "googleSheetSynced": true,
+      "googleSheetUrl": "https://docs.google.com/spreadsheets/d/1TifULi7n2BylQdvla-8DRvYHul_A1wXXzypUdBJwEeA/edit"
     },
     {
       "id": "Z2lkOi8vSm9iYmVyL1F1b3RlLzY2MDI3ODYw",
@@ -2232,7 +2309,9 @@
       "total": 223.32,
       "depositRequired": 50,
       "createdAt": "2026-09-21T21:51:32Z",
-      "jobberWebUri": "https://secure.getjobber.com/quotes/28911323"
+      "jobberWebUri": "https://secure.getjobber.com/quotes/66027860",
+      "googleSheetSynced": true,
+      "googleSheetUrl": "https://docs.google.com/spreadsheets/d/1TifULi7n2BylQdvla-8DRvYHul_A1wXXzypUdBJwEeA/edit"
     },
     {
       "id": "Z2lkOi8vSm9iYmVyL1F1b3RlLzY2Nzg4MTg3",
@@ -2244,7 +2323,9 @@
       "total": 354.38,
       "depositRequired": 100,
       "createdAt": "2026-10-05T19:20:04Z",
-      "jobberWebUri": "https://secure.getjobber.com/quotes/289113243"
+      "jobberWebUri": "https://secure.getjobber.com/quotes/66788187",
+      "googleSheetSynced": true,
+      "googleSheetUrl": "https://docs.google.com/spreadsheets/d/1TifULi7n2BylQdvla-8DRvYHul_A1wXXzypUdBJwEeA/edit"
     },
     {
       "id": "Z2lkOi8vSm9iYmVyL1F1b3RlLzY2NzgyNjI5",
@@ -2256,7 +2337,9 @@
       "total": 365.63,
       "depositRequired": 100,
       "createdAt": "2026-10-05T18:30:00Z",
-      "jobberWebUri": "https://secure.getjobber.com/quotes/28911325"
+      "jobberWebUri": "https://secure.getjobber.com/quotes/66782629",
+      "googleSheetSynced": true,
+      "googleSheetUrl": "https://docs.google.com/spreadsheets/d/1TifULi7n2BylQdvla-8DRvYHul_A1wXXzypUdBJwEeA/edit"
     },
     {
       "id": "Z2lkOi8vSm9iYmVyL1F1b3RlLzY2Nzc4MDQx",
@@ -2268,7 +2351,9 @@
       "total": 458.44,
       "depositRequired": 125,
       "createdAt": "2026-10-05T17:49:01Z",
-      "jobberWebUri": "https://secure.getjobber.com/quotes/28911324"
+      "jobberWebUri": "https://secure.getjobber.com/quotes/66778041",
+      "googleSheetSynced": true,
+      "googleSheetUrl": "https://docs.google.com/spreadsheets/d/1TifULi7n2BylQdvla-8DRvYHul_A1wXXzypUdBJwEeA/edit"
     },
     {
       "id": "Z2lkOi8vSm9iYmVyL1F1b3RlLzY2NzcyMDA4",
@@ -2280,7 +2365,9 @@
       "total": 365.63,
       "depositRequired": 100,
       "createdAt": "2026-10-05T16:55:01Z",
-      "jobberWebUri": "https://secure.getjobber.com/quotes/28911324"
+      "jobberWebUri": "https://secure.getjobber.com/quotes/66772008",
+      "googleSheetSynced": true,
+      "googleSheetUrl": "https://docs.google.com/spreadsheets/d/1TifULi7n2BylQdvla-8DRvYHul_A1wXXzypUdBJwEeA/edit"
     },
     {
       "id": "Z2lkOi8vSm9iYmVyL1F1b3RlLzY1OTY0Mzg4",
@@ -2292,7 +2379,9 @@
       "total": 357.19,
       "depositRequired": 100,
       "createdAt": "2026-09-21T00:49:14Z",
-      "jobberWebUri": "https://secure.getjobber.com/quotes/289113104"
+      "jobberWebUri": "https://secure.getjobber.com/quotes/65964388",
+      "googleSheetSynced": true,
+      "googleSheetUrl": "https://docs.google.com/spreadsheets/d/1TifULi7n2BylQdvla-8DRvYHul_A1wXXzypUdBJwEeA/edit"
     },
     {
       "id": "Z2lkOi8vSm9iYmVyL1F1b3RlLzY2NzE0ODg4",
@@ -2304,7 +2393,9 @@
       "total": 376.88,
       "depositRequired": 100,
       "createdAt": "2026-10-03T18:36:04Z",
-      "jobberWebUri": "https://secure.getjobber.com/quotes/289113204"
+      "jobberWebUri": "https://secure.getjobber.com/quotes/66714888",
+      "googleSheetSynced": true,
+      "googleSheetUrl": "https://docs.google.com/spreadsheets/d/1TifULi7n2BylQdvla-8DRvYHul_A1wXXzypUdBJwEeA/edit"
     },
     {
       "id": "Z2lkOi8vSm9iYmVyL1F1b3RlLzY2NjY2NTUx",
@@ -2316,7 +2407,9 @@
       "total": 258.75,
       "depositRequired": 100,
       "createdAt": "2026-10-02T16:24:19Z",
-      "jobberWebUri": "https://secure.getjobber.com/quotes/28911322"
+      "jobberWebUri": "https://secure.getjobber.com/quotes/66666551",
+      "googleSheetSynced": true,
+      "googleSheetUrl": "https://docs.google.com/spreadsheets/d/1TifULi7n2BylQdvla-8DRvYHul_A1wXXzypUdBJwEeA/edit"
     },
     {
       "id": "Z2lkOi8vSm9iYmVyL1F1b3RlLzY1OTIzOTg0",
@@ -2328,7 +2421,9 @@
       "total": 333.57,
       "depositRequired": 50,
       "createdAt": "2026-09-18T21:28:54Z",
-      "jobberWebUri": "https://secure.getjobber.com/quotes/28911310"
+      "jobberWebUri": "https://secure.getjobber.com/quotes/65923984",
+      "googleSheetSynced": true,
+      "googleSheetUrl": "https://docs.google.com/spreadsheets/d/1TifULi7n2BylQdvla-8DRvYHul_A1wXXzypUdBJwEeA/edit"
     },
     {
       "id": "Z2lkOi8vSm9iYmVyL1F1b3RlLzY1OTExNzkw",
@@ -2340,7 +2435,9 @@
       "total": 801.57,
       "depositRequired": 0,
       "createdAt": "2026-09-18T18:59:15Z",
-      "jobberWebUri": "https://secure.getjobber.com/quotes/2891131"
+      "jobberWebUri": "https://secure.getjobber.com/quotes/65911790",
+      "googleSheetSynced": true,
+      "googleSheetUrl": "https://docs.google.com/spreadsheets/d/1TifULi7n2BylQdvla-8DRvYHul_A1wXXzypUdBJwEeA/edit"
     },
     {
       "id": "Z2lkOi8vSm9iYmVyL1F1b3RlLzY1OTAxNjQ5",
@@ -2352,7 +2449,9 @@
       "total": 267.19,
       "depositRequired": 75,
       "createdAt": "2026-09-18T17:11:52Z",
-      "jobberWebUri": "https://secure.getjobber.com/quotes/28911315"
+      "jobberWebUri": "https://secure.getjobber.com/quotes/65901649",
+      "googleSheetSynced": true,
+      "googleSheetUrl": "https://docs.google.com/spreadsheets/d/1TifULi7n2BylQdvla-8DRvYHul_A1wXXzypUdBJwEeA/edit"
     },
     {
       "id": "Z2lkOi8vSm9iYmVyL1F1b3RlLzY2NjA2MTA1",
@@ -2364,7 +2463,9 @@
       "total": 357.19,
       "depositRequired": 100,
       "createdAt": "2026-10-01T17:26:21Z",
-      "jobberWebUri": "https://secure.getjobber.com/quotes/289113221"
+      "jobberWebUri": "https://secure.getjobber.com/quotes/66606105",
+      "googleSheetSynced": true,
+      "googleSheetUrl": "https://docs.google.com/spreadsheets/d/1TifULi7n2BylQdvla-8DRvYHul_A1wXXzypUdBJwEeA/edit"
     },
     {
       "id": "Z2lkOi8vSm9iYmVyL1F1b3RlLzY2NjE2MTYx",
@@ -2376,7 +2477,9 @@
       "total": 223.32,
       "depositRequired": 0,
       "createdAt": "2026-10-01T19:07:09Z",
-      "jobberWebUri": "https://secure.getjobber.com/quotes/28911322"
+      "jobberWebUri": "https://secure.getjobber.com/quotes/66616161",
+      "googleSheetSynced": true,
+      "googleSheetUrl": "https://docs.google.com/spreadsheets/d/1TifULi7n2BylQdvla-8DRvYHul_A1wXXzypUdBJwEeA/edit"
     },
     {
       "id": "Z2lkOi8vSm9iYmVyL1F1b3RlLzY1ODQxODk1",
@@ -2388,7 +2491,9 @@
       "total": 223.32,
       "depositRequired": 50,
       "createdAt": "2026-09-17T18:21:41Z",
-      "jobberWebUri": "https://secure.getjobber.com/quotes/28911311"
+      "jobberWebUri": "https://secure.getjobber.com/quotes/65841895",
+      "googleSheetSynced": true,
+      "googleSheetUrl": "https://docs.google.com/spreadsheets/d/1TifULi7n2BylQdvla-8DRvYHul_A1wXXzypUdBJwEeA/edit"
     },
     {
       "id": "Z2lkOi8vSm9iYmVyL1F1b3RlLzY2NDU0MDg1",
@@ -2400,7 +2505,9 @@
       "total": 298.13,
       "depositRequired": 75,
       "createdAt": "2026-09-29T15:44:23Z",
-      "jobberWebUri": "https://secure.getjobber.com/quotes/289113201"
+      "jobberWebUri": "https://secure.getjobber.com/quotes/66454085",
+      "googleSheetSynced": true,
+      "googleSheetUrl": "https://docs.google.com/spreadsheets/d/1TifULi7n2BylQdvla-8DRvYHul_A1wXXzypUdBJwEeA/edit"
     },
     {
       "id": "Z2lkOi8vSm9iYmVyL1F1b3RlLzY1NzEwMjIw",
@@ -2412,7 +2519,9 @@
       "total": 334.69,
       "depositRequired": 100,
       "createdAt": "2026-09-15T20:21:41Z",
-      "jobberWebUri": "https://secure.getjobber.com/quotes/2891131"
+      "jobberWebUri": "https://secure.getjobber.com/quotes/65710220",
+      "googleSheetSynced": true,
+      "googleSheetUrl": "https://docs.google.com/spreadsheets/d/1TifULi7n2BylQdvla-8DRvYHul_A1wXXzypUdBJwEeA/edit"
     },
     {
       "id": "Z2lkOi8vSm9iYmVyL1F1b3RlLzY2NDQ5OTk4",
@@ -2424,7 +2533,9 @@
       "total": 340.32,
       "depositRequired": 100,
       "createdAt": "2026-09-29T15:02:36Z",
-      "jobberWebUri": "https://secure.getjobber.com/quotes/289113254"
+      "jobberWebUri": "https://secure.getjobber.com/quotes/66449998",
+      "googleSheetSynced": true,
+      "googleSheetUrl": "https://docs.google.com/spreadsheets/d/1TifULi7n2BylQdvla-8DRvYHul_A1wXXzypUdBJwEeA/edit"
     },
     {
       "id": "Z2lkOi8vSm9iYmVyL1F1b3RlLzY1NjUwNzQy",
@@ -2436,7 +2547,9 @@
       "total": 353.25,
       "depositRequired": 100,
       "createdAt": "2026-09-15T00:13:07Z",
-      "jobberWebUri": "https://secure.getjobber.com/quotes/2891131"
+      "jobberWebUri": "https://secure.getjobber.com/quotes/65650742",
+      "googleSheetSynced": true,
+      "googleSheetUrl": "https://docs.google.com/spreadsheets/d/1TifULi7n2BylQdvla-8DRvYHul_A1wXXzypUdBJwEeA/edit"
     },
     {
       "id": "Z2lkOi8vSm9iYmVyL1F1b3RlLzY2NDIxMjk4",
@@ -2448,7 +2561,9 @@
       "total": 357.19,
       "depositRequired": 100,
       "createdAt": "2026-09-28T22:51:19Z",
-      "jobberWebUri": "https://secure.getjobber.com/quotes/28911324"
+      "jobberWebUri": "https://secure.getjobber.com/quotes/66421298",
+      "googleSheetSynced": true,
+      "googleSheetUrl": "https://docs.google.com/spreadsheets/d/1TifULi7n2BylQdvla-8DRvYHul_A1wXXzypUdBJwEeA/edit"
     },
     {
       "id": "Z2lkOi8vSm9iYmVyL1F1b3RlLzY2Mzg4MzM2",
@@ -2460,7 +2575,9 @@
       "total": 357.19,
       "depositRequired": 100,
       "createdAt": "2026-09-28T17:18:34Z",
-      "jobberWebUri": "https://secure.getjobber.com/quotes/289113242"
+      "jobberWebUri": "https://secure.getjobber.com/quotes/66388336",
+      "googleSheetSynced": true,
+      "googleSheetUrl": "https://docs.google.com/spreadsheets/d/1TifULi7n2BylQdvla-8DRvYHul_A1wXXzypUdBJwEeA/edit"
     },
     {
       "id": "Z2lkOi8vSm9iYmVyL1F1b3RlLzY2Mzg4NzEw",
@@ -2472,7 +2589,9 @@
       "total": 278.44,
       "depositRequired": 75,
       "createdAt": "2026-09-28T17:22:05Z",
-      "jobberWebUri": "https://secure.getjobber.com/quotes/28911324"
+      "jobberWebUri": "https://secure.getjobber.com/quotes/66388710",
+      "googleSheetSynced": true,
+      "googleSheetUrl": "https://docs.google.com/spreadsheets/d/1TifULi7n2BylQdvla-8DRvYHul_A1wXXzypUdBJwEeA/edit"
     },
     {
       "id": "Z2lkOi8vSm9iYmVyL1F1b3RlLzY2Mzg3MTI1",
@@ -2484,7 +2603,9 @@
       "total": 317.82,
       "depositRequired": 100,
       "createdAt": "2026-09-28T17:08:04Z",
-      "jobberWebUri": "https://secure.getjobber.com/quotes/289113231"
+      "jobberWebUri": "https://secure.getjobber.com/quotes/66387125",
+      "googleSheetSynced": true,
+      "googleSheetUrl": "https://docs.google.com/spreadsheets/d/1TifULi7n2BylQdvla-8DRvYHul_A1wXXzypUdBJwEeA/edit"
     },
     {
       "id": "Z2lkOi8vSm9iYmVyL1F1b3RlLzY2MzUwMzI2",
@@ -2496,7 +2617,9 @@
       "total": 357.19,
       "depositRequired": 100,
       "createdAt": "2026-09-27T22:47:04Z",
-      "jobberWebUri": "https://secure.getjobber.com/quotes/28911322"
+      "jobberWebUri": "https://secure.getjobber.com/quotes/66350326",
+      "googleSheetSynced": true,
+      "googleSheetUrl": "https://docs.google.com/spreadsheets/d/1TifULi7n2BylQdvla-8DRvYHul_A1wXXzypUdBJwEeA/edit"
     },
     {
       "id": "Z2lkOi8vSm9iYmVyL1F1b3RlLzY2MzQ3NzI3",
@@ -2508,7 +2631,9 @@
       "total": 162,
       "depositRequired": 50,
       "createdAt": "2026-09-27T20:13:22Z",
-      "jobberWebUri": "https://secure.getjobber.com/quotes/289113233"
+      "jobberWebUri": "https://secure.getjobber.com/quotes/66347727",
+      "googleSheetSynced": true,
+      "googleSheetUrl": "https://docs.google.com/spreadsheets/d/1TifULi7n2BylQdvla-8DRvYHul_A1wXXzypUdBJwEeA/edit"
     },
     {
       "id": "Z2lkOi8vSm9iYmVyL1F1b3RlLzY2MzQ1NjU0",
@@ -2520,7 +2645,9 @@
       "total": 223.32,
       "depositRequired": 50,
       "createdAt": "2026-09-27T18:02:08Z",
-      "jobberWebUri": "https://secure.getjobber.com/quotes/289113210"
+      "jobberWebUri": "https://secure.getjobber.com/quotes/66345654",
+      "googleSheetSynced": true,
+      "googleSheetUrl": "https://docs.google.com/spreadsheets/d/1TifULi7n2BylQdvla-8DRvYHul_A1wXXzypUdBJwEeA/edit"
     },
     {
       "id": "Z2lkOi8vSm9iYmVyL1F1b3RlLzY1NTY4MjQy",
@@ -2532,7 +2659,9 @@
       "total": 376.88,
       "depositRequired": 100,
       "createdAt": "2026-09-13T15:55:56Z",
-      "jobberWebUri": "https://secure.getjobber.com/quotes/28911314"
+      "jobberWebUri": "https://secure.getjobber.com/quotes/65568242",
+      "googleSheetSynced": true,
+      "googleSheetUrl": "https://docs.google.com/spreadsheets/d/1TifULi7n2BylQdvla-8DRvYHul_A1wXXzypUdBJwEeA/edit"
     },
     {
       "id": "Z2lkOi8vSm9iYmVyL1F1b3RlLzY2MTU2MDg1",
@@ -2544,7 +2673,9 @@
       "total": 156.94,
       "depositRequired": 50,
       "createdAt": "2026-09-23T18:52:01Z",
-      "jobberWebUri": "https://secure.getjobber.com/quotes/289113221"
+      "jobberWebUri": "https://secure.getjobber.com/quotes/66156085",
+      "googleSheetSynced": true,
+      "googleSheetUrl": "https://docs.google.com/spreadsheets/d/1TifULi7n2BylQdvla-8DRvYHul_A1wXXzypUdBJwEeA/edit"
     },
     {
       "id": "Z2lkOi8vSm9iYmVyL1F1b3RlLzY2MzM4NDM1",
@@ -2556,7 +2687,9 @@
       "total": 461.25,
       "depositRequired": 100,
       "createdAt": "2026-09-27T00:15:49Z",
-      "jobberWebUri": "https://secure.getjobber.com/quotes/289113241"
+      "jobberWebUri": "https://secure.getjobber.com/quotes/66338435",
+      "googleSheetSynced": true,
+      "googleSheetUrl": "https://docs.google.com/spreadsheets/d/1TifULi7n2BylQdvla-8DRvYHul_A1wXXzypUdBJwEeA/edit"
     },
     {
       "id": "Z2lkOi8vSm9iYmVyL1F1b3RlLzY1NTU3MTM5",
@@ -2568,7 +2701,9 @@
       "total": 168.19,
       "depositRequired": 50,
       "createdAt": "2026-09-12T18:58:43Z",
-      "jobberWebUri": "https://secure.getjobber.com/quotes/289113135"
+      "jobberWebUri": "https://secure.getjobber.com/quotes/65557139",
+      "googleSheetSynced": true,
+      "googleSheetUrl": "https://docs.google.com/spreadsheets/d/1TifULi7n2BylQdvla-8DRvYHul_A1wXXzypUdBJwEeA/edit"
     },
     {
       "id": "Z2lkOi8vSm9iYmVyL1F1b3RlLzY2Mjg3NTY1",
@@ -2580,7 +2715,9 @@
       "total": 348.75,
       "depositRequired": 100,
       "createdAt": "2026-09-25T17:35:28Z",
-      "jobberWebUri": "https://secure.getjobber.com/quotes/289113231"
+      "jobberWebUri": "https://secure.getjobber.com/quotes/66287565",
+      "googleSheetSynced": true,
+      "googleSheetUrl": "https://docs.google.com/spreadsheets/d/1TifULi7n2BylQdvla-8DRvYHul_A1wXXzypUdBJwEeA/edit"
     },
     {
       "id": "Z2lkOi8vSm9iYmVyL1F1b3RlLzY2MjQ3MTIz",
@@ -2592,7 +2729,9 @@
       "total": 170.5,
       "depositRequired": 0,
       "createdAt": "2026-09-24T23:36:31Z",
-      "jobberWebUri": "https://secure.getjobber.com/quotes/28911323"
+      "jobberWebUri": "https://secure.getjobber.com/quotes/66247123",
+      "googleSheetSynced": true,
+      "googleSheetUrl": "https://docs.google.com/spreadsheets/d/1TifULi7n2BylQdvla-8DRvYHul_A1wXXzypUdBJwEeA/edit"
     },
     {
       "id": "Z2lkOi8vSm9iYmVyL1F1b3RlLzY2MjExMjA1",
@@ -2604,7 +2743,9 @@
       "total": 239.07,
       "depositRequired": 100,
       "createdAt": "2026-09-24T16:30:38Z",
-      "jobberWebUri": "https://secure.getjobber.com/quotes/28911321"
+      "jobberWebUri": "https://secure.getjobber.com/quotes/66211205",
+      "googleSheetSynced": true,
+      "googleSheetUrl": "https://docs.google.com/spreadsheets/d/1TifULi7n2BylQdvla-8DRvYHul_A1wXXzypUdBJwEeA/edit"
     },
     {
       "id": "Z2lkOi8vSm9iYmVyL1F1b3RlLzY1Mzc1MDIw",
@@ -2616,7 +2757,9 @@
       "total": 452.82,
       "depositRequired": 75,
       "createdAt": "2026-09-09T18:27:17Z",
-      "jobberWebUri": "https://secure.getjobber.com/quotes/28911311"
+      "jobberWebUri": "https://secure.getjobber.com/quotes/65375020",
+      "googleSheetSynced": true,
+      "googleSheetUrl": "https://docs.google.com/spreadsheets/d/1TifULi7n2BylQdvla-8DRvYHul_A1wXXzypUdBJwEeA/edit"
     },
     {
       "id": "Z2lkOi8vSm9iYmVyL1F1b3RlLzY1MzYzMjQ1",
@@ -2628,7 +2771,9 @@
       "total": 284.07,
       "depositRequired": 75,
       "createdAt": "2026-09-09T16:42:27Z",
-      "jobberWebUri": "https://secure.getjobber.com/quotes/28911311"
+      "jobberWebUri": "https://secure.getjobber.com/quotes/65363245",
+      "googleSheetSynced": true,
+      "googleSheetUrl": "https://docs.google.com/spreadsheets/d/1TifULi7n2BylQdvla-8DRvYHul_A1wXXzypUdBJwEeA/edit"
     },
     {
       "id": "Z2lkOi8vSm9iYmVyL1F1b3RlLzY1OTQ4Mzky",
@@ -2640,7 +2785,9 @@
       "total": 475.32,
       "depositRequired": 150,
       "createdAt": "2026-09-19T22:02:41Z",
-      "jobberWebUri": "https://secure.getjobber.com/quotes/28911314"
+      "jobberWebUri": "https://secure.getjobber.com/quotes/65948392",
+      "googleSheetSynced": true,
+      "googleSheetUrl": "https://docs.google.com/spreadsheets/d/1TifULi7n2BylQdvla-8DRvYHul_A1wXXzypUdBJwEeA/edit"
     },
     {
       "id": "Z2lkOi8vSm9iYmVyL1F1b3RlLzY1MjU3NTUz",
@@ -2652,7 +2799,9 @@
       "total": 475.32,
       "depositRequired": 150,
       "createdAt": "2026-09-08T01:55:34Z",
-      "jobberWebUri": "https://secure.getjobber.com/quotes/28911313"
+      "jobberWebUri": "https://secure.getjobber.com/quotes/65257553",
+      "googleSheetSynced": true,
+      "googleSheetUrl": "https://docs.google.com/spreadsheets/d/1TifULi7n2BylQdvla-8DRvYHul_A1wXXzypUdBJwEeA/edit"
     },
     {
       "id": "Z2lkOi8vSm9iYmVyL1F1b3RlLzY2MDAyNjEy",
@@ -2664,7 +2813,9 @@
       "total": 216.57,
       "depositRequired": 50,
       "createdAt": "2026-09-21T17:52:10Z",
-      "jobberWebUri": "https://secure.getjobber.com/quotes/2891132"
+      "jobberWebUri": "https://secure.getjobber.com/quotes/66002612",
+      "googleSheetSynced": true,
+      "googleSheetUrl": "https://docs.google.com/spreadsheets/d/1TifULi7n2BylQdvla-8DRvYHul_A1wXXzypUdBJwEeA/edit"
     },
     {
       "id": "Z2lkOi8vSm9iYmVyL1F1b3RlLzY2MDAwNjMz",
@@ -2676,7 +2827,9 @@
       "total": 475,
       "depositRequired": 125,
       "createdAt": "2026-09-21T17:35:06Z",
-      "jobberWebUri": "https://secure.getjobber.com/quotes/2891132"
+      "jobberWebUri": "https://secure.getjobber.com/quotes/66000633",
+      "googleSheetSynced": true,
+      "googleSheetUrl": "https://docs.google.com/spreadsheets/d/1TifULi7n2BylQdvla-8DRvYHul_A1wXXzypUdBJwEeA/edit"
     },
     {
       "id": "Z2lkOi8vSm9iYmVyL1F1b3RlLzY2MDAxNTg4",
@@ -2688,7 +2841,9 @@
       "total": 327.5,
       "depositRequired": 0,
       "createdAt": "2026-09-21T17:43:19Z",
-      "jobberWebUri": "https://secure.getjobber.com/quotes/28911324"
+      "jobberWebUri": "https://secure.getjobber.com/quotes/66001588",
+      "googleSheetSynced": true,
+      "googleSheetUrl": "https://docs.google.com/spreadsheets/d/1TifULi7n2BylQdvla-8DRvYHul_A1wXXzypUdBJwEeA/edit"
     },
     {
       "id": "Z2lkOi8vSm9iYmVyL1F1b3RlLzY1OTYyMDYy",
@@ -2700,7 +2855,9 @@
       "total": 357.19,
       "depositRequired": 100,
       "createdAt": "2026-09-20T22:28:03Z",
-      "jobberWebUri": "https://secure.getjobber.com/quotes/2891131"
+      "jobberWebUri": "https://secure.getjobber.com/quotes/65962062",
+      "googleSheetSynced": true,
+      "googleSheetUrl": "https://docs.google.com/spreadsheets/d/1TifULi7n2BylQdvla-8DRvYHul_A1wXXzypUdBJwEeA/edit"
     },
     {
       "id": "Z2lkOi8vSm9iYmVyL1F1b3RlLzY1MjI5MTc0",
@@ -2712,7 +2869,9 @@
       "total": 162.57,
       "depositRequired": 50,
       "createdAt": "2026-09-06T21:44:42Z",
-      "jobberWebUri": "https://secure.getjobber.com/quotes/289113150"
+      "jobberWebUri": "https://secure.getjobber.com/quotes/65229174",
+      "googleSheetSynced": true,
+      "googleSheetUrl": "https://docs.google.com/spreadsheets/d/1TifULi7n2BylQdvla-8DRvYHul_A1wXXzypUdBJwEeA/edit"
     },
     {
       "id": "Z2lkOi8vSm9iYmVyL1F1b3RlLzY1MjE1NjM3",
@@ -2724,7 +2883,9 @@
       "total": 239.07,
       "depositRequired": 75,
       "createdAt": "2026-09-05T19:39:48Z",
-      "jobberWebUri": "https://secure.getjobber.com/quotes/289113113"
+      "jobberWebUri": "https://secure.getjobber.com/quotes/65215637",
+      "googleSheetSynced": true,
+      "googleSheetUrl": "https://docs.google.com/spreadsheets/d/1TifULi7n2BylQdvla-8DRvYHul_A1wXXzypUdBJwEeA/edit"
     },
     {
       "id": "Z2lkOi8vSm9iYmVyL1F1b3RlLzY1OTM4NzM0",
@@ -2736,7 +2897,9 @@
       "total": 284.07,
       "depositRequired": 75,
       "createdAt": "2026-09-19T15:03:10Z",
-      "jobberWebUri": "https://secure.getjobber.com/quotes/289113140"
+      "jobberWebUri": "https://secure.getjobber.com/quotes/65938734",
+      "googleSheetSynced": true,
+      "googleSheetUrl": "https://docs.google.com/spreadsheets/d/1TifULi7n2BylQdvla-8DRvYHul_A1wXXzypUdBJwEeA/edit"
     },
     {
       "id": "Z2lkOi8vSm9iYmVyL1F1b3RlLzY1MjAzNDQz",
@@ -2748,7 +2911,9 @@
       "total": 212.07,
       "depositRequired": 50,
       "createdAt": "2026-09-05T02:17:11Z",
-      "jobberWebUri": "https://secure.getjobber.com/quotes/2891131"
+      "jobberWebUri": "https://secure.getjobber.com/quotes/65203443",
+      "googleSheetSynced": true,
+      "googleSheetUrl": "https://docs.google.com/spreadsheets/d/1TifULi7n2BylQdvla-8DRvYHul_A1wXXzypUdBJwEeA/edit"
     },
     {
       "id": "Z2lkOi8vSm9iYmVyL1F1b3RlLzY1MDA0NTE5",
@@ -2760,7 +2925,9 @@
       "total": 475.32,
       "depositRequired": 150,
       "createdAt": "2026-09-02T03:33:51Z",
-      "jobberWebUri": "https://secure.getjobber.com/quotes/289113105"
+      "jobberWebUri": "https://secure.getjobber.com/quotes/65004519",
+      "googleSheetSynced": true,
+      "googleSheetUrl": "https://docs.google.com/spreadsheets/d/1TifULi7n2BylQdvla-8DRvYHul_A1wXXzypUdBJwEeA/edit"
     },
     {
       "id": "Z2lkOi8vSm9iYmVyL1F1b3RlLzY0OTU3MDIy",
@@ -2772,7 +2939,9 @@
       "total": 365.63,
       "depositRequired": 150,
       "createdAt": "2026-09-01T16:17:20Z",
-      "jobberWebUri": "https://secure.getjobber.com/quotes/28911303"
+      "jobberWebUri": "https://secure.getjobber.com/quotes/64957022",
+      "googleSheetSynced": true,
+      "googleSheetUrl": "https://docs.google.com/spreadsheets/d/1TifULi7n2BylQdvla-8DRvYHul_A1wXXzypUdBJwEeA/edit"
     },
     {
       "id": "Z2lkOi8vSm9iYmVyL1F1b3RlLzY1NDY5NDMy",
@@ -2784,7 +2953,9 @@
       "total": 357.19,
       "depositRequired": 100,
       "createdAt": "2026-09-10T21:51:00Z",
-      "jobberWebUri": "https://secure.getjobber.com/quotes/28911315"
+      "jobberWebUri": "https://secure.getjobber.com/quotes/65469432",
+      "googleSheetSynced": true,
+      "googleSheetUrl": "https://docs.google.com/spreadsheets/d/1TifULi7n2BylQdvla-8DRvYHul_A1wXXzypUdBJwEeA/edit"
     },
     {
       "id": "Z2lkOi8vSm9iYmVyL1F1b3RlLzY1NTYxNTAz",
@@ -2796,7 +2967,9 @@
       "total": 334.69,
       "depositRequired": 100,
       "createdAt": "2026-09-12T22:32:34Z",
-      "jobberWebUri": "https://secure.getjobber.com/quotes/2891131"
+      "jobberWebUri": "https://secure.getjobber.com/quotes/65561503",
+      "googleSheetSynced": true,
+      "googleSheetUrl": "https://docs.google.com/spreadsheets/d/1TifULi7n2BylQdvla-8DRvYHul_A1wXXzypUdBJwEeA/edit"
     },
     {
       "id": "Z2lkOi8vSm9iYmVyL1F1b3RlLzY1NDc0MzE4",
@@ -2808,7 +2981,9 @@
       "total": 376.88,
       "depositRequired": 150,
       "createdAt": "2026-09-10T23:06:53Z",
-      "jobberWebUri": "https://secure.getjobber.com/quotes/289113104"
+      "jobberWebUri": "https://secure.getjobber.com/quotes/65474318",
+      "googleSheetSynced": true,
+      "googleSheetUrl": "https://docs.google.com/spreadsheets/d/1TifULi7n2BylQdvla-8DRvYHul_A1wXXzypUdBJwEeA/edit"
     },
     {
       "id": "Z2lkOi8vSm9iYmVyL1F1b3RlLzY1MzA5ODM2",
@@ -2820,7 +2995,9 @@
       "total": 475.32,
       "depositRequired": 125,
       "createdAt": "2026-09-08T20:13:11Z",
-      "jobberWebUri": "https://secure.getjobber.com/quotes/289113152"
+      "jobberWebUri": "https://secure.getjobber.com/quotes/65309836",
+      "googleSheetSynced": true,
+      "googleSheetUrl": "https://docs.google.com/spreadsheets/d/1TifULi7n2BylQdvla-8DRvYHul_A1wXXzypUdBJwEeA/edit"
     },
     {
       "id": "Z2lkOi8vSm9iYmVyL1F1b3RlLzY1MjI5MjMz",
@@ -2832,7 +3009,9 @@
       "total": 195.75,
       "depositRequired": 50,
       "createdAt": "2026-09-06T21:49:13Z",
-      "jobberWebUri": "https://secure.getjobber.com/quotes/28911315"
+      "jobberWebUri": "https://secure.getjobber.com/quotes/65229233",
+      "googleSheetSynced": true,
+      "googleSheetUrl": "https://docs.google.com/spreadsheets/d/1TifULi7n2BylQdvla-8DRvYHul_A1wXXzypUdBJwEeA/edit"
     },
     {
       "id": "Z2lkOi8vSm9iYmVyL1F1b3RlLzY1MzE4MjMx",
@@ -2844,7 +3023,9 @@
       "total": 169.32,
       "depositRequired": 50,
       "createdAt": "2026-09-08T21:39:50Z",
-      "jobberWebUri": "https://secure.getjobber.com/quotes/28911314"
+      "jobberWebUri": "https://secure.getjobber.com/quotes/65318231",
+      "googleSheetSynced": true,
+      "googleSheetUrl": "https://docs.google.com/spreadsheets/d/1TifULi7n2BylQdvla-8DRvYHul_A1wXXzypUdBJwEeA/edit"
     },
     {
       "id": "Z2lkOi8vSm9iYmVyL1F1b3RlLzY1MzA5MDI4",
@@ -2856,7 +3037,9 @@
       "total": 168.19,
       "depositRequired": 50,
       "createdAt": "2026-09-08T20:05:45Z",
-      "jobberWebUri": "https://secure.getjobber.com/quotes/289113154"
+      "jobberWebUri": "https://secure.getjobber.com/quotes/65309028",
+      "googleSheetSynced": true,
+      "googleSheetUrl": "https://docs.google.com/spreadsheets/d/1TifULi7n2BylQdvla-8DRvYHul_A1wXXzypUdBJwEeA/edit"
     },
     {
       "id": "Z2lkOi8vSm9iYmVyL1F1b3RlLzY1MTYzOTQy",
@@ -2868,7 +3051,9 @@
       "total": 357.19,
       "depositRequired": 100,
       "createdAt": "2026-09-04T15:32:02Z",
-      "jobberWebUri": "https://secure.getjobber.com/quotes/2891131"
+      "jobberWebUri": "https://secure.getjobber.com/quotes/65163942",
+      "googleSheetSynced": true,
+      "googleSheetUrl": "https://docs.google.com/spreadsheets/d/1TifULi7n2BylQdvla-8DRvYHul_A1wXXzypUdBJwEeA/edit"
     },
     {
       "id": "Z2lkOi8vSm9iYmVyL1F1b3RlLzY1MTQ3MzU1",
@@ -2880,7 +3065,9 @@
       "total": 357.19,
       "depositRequired": 100,
       "createdAt": "2026-09-04T06:56:25Z",
-      "jobberWebUri": "https://secure.getjobber.com/quotes/289113131"
+      "jobberWebUri": "https://secure.getjobber.com/quotes/65147355",
+      "googleSheetSynced": true,
+      "googleSheetUrl": "https://docs.google.com/spreadsheets/d/1TifULi7n2BylQdvla-8DRvYHul_A1wXXzypUdBJwEeA/edit"
     },
     {
       "id": "Z2lkOi8vSm9iYmVyL1F1b3RlLzY1MDU1MDM2",
@@ -2892,7 +3079,9 @@
       "total": 145.69,
       "depositRequired": 50,
       "createdAt": "2026-09-02T20:18:35Z",
-      "jobberWebUri": "https://secure.getjobber.com/quotes/289113112"
+      "jobberWebUri": "https://secure.getjobber.com/quotes/65055036",
+      "googleSheetSynced": true,
+      "googleSheetUrl": "https://docs.google.com/spreadsheets/d/1TifULi7n2BylQdvla-8DRvYHul_A1wXXzypUdBJwEeA/edit"
     },
     {
       "id": "Z2lkOi8vSm9iYmVyL1F1b3RlLzY0OTU4Njc5",
@@ -2904,7 +3093,9 @@
       "total": 357.19,
       "depositRequired": 100,
       "createdAt": "2026-09-01T16:33:54Z",
-      "jobberWebUri": "https://secure.getjobber.com/quotes/289113045"
+      "jobberWebUri": "https://secure.getjobber.com/quotes/64958679",
+      "googleSheetSynced": true,
+      "googleSheetUrl": "https://docs.google.com/spreadsheets/d/1TifULi7n2BylQdvla-8DRvYHul_A1wXXzypUdBJwEeA/edit"
     },
     {
       "id": "Z2lkOi8vSm9iYmVyL1F1b3RlLzY0OTYxNDg4",
@@ -2916,7 +3107,9 @@
       "total": 151.32,
       "depositRequired": 50,
       "createdAt": "2026-09-01T17:00:44Z",
-      "jobberWebUri": "https://secure.getjobber.com/quotes/28911304"
+      "jobberWebUri": "https://secure.getjobber.com/quotes/64961488",
+      "googleSheetSynced": true,
+      "googleSheetUrl": "https://docs.google.com/spreadsheets/d/1TifULi7n2BylQdvla-8DRvYHul_A1wXXzypUdBJwEeA/edit"
     }
   ],
   "invoices": [
@@ -2931,7 +3124,7 @@
       "balance": 0,
       "issuedDate": "2026-10-10",
       "dueDate": "2026-10-10",
-      "jobberWebUri": "https://secure.getjobber.com/invoices/28909214"
+      "jobberWebUri": "https://secure.getjobber.com/invoices/175508600"
     },
     {
       "id": "Z2lkOi8vSm9iYmVyL0ludm9pY2UvMTc1NDU4NTE5",
@@ -2944,7 +3137,7 @@
       "balance": 0,
       "issuedDate": "2026-10-09",
       "dueDate": "2026-10-09",
-      "jobberWebUri": "https://secure.getjobber.com/invoices/289092145"
+      "jobberWebUri": "https://secure.getjobber.com/invoices/175458519"
     },
     {
       "id": "Z2lkOi8vSm9iYmVyL0ludm9pY2UvMTc1MzMzNzk5",
@@ -2957,7 +3150,7 @@
       "balance": 0,
       "issuedDate": "2026-10-09",
       "dueDate": "2026-10-08",
-      "jobberWebUri": "https://secure.getjobber.com/invoices/28909215"
+      "jobberWebUri": "https://secure.getjobber.com/invoices/175333799"
     },
     {
       "id": "Z2lkOi8vSm9iYmVyL0ludm9pY2UvMTc1MzA0NjEz",
@@ -2970,7 +3163,7 @@
       "balance": 0,
       "issuedDate": "2026-10-08",
       "dueDate": "2026-10-08",
-      "jobberWebUri": "https://secure.getjobber.com/invoices/28909210"
+      "jobberWebUri": "https://secure.getjobber.com/invoices/175304613"
     },
     {
       "id": "Z2lkOi8vSm9iYmVyL0ludm9pY2UvMTc1MzE4OTM3",
@@ -2983,7 +3176,7 @@
       "balance": 0,
       "issuedDate": "2026-10-08",
       "dueDate": "2026-10-08",
-      "jobberWebUri": "https://secure.getjobber.com/invoices/289092143"
+      "jobberWebUri": "https://secure.getjobber.com/invoices/175318937"
     },
     {
       "id": "Z2lkOi8vSm9iYmVyL0ludm9pY2UvMTc1MzI5OTE0",
@@ -2996,7 +3189,7 @@
       "balance": 0,
       "issuedDate": "2026-10-08",
       "dueDate": "2026-10-08",
-      "jobberWebUri": "https://secure.getjobber.com/invoices/289092150"
+      "jobberWebUri": "https://secure.getjobber.com/invoices/175329914"
     },
     {
       "id": "Z2lkOi8vSm9iYmVyL0ludm9pY2UvMTc1MTc5NzM1",
@@ -3009,7 +3202,7 @@
       "balance": 0,
       "issuedDate": "2026-10-08",
       "dueDate": "2026-10-07",
-      "jobberWebUri": "https://secure.getjobber.com/invoices/289092151"
+      "jobberWebUri": "https://secure.getjobber.com/invoices/175179735"
     },
     {
       "id": "Z2lkOi8vSm9iYmVyL0ludm9pY2UvMTc1MDEzOTQz",
@@ -3022,7 +3215,7 @@
       "balance": 0,
       "issuedDate": "2026-10-07",
       "dueDate": "2026-10-06",
-      "jobberWebUri": "https://secure.getjobber.com/invoices/2890921"
+      "jobberWebUri": "https://secure.getjobber.com/invoices/175013943"
     },
     {
       "id": "Z2lkOi8vSm9iYmVyL0ludm9pY2UvMTc1Mjg5MTk0",
@@ -3035,7 +3228,7 @@
       "balance": 0,
       "issuedDate": "2026-10-08",
       "dueDate": "2026-10-08",
-      "jobberWebUri": "https://secure.getjobber.com/invoices/289092150"
+      "jobberWebUri": "https://secure.getjobber.com/invoices/175289194"
     },
     {
       "id": "Z2lkOi8vSm9iYmVyL0ludm9pY2UvMTc1MTcwODIx",
@@ -3048,7 +3241,7 @@
       "balance": 0,
       "issuedDate": "2026-10-07",
       "dueDate": "2026-10-07",
-      "jobberWebUri": "https://secure.getjobber.com/invoices/2890921"
+      "jobberWebUri": "https://secure.getjobber.com/invoices/175170821"
     },
     {
       "id": "Z2lkOi8vSm9iYmVyL0ludm9pY2UvMTc1MTI2ODE0",
@@ -3061,7 +3254,7 @@
       "balance": 0,
       "issuedDate": "2026-10-07",
       "dueDate": "2026-10-07",
-      "jobberWebUri": "https://secure.getjobber.com/invoices/289092120"
+      "jobberWebUri": "https://secure.getjobber.com/invoices/175126814"
     },
     {
       "id": "Z2lkOi8vSm9iYmVyL0ludm9pY2UvMTc1MDEwMzkz",
@@ -3074,7 +3267,7 @@
       "balance": 0,
       "issuedDate": "2026-10-06",
       "dueDate": "2026-10-06",
-      "jobberWebUri": "https://secure.getjobber.com/invoices/2890921"
+      "jobberWebUri": "https://secure.getjobber.com/invoices/175010393"
     },
     {
       "id": "Z2lkOi8vSm9iYmVyL0ludm9pY2UvMTc0ODEzOTEx",
@@ -3087,7 +3280,7 @@
       "balance": 0,
       "issuedDate": "2026-10-05",
       "dueDate": "2026-10-05",
-      "jobberWebUri": "https://secure.getjobber.com/invoices/2890920"
+      "jobberWebUri": "https://secure.getjobber.com/invoices/174813911"
     },
     {
       "id": "Z2lkOi8vSm9iYmVyL0ludm9pY2UvMTc0ODMyOTcy",
@@ -3100,7 +3293,7 @@
       "balance": 0,
       "issuedDate": "2026-10-05",
       "dueDate": "2026-10-05",
-      "jobberWebUri": "https://secure.getjobber.com/invoices/2890920"
+      "jobberWebUri": "https://secure.getjobber.com/invoices/174832972"
     },
     {
       "id": "Z2lkOi8vSm9iYmVyL0ludm9pY2UvMTc0ODMxNTU2",
@@ -3113,7 +3306,7 @@
       "balance": 0,
       "issuedDate": "2026-10-05",
       "dueDate": "2026-10-05",
-      "jobberWebUri": "https://secure.getjobber.com/invoices/28909202"
+      "jobberWebUri": "https://secure.getjobber.com/invoices/174831556"
     },
     {
       "id": "Z2lkOi8vSm9iYmVyL0ludm9pY2UvMTc0NTQzNjM1",
@@ -3126,7 +3319,7 @@
       "balance": 0,
       "issuedDate": "2026-10-02",
       "dueDate": "2026-10-02",
-      "jobberWebUri": "https://secure.getjobber.com/invoices/28909201"
+      "jobberWebUri": "https://secure.getjobber.com/invoices/174543635"
     },
     {
       "id": "Z2lkOi8vSm9iYmVyL0ludm9pY2UvMTc0NTY5MTE3",
@@ -3139,7 +3332,7 @@
       "balance": 0,
       "issuedDate": "2026-10-03",
       "dueDate": "2026-10-02",
-      "jobberWebUri": "https://secure.getjobber.com/invoices/289092053"
+      "jobberWebUri": "https://secure.getjobber.com/invoices/174569117"
     },
     {
       "id": "Z2lkOi8vSm9iYmVyL0ludm9pY2UvMTc0MzQ0MTAw",
@@ -3152,7 +3345,7 @@
       "balance": 0,
       "issuedDate": "2026-10-02",
       "dueDate": "2026-10-02",
-      "jobberWebUri": "https://secure.getjobber.com/invoices/28909200"
+      "jobberWebUri": "https://secure.getjobber.com/invoices/174344100"
     },
     {
       "id": "Z2lkOi8vSm9iYmVyL0ludm9pY2UvMTc0NTU2NTU4",
@@ -3165,7 +3358,7 @@
       "balance": 0,
       "issuedDate": "2026-10-02",
       "dueDate": "2026-10-02",
-      "jobberWebUri": "https://secure.getjobber.com/invoices/289092024"
+      "jobberWebUri": "https://secure.getjobber.com/invoices/174556558"
     },
     {
       "id": "Z2lkOi8vSm9iYmVyL0ludm9pY2UvMTc0MDMxNTQy",
@@ -3178,7 +3371,7 @@
       "balance": 0,
       "issuedDate": "2026-10-01",
       "dueDate": "2026-09-30",
-      "jobberWebUri": "https://secure.getjobber.com/invoices/2890920"
+      "jobberWebUri": "https://secure.getjobber.com/invoices/174031542"
     },
     {
       "id": "Z2lkOi8vSm9iYmVyL0ludm9pY2UvMTc0Mzg4Njc2",
@@ -3191,7 +3384,7 @@
       "balance": 0,
       "issuedDate": "2026-10-02",
       "dueDate": "2026-10-01",
-      "jobberWebUri": "https://secure.getjobber.com/invoices/289092042"
+      "jobberWebUri": "https://secure.getjobber.com/invoices/174388676"
     },
     {
       "id": "Z2lkOi8vSm9iYmVyL0ludm9pY2UvMTc0MDEyMjAz",
@@ -3204,7 +3397,7 @@
       "balance": 0,
       "issuedDate": "2026-09-30",
       "dueDate": "2026-09-30",
-      "jobberWebUri": "https://secure.getjobber.com/invoices/2890920"
+      "jobberWebUri": "https://secure.getjobber.com/invoices/174012203"
     },
     {
       "id": "Z2lkOi8vSm9iYmVyL0ludm9pY2UvMTczOTYzMTY2",
@@ -3217,7 +3410,7 @@
       "balance": 0,
       "issuedDate": "2026-09-30",
       "dueDate": "2026-09-30",
-      "jobberWebUri": "https://secure.getjobber.com/invoices/2890922"
+      "jobberWebUri": "https://secure.getjobber.com/invoices/173963166"
     },
     {
       "id": "Z2lkOi8vSm9iYmVyL0ludm9pY2UvMTczOTc3ODE0",
@@ -3230,7 +3423,7 @@
       "balance": 0,
       "issuedDate": "2026-09-30",
       "dueDate": "2026-09-30",
-      "jobberWebUri": "https://secure.getjobber.com/invoices/28909230"
+      "jobberWebUri": "https://secure.getjobber.com/invoices/173977814"
     },
     {
       "id": "Z2lkOi8vSm9iYmVyL0ludm9pY2UvMTczNTc4NDk3",
@@ -3243,7 +3436,7 @@
       "balance": 0,
       "issuedDate": "2026-09-28",
       "dueDate": "2026-09-28",
-      "jobberWebUri": "https://secure.getjobber.com/invoices/28909243"
+      "jobberWebUri": "https://secure.getjobber.com/invoices/173578497"
     },
     {
       "id": "Z2lkOi8vSm9iYmVyL0ludm9pY2UvMTcyOTQxNzEz",
@@ -3256,7 +3449,7 @@
       "balance": 0,
       "issuedDate": "2026-09-22",
       "dueDate": "2026-09-22",
-      "jobberWebUri": "https://secure.getjobber.com/invoices/289092"
+      "jobberWebUri": "https://secure.getjobber.com/invoices/172941713"
     },
     {
       "id": "Z2lkOi8vSm9iYmVyL0ludm9pY2UvMTczNzU4MTIx",
@@ -3269,7 +3462,7 @@
       "balance": 0,
       "issuedDate": "2026-09-29",
       "dueDate": "2026-09-29",
-      "jobberWebUri": "https://secure.getjobber.com/invoices/2890924"
+      "jobberWebUri": "https://secure.getjobber.com/invoices/173758121"
     },
     {
       "id": "Z2lkOi8vSm9iYmVyL0ludm9pY2UvMTczNjI5NTg3",
@@ -3282,7 +3475,7 @@
       "balance": 0,
       "issuedDate": "2026-09-28",
       "dueDate": "2026-09-28",
-      "jobberWebUri": "https://secure.getjobber.com/invoices/28909253"
+      "jobberWebUri": "https://secure.getjobber.com/invoices/173629587"
     },
     {
       "id": "Z2lkOi8vSm9iYmVyL0ludm9pY2UvMTczNjI5ODMx",
@@ -3295,7 +3488,7 @@
       "balance": 100.69,
       "issuedDate": "2026-09-28",
       "dueDate": "2026-09-28",
-      "jobberWebUri": "https://secure.getjobber.com/invoices/2890925"
+      "jobberWebUri": "https://secure.getjobber.com/invoices/173629831"
     },
     {
       "id": "Z2lkOi8vSm9iYmVyL0ludm9pY2UvMTczNDM1Nzk4",
@@ -3308,7 +3501,7 @@
       "balance": 0,
       "issuedDate": "2026-09-26",
       "dueDate": "2026-09-26",
-      "jobberWebUri": "https://secure.getjobber.com/invoices/28909214"
+      "jobberWebUri": "https://secure.getjobber.com/invoices/173435798"
     },
     {
       "id": "Z2lkOi8vSm9iYmVyL0ludm9pY2UvMTczMzY4NjI1",
@@ -3321,7 +3514,7 @@
       "balance": 0,
       "issuedDate": "2026-09-25",
       "dueDate": "2026-09-25",
-      "jobberWebUri": "https://secure.getjobber.com/invoices/28909241"
+      "jobberWebUri": "https://secure.getjobber.com/invoices/173368625"
     },
     {
       "id": "Z2lkOi8vSm9iYmVyL0ludm9pY2UvMTczMzcyNDM3",
@@ -3334,7 +3527,7 @@
       "balance": 0,
       "issuedDate": "2026-09-25",
       "dueDate": "2026-09-25",
-      "jobberWebUri": "https://secure.getjobber.com/invoices/2890923"
+      "jobberWebUri": "https://secure.getjobber.com/invoices/173372437"
     },
     {
       "id": "Z2lkOi8vSm9iYmVyL0ludm9pY2UvMTczMjI0OTg5",
@@ -3347,7 +3540,7 @@
       "balance": 0,
       "issuedDate": "2026-09-24",
       "dueDate": "2026-09-24",
-      "jobberWebUri": "https://secure.getjobber.com/invoices/28909205"
+      "jobberWebUri": "https://secure.getjobber.com/invoices/173224989"
     },
     {
       "id": "Z2lkOi8vSm9iYmVyL0ludm9pY2UvMTczMjIzNTU0",
@@ -3360,7 +3553,7 @@
       "balance": 0,
       "issuedDate": "2026-09-24",
       "dueDate": "2026-09-24",
-      "jobberWebUri": "https://secure.getjobber.com/invoices/2890920"
+      "jobberWebUri": "https://secure.getjobber.com/invoices/173223554"
     },
     {
       "id": "Z2lkOi8vSm9iYmVyL0ludm9pY2UvMTczMTEyNTEz",
@@ -3373,7 +3566,7 @@
       "balance": 0,
       "issuedDate": "2026-09-24",
       "dueDate": "2026-09-23",
-      "jobberWebUri": "https://secure.getjobber.com/invoices/289092"
+      "jobberWebUri": "https://secure.getjobber.com/invoices/173112513"
     },
     {
       "id": "Z2lkOi8vSm9iYmVyL0ludm9pY2UvMTczMDUwNTE3",
@@ -3386,7 +3579,7 @@
       "balance": 0,
       "issuedDate": "2026-09-23",
       "dueDate": "2026-09-23",
-      "jobberWebUri": "https://secure.getjobber.com/invoices/2890923"
+      "jobberWebUri": "https://secure.getjobber.com/invoices/173050517"
     },
     {
       "id": "Z2lkOi8vSm9iYmVyL0ludm9pY2UvMTcyNzc2MDAz",
@@ -3399,7 +3592,7 @@
       "balance": 0,
       "issuedDate": "2026-09-21",
       "dueDate": "2026-09-21",
-      "jobberWebUri": "https://secure.getjobber.com/invoices/2890922"
+      "jobberWebUri": "https://secure.getjobber.com/invoices/172776003"
     },
     {
       "id": "Z2lkOi8vSm9iYmVyL0ludm9pY2UvMTcyNjUyODc2",
@@ -3412,7 +3605,7 @@
       "balance": 0,
       "issuedDate": "2026-09-20",
       "dueDate": "2026-09-19",
-      "jobberWebUri": "https://secure.getjobber.com/invoices/2890922"
+      "jobberWebUri": "https://secure.getjobber.com/invoices/172652876"
     },
     {
       "id": "Z2lkOi8vSm9iYmVyL0ludm9pY2UvMTcyNjQ3MDA4",
@@ -3425,7 +3618,7 @@
       "balance": 0,
       "issuedDate": "2026-09-19",
       "dueDate": "2026-09-19",
-      "jobberWebUri": "https://secure.getjobber.com/invoices/28909234"
+      "jobberWebUri": "https://secure.getjobber.com/invoices/172647008"
     },
     {
       "id": "Z2lkOi8vSm9iYmVyL0ludm9pY2UvMTcyNDc2MTg3",
@@ -3438,7 +3631,7 @@
       "balance": 0,
       "issuedDate": "2026-09-18",
       "dueDate": "2026-09-17",
-      "jobberWebUri": "https://secure.getjobber.com/invoices/28909223"
+      "jobberWebUri": "https://secure.getjobber.com/invoices/172476187"
     },
     {
       "id": "Z2lkOi8vSm9iYmVyL0ludm9pY2UvMTcyNDc2NDYz",
@@ -3451,7 +3644,7 @@
       "balance": 0,
       "issuedDate": "2026-09-18",
       "dueDate": "2026-09-17",
-      "jobberWebUri": "https://secure.getjobber.com/invoices/2890922"
+      "jobberWebUri": "https://secure.getjobber.com/invoices/172476463"
     },
     {
       "id": "Z2lkOi8vSm9iYmVyL0ludm9pY2UvMTcyNDc2NDk3",
@@ -3464,7 +3657,7 @@
       "balance": 0,
       "issuedDate": "2026-09-18",
       "dueDate": "2026-09-17",
-      "jobberWebUri": "https://secure.getjobber.com/invoices/28909223"
+      "jobberWebUri": "https://secure.getjobber.com/invoices/172476497"
     },
     {
       "id": "Z2lkOi8vSm9iYmVyL0ludm9pY2UvMTcyMjY5MzU1",
@@ -3477,7 +3670,7 @@
       "balance": 0,
       "issuedDate": "2026-09-16",
       "dueDate": "2026-09-16",
-      "jobberWebUri": "https://secure.getjobber.com/invoices/28909251"
+      "jobberWebUri": "https://secure.getjobber.com/invoices/172269355"
     },
     {
       "id": "Z2lkOi8vSm9iYmVyL0ludm9pY2UvMTcyMzMxNDY0",
@@ -3490,7 +3683,7 @@
       "balance": 0,
       "issuedDate": "2026-09-17",
       "dueDate": "2026-09-16",
-      "jobberWebUri": "https://secure.getjobber.com/invoices/2890920"
+      "jobberWebUri": "https://secure.getjobber.com/invoices/172331464"
     },
     {
       "id": "Z2lkOi8vSm9iYmVyL0ludm9pY2UvMTcyMzIyNDI2",
@@ -3503,7 +3696,7 @@
       "balance": 0,
       "issuedDate": "2026-09-16",
       "dueDate": "2026-09-16",
-      "jobberWebUri": "https://secure.getjobber.com/invoices/2890922"
+      "jobberWebUri": "https://secure.getjobber.com/invoices/172322426"
     },
     {
       "id": "Z2lkOi8vSm9iYmVyL0ludm9pY2UvMTcyMTQ3ODQ1",
@@ -3516,7 +3709,7 @@
       "balance": 0,
       "issuedDate": "2026-09-15",
       "dueDate": "2026-09-15",
-      "jobberWebUri": "https://secure.getjobber.com/invoices/28909231"
+      "jobberWebUri": "https://secure.getjobber.com/invoices/172147845"
     },
     {
       "id": "Z2lkOi8vSm9iYmVyL0ludm9pY2UvMTcyMTQ4MjY3",
@@ -3529,7 +3722,7 @@
       "balance": 0,
       "issuedDate": "2026-09-15",
       "dueDate": "2026-09-15",
-      "jobberWebUri": "https://secure.getjobber.com/invoices/28909243"
+      "jobberWebUri": "https://secure.getjobber.com/invoices/172148267"
     },
     {
       "id": "Z2lkOi8vSm9iYmVyL0ludm9pY2UvMTcxODM3NDYw",
@@ -3542,7 +3735,7 @@
       "balance": 0,
       "issuedDate": "2026-09-12",
       "dueDate": "2026-09-12",
-      "jobberWebUri": "https://secure.getjobber.com/invoices/2890923"
+      "jobberWebUri": "https://secure.getjobber.com/invoices/171837460"
     },
     {
       "id": "Z2lkOi8vSm9iYmVyL0ludm9pY2UvMTcxOTg5Njkz",
@@ -3555,7 +3748,7 @@
       "balance": 0,
       "issuedDate": "2026-09-14",
       "dueDate": "2026-09-14",
-      "jobberWebUri": "https://secure.getjobber.com/invoices/2890925"
+      "jobberWebUri": "https://secure.getjobber.com/invoices/171989693"
     },
     {
       "id": "Z2lkOi8vSm9iYmVyL0ludm9pY2UvMTcxODM3NDM2",
@@ -3568,7 +3761,7 @@
       "balance": 0,
       "issuedDate": "2026-09-12",
       "dueDate": "2026-09-12",
-      "jobberWebUri": "https://secure.getjobber.com/invoices/28909232"
+      "jobberWebUri": "https://secure.getjobber.com/invoices/171837436"
     },
     {
       "id": "Z2lkOi8vSm9iYmVyL0ludm9pY2UvMTcxODMxMjg0",
@@ -3581,7 +3774,7 @@
       "balance": 0,
       "issuedDate": "2026-09-12",
       "dueDate": "2026-09-12",
-      "jobberWebUri": "https://secure.getjobber.com/invoices/2890920"
+      "jobberWebUri": "https://secure.getjobber.com/invoices/171831284"
     },
     {
       "id": "Z2lkOi8vSm9iYmVyL0ludm9pY2UvMTcxNzgxMjU5",
@@ -3594,7 +3787,7 @@
       "balance": 0,
       "issuedDate": "2026-09-11",
       "dueDate": "2026-09-11",
-      "jobberWebUri": "https://secure.getjobber.com/invoices/2890925"
+      "jobberWebUri": "https://secure.getjobber.com/invoices/171781259"
     },
     {
       "id": "Z2lkOi8vSm9iYmVyL0ludm9pY2UvMTcxNjQyNTEx",
@@ -3607,7 +3800,7 @@
       "balance": 0,
       "issuedDate": "2026-09-10",
       "dueDate": "2026-09-10",
-      "jobberWebUri": "https://secure.getjobber.com/invoices/289092"
+      "jobberWebUri": "https://secure.getjobber.com/invoices/171642511"
     },
     {
       "id": "Z2lkOi8vSm9iYmVyL0ludm9pY2UvMTcxNjQyMDkw",
@@ -3620,7 +3813,7 @@
       "balance": 0,
       "issuedDate": "2026-09-10",
       "dueDate": "2026-09-10",
-      "jobberWebUri": "https://secure.getjobber.com/invoices/289092"
+      "jobberWebUri": "https://secure.getjobber.com/invoices/171642090"
     },
     {
       "id": "Z2lkOi8vSm9iYmVyL0ludm9pY2UvMTcxNDY0Nzg1",
@@ -3633,7 +3826,7 @@
       "balance": 0,
       "issuedDate": "2026-09-09",
       "dueDate": "2026-09-09",
-      "jobberWebUri": "https://secure.getjobber.com/invoices/28909201"
+      "jobberWebUri": "https://secure.getjobber.com/invoices/171464785"
     },
     {
       "id": "Z2lkOi8vSm9iYmVyL0ludm9pY2UvMTcxNDM4NTYw",
@@ -3646,7 +3839,7 @@
       "balance": 0,
       "issuedDate": "2026-09-09",
       "dueDate": "2026-09-09",
-      "jobberWebUri": "https://secure.getjobber.com/invoices/2890924"
+      "jobberWebUri": "https://secure.getjobber.com/invoices/171438560"
     },
     {
       "id": "Z2lkOi8vSm9iYmVyL0ludm9pY2UvMTcxMzU4ODMx",
@@ -3659,7 +3852,7 @@
       "balance": 0,
       "issuedDate": "2026-09-09",
       "dueDate": "2026-09-08",
-      "jobberWebUri": "https://secure.getjobber.com/invoices/2890924"
+      "jobberWebUri": "https://secure.getjobber.com/invoices/171358831"
     },
     {
       "id": "Z2lkOi8vSm9iYmVyL0ludm9pY2UvMTcxMDM3MTg4",
@@ -3672,7 +3865,7 @@
       "balance": 0,
       "issuedDate": "2026-09-04",
       "dueDate": "2026-09-04",
-      "jobberWebUri": "https://secure.getjobber.com/invoices/28909234"
+      "jobberWebUri": "https://secure.getjobber.com/invoices/171037188"
     },
     {
       "id": "Z2lkOi8vSm9iYmVyL0ludm9pY2UvMTcxMDUwMTYx",
@@ -3685,7 +3878,7 @@
       "balance": 0,
       "issuedDate": "2026-09-04",
       "dueDate": "2026-09-04",
-      "jobberWebUri": "https://secure.getjobber.com/invoices/289092"
+      "jobberWebUri": "https://secure.getjobber.com/invoices/171050161"
     },
     {
       "id": "Z2lkOi8vSm9iYmVyL0ludm9pY2UvMTcwNTMyMTEw",
@@ -3698,7 +3891,7 @@
       "balance": 0,
       "issuedDate": "2026-09-02",
       "dueDate": "2026-09-01",
-      "jobberWebUri": "https://secure.getjobber.com/invoices/289092"
+      "jobberWebUri": "https://secure.getjobber.com/invoices/170532110"
     },
     {
       "id": "Z2lkOi8vSm9iYmVyL0ludm9pY2UvMTcwODkzNzc5",
@@ -3711,7 +3904,7 @@
       "balance": 0,
       "issuedDate": "2026-09-03",
       "dueDate": "2026-09-03",
-      "jobberWebUri": "https://secure.getjobber.com/invoices/2890925"
+      "jobberWebUri": "https://secure.getjobber.com/invoices/170893779"
     },
     {
       "id": "Z2lkOi8vSm9iYmVyL0ludm9pY2UvMTcwODk0NDY5",
@@ -3724,7 +3917,7 @@
       "balance": 0,
       "issuedDate": "2026-09-03",
       "dueDate": "2026-09-03",
-      "jobberWebUri": "https://secure.getjobber.com/invoices/28909205"
+      "jobberWebUri": "https://secure.getjobber.com/invoices/170894469"
     },
     {
       "id": "Z2lkOi8vSm9iYmVyL0ludm9pY2UvMTcwNzQ0ODU0",
@@ -3737,7 +3930,7 @@
       "balance": 0,
       "issuedDate": "2026-09-02",
       "dueDate": "2026-09-02",
-      "jobberWebUri": "https://secure.getjobber.com/invoices/28909200"
+      "jobberWebUri": "https://secure.getjobber.com/invoices/170744854"
     },
     {
       "id": "Z2lkOi8vSm9iYmVyL0ludm9pY2UvMTcwNjg2ODc1",
@@ -3750,7 +3943,7 @@
       "balance": 0,
       "issuedDate": "2026-09-02",
       "dueDate": "2026-09-02",
-      "jobberWebUri": "https://secure.getjobber.com/invoices/28909221"
+      "jobberWebUri": "https://secure.getjobber.com/invoices/170686875"
     },
     {
       "id": "Z2lkOi8vSm9iYmVyL0ludm9pY2UvMTcwNjEzNjQz",
@@ -3763,7 +3956,7 @@
       "balance": 0,
       "issuedDate": "2026-09-02",
       "dueDate": "2026-09-02",
-      "jobberWebUri": "https://secure.getjobber.com/invoices/289092"
+      "jobberWebUri": "https://secure.getjobber.com/invoices/170613643"
     },
     {
       "id": "Z2lkOi8vSm9iYmVyL0ludm9pY2UvMTcwNjE1NDQz",
@@ -3776,7 +3969,7 @@
       "balance": 0,
       "issuedDate": "2026-09-02",
       "dueDate": "2026-09-02",
-      "jobberWebUri": "https://secure.getjobber.com/invoices/2890921"
+      "jobberWebUri": "https://secure.getjobber.com/invoices/170615443"
     },
     {
       "id": "Z2lkOi8vSm9iYmVyL0ludm9pY2UvMTcwNzQ1MDg2",
@@ -3789,7 +3982,7 @@
       "balance": 0,
       "issuedDate": "2026-09-03",
       "dueDate": "2026-09-02",
-      "jobberWebUri": "https://secure.getjobber.com/invoices/28909212"
+      "jobberWebUri": "https://secure.getjobber.com/invoices/170745086"
     },
     {
       "id": "Z2lkOi8vSm9iYmVyL0ludm9pY2UvMTcwNzQ1NjM0",
@@ -3802,7 +3995,7 @@
       "balance": 0,
       "issuedDate": "2026-09-03",
       "dueDate": "2026-09-02",
-      "jobberWebUri": "https://secure.getjobber.com/invoices/28909210"
+      "jobberWebUri": "https://secure.getjobber.com/invoices/170745634"
     },
     {
       "id": "Z2lkOi8vSm9iYmVyL0ludm9pY2UvMTcwNDg3ODkx",
@@ -3815,7 +4008,7 @@
       "balance": 0,
       "issuedDate": "2026-09-01",
       "dueDate": "2026-09-01",
-      "jobberWebUri": "https://secure.getjobber.com/invoices/2890923"
+      "jobberWebUri": "https://secure.getjobber.com/invoices/170487891"
     },
     {
       "id": "Z2lkOi8vSm9iYmVyL0ludm9pY2UvMTcwNTczMTQy",
@@ -3828,7 +4021,7 @@
       "balance": 0,
       "issuedDate": "2026-09-02",
       "dueDate": "2026-09-01",
-      "jobberWebUri": "https://secure.getjobber.com/invoices/289092"
+      "jobberWebUri": "https://secure.getjobber.com/invoices/170573142"
     }
   ],
   "quoConfig": {
@@ -4141,6 +4334,32 @@
     }
   ],
   "clients": [
+    {
+      "id": "cli-devon-clarke",
+      "name": "Devon Clarke",
+      "phone": "(780) 802-4918",
+      "secondaryPhone": "780-802-4918",
+      "email": "devonclarke@gmail.com",
+      "address": "9620 144 Ave NW, St. Albert, AB",
+      "city": "St. Albert",
+      "province": "AB",
+      "postalCode": "T8N 3J4",
+      "verdict": "Good lead",
+      "tags": [
+        "st-albert",
+        "deep-clean",
+        "jobber-sync",
+        "quote-qt-2410"
+      ],
+      "isJobberLinked": true,
+      "jobberId": "jobber-cli-devon-clarke",
+      "totalJobs": 1,
+      "latestServiceDate": "2026-10-13",
+      "notes": "3 Bed 2.5 Bath Deep Scrub Clean at 9620 144 Ave NW, St. Albert. Synced to Jobber Client & Quote #QT-2410 ($229.22).",
+      "source": "Jobber",
+      "createdAt": "2026-10-13T11:30:00Z",
+      "updatedAt": "2026-10-13T11:35:00Z"
+    },
     {
       "id": "cli-quo-1791684104950-5wrc",
       "name": "Kati Luknowsky",
@@ -6358,5 +6577,1914 @@
       "+1 (825) 533 - 4317": "+18338439877",
       "+18255334317": "+18338439877"
     }
-  }
+  },
+  "adLeads": [
+    {
+      "id": "lead-auto-17",
+      "customerName": "Devon Clarke",
+      "phone": "(780) 802-4918",
+      "email": "devonclarke@gmail.com",
+      "address": "9620 144 Ave NW",
+      "city": "St. Albert",
+      "serviceRequested": "3 Bed 2.5 Bath Deep Scrub Clean",
+      "bedrooms": 3,
+      "bathrooms": 2.5,
+      "source": "Google Ad",
+      "sourceTab": "FB Leads_V1",
+      "campaignName": "FB Leads_V1 - Adset #2",
+      "dateReceived": "2026-10-13T11:30:00-06:00",
+      "status": "New",
+      "verdict": "Good lead",
+      "isJobberSynced": true,
+      "quoteId": "qt-devon-clarke-2410",
+      "quoteNumber": "QT-2410",
+      "quotedAmount": 229.22,
+      "notes": "Imported from Google Sheets \"FB Leads_V1\". 3 Bed 2.5 Bath Deep Scrub Clean in St. Albert. Synced to Jobber Client & Quote #QT-2410."
+    },
+    {
+      "id": "lead-fb-101",
+      "customerName": "Danielle Pettipas-Gray",
+      "phone": "(780) 974-5892",
+      "email": "danielle.pettipas@gmail.com",
+      "address": "18521 95A Avenue Northwest",
+      "city": "Edmonton",
+      "serviceRequested": "3 Bed 2 Bath Deep Cleaning",
+      "bedrooms": 3,
+      "bathrooms": 2,
+      "source": "Facebook Ad",
+      "sourceTab": "Tidy FB Leads_V2",
+      "campaignName": "Edmonton Deep Clean FB Promo",
+      "formId": "form_fb_tidy_7719",
+      "adId": "ad_edmonton_homeowners_fall",
+      "dateReceived": "2026-10-11T16:15:00-06:00",
+      "status": "New",
+      "verdict": "Good lead",
+      "isJobberSynced": true,
+      "quoteId": "qt-quick-mv4jjk0x",
+      "quoteNumber": "QT-2359",
+      "quotedAmount": 191.25,
+      "notes": "Came through Facebook Instant Form. Customer asked about baseboards and kitchen inside-oven add-on."
+    },
+    {
+      "id": "lead-goog-102",
+      "customerName": "Marcus Vance",
+      "phone": "(780) 492-8819",
+      "email": "mvance78@outlook.com",
+      "address": "10423 124 St NW",
+      "city": "Edmonton",
+      "serviceRequested": "Residential Turnover Vacate Cleaning",
+      "bedrooms": 2,
+      "bathrooms": 2,
+      "source": "Google Ad",
+      "sourceTab": "Google Leads_V3",
+      "campaignName": "Google Search - Move Out Cleaning Edmonton",
+      "formId": "lead_form_gg_9921",
+      "adId": "ad_search_vacate_edmonton",
+      "dateReceived": "2026-10-11T15:42:00-06:00",
+      "status": "New",
+      "verdict": "Good lead",
+      "isJobberSynced": true,
+      "notes": "Urgent rental inspection handover this Wednesday. Needs carpet steam extraction quote as well."
+    },
+    {
+      "id": "lead-ig-103",
+      "customerName": "Chloe Sutherland",
+      "phone": "(587) 938-1204",
+      "email": "chloe.suth@icloud.com",
+      "address": "14210 85 Avenue NW",
+      "city": "Edmonton",
+      "serviceRequested": "Standard Bi-Weekly Recurring Cleaning",
+      "bedrooms": 4,
+      "bathrooms": 3.5,
+      "source": "Instagram",
+      "sourceTab": "FB Leads_V2",
+      "campaignName": "Instagram Reels - Busy Moms Home Refresh",
+      "formId": "form_ig_reels_440",
+      "adId": "ad_ig_edmonton_moms",
+      "dateReceived": "2026-10-11T14:20:00-06:00",
+      "status": "New",
+      "verdict": "Good lead",
+      "notes": "Saw Instagram before/after reel. Inquiring about 3 hours bi-weekly with 1 or 2 cleaners."
+    },
+    {
+      "id": "lead-web-104",
+      "customerName": "Liam & Amber O’Connor",
+      "phone": "(780) 555-8371",
+      "email": "oconnor.family@shaw.ca",
+      "address": "44 Sunset Blvd",
+      "city": "St. Albert",
+      "serviceRequested": "Post-Renovation Scrub & Dust Removal",
+      "bedrooms": 3,
+      "bathrooms": 2.5,
+      "source": "Website form",
+      "sourceTab": "Website form",
+      "campaignName": "book-my-cleaning.com quote widget",
+      "dateReceived": "2026-10-11T13:05:00-06:00",
+      "status": "New",
+      "verdict": "Good lead",
+      "notes": "Finished basement drywall renovation. Need thorough HEPA vacuuming and trim wiping."
+    },
+    {
+      "id": "lead-fb-105",
+      "customerName": "Kati Luknowsky",
+      "phone": "(780) 938-6742",
+      "email": "kati.luknowsky@gmail.com",
+      "address": "8304 11 Avenue Southwest #55",
+      "city": "Edmonton",
+      "serviceRequested": "2 Bed 3 Bath Deep Cleaning",
+      "bedrooms": 2,
+      "bathrooms": 3,
+      "source": "Facebook Ad",
+      "sourceTab": "Tidy FB Leads_V1",
+      "campaignName": "Facebook Fall Clean Campaign",
+      "dateReceived": "2026-10-11T12:30:00-06:00",
+      "status": "Converted",
+      "verdict": "Client",
+      "isJobberSynced": true,
+      "convertedJobId": "VISIT-91202",
+      "notes": "Converted to Friday 4PM scheduled clean with Cindy Guay & Robyn Adele."
+    },
+    {
+      "id": "lead-missing-106",
+      "customerName": "Tyler Henderson",
+      "phone": "",
+      "email": "henderson.t99@gmail.com",
+      "address": "9920 110 St NW",
+      "city": "Edmonton",
+      "serviceRequested": "1 Bed 1 Bath Move-Out Clean",
+      "bedrooms": 1,
+      "bathrooms": 1,
+      "source": "Facebook Ad",
+      "sourceTab": "FB Leads_V1",
+      "campaignName": "FB Leads_V1: Downtown Highrise Promo",
+      "dateReceived": "2026-10-11T11:10:00-06:00",
+      "status": "New",
+      "verdict": "Bad lead",
+      "missingPhone": true,
+      "notes": "Submitted email only on Facebook lead form. Needs phone callback confirmation."
+    },
+    {
+      "id": "lead-missing-107",
+      "customerName": "Elena Rostova",
+      "phone": "",
+      "email": "elena.rostova@yahoo.ca",
+      "address": "Sherwood Park, AB",
+      "city": "Sherwood Park",
+      "serviceRequested": "Move-In Deep Cleaning",
+      "bedrooms": 4,
+      "bathrooms": 3,
+      "source": "Google Ad",
+      "sourceTab": "Google Leads_V3",
+      "campaignName": "Google Search - Move In Cleaning",
+      "dateReceived": "2026-10-11T10:45:00-06:00",
+      "status": "New",
+      "verdict": "Bad lead",
+      "missingPhone": true,
+      "notes": "Phone number field was left blank on Webhook payload."
+    },
+    {
+      "id": "lead-phone-108",
+      "customerName": "Deb Austin",
+      "phone": "+1 (780) 296-6781",
+      "email": "deb.austin@telus.net",
+      "address": "8316 76 Street Northwest",
+      "city": "Edmonton",
+      "serviceRequested": "1 Bed 1 Bath Move-out Cleaning",
+      "bedrooms": 1,
+      "bathrooms": 1,
+      "source": "Phone call",
+      "sourceTab": "Quo Line (Primary Dispatch)",
+      "dateReceived": "2026-10-11T09:15:00-06:00",
+      "status": "Converted",
+      "verdict": "Client",
+      "isJobberSynced": true,
+      "convertedJobId": "VISIT-89120",
+      "notes": "Called dispatch on (587) 570-8005. Converted into scheduled clean with Joel & Sergine."
+    },
+    {
+      "id": "lead-pasted-109",
+      "customerName": "Samantha Smits",
+      "phone": "(780) 271-2257",
+      "email": "ssmits@ualberta.ca",
+      "address": "10403 178A Avenue",
+      "city": "Edmonton",
+      "serviceRequested": "Deep Cleaning - Biweekly 3hrs",
+      "bedrooms": 3,
+      "bathrooms": 2,
+      "source": "Pasted message",
+      "sourceTab": "SMS Intake",
+      "dateReceived": "2026-10-10T19:20:00-06:00",
+      "status": "Converted",
+      "verdict": "Client",
+      "isJobberSynced": true,
+      "notes": "Pasted from SMS client inquiry."
+    },
+    {
+      "id": "lead-sheet-110",
+      "customerName": "Nicholas Christensen",
+      "phone": "+1 (780) 934-0946",
+      "email": "nchristensen@sprucegrove.org",
+      "address": "31 Parkland Gate Road",
+      "city": "Spruce Grove",
+      "serviceRequested": "3 Bed 1 Bath Deep Cleaning",
+      "bedrooms": 3,
+      "bathrooms": 1,
+      "source": "From Google Sheet",
+      "sourceTab": "ScrubbyBuilder Leads",
+      "dateReceived": "2026-10-10T18:00:00-06:00",
+      "status": "Converted",
+      "verdict": "Client",
+      "isJobberSynced": true,
+      "notes": "Row #42 in Google Sheet tab \"ScrubbyBuilder Leads\"."
+    },
+    {
+      "id": "lead-fb-111",
+      "customerName": "Rachel & Jordan Bell",
+      "phone": "(780) 399-5512",
+      "email": "rbell.yeg@gmail.com",
+      "address": "614 100A Street SW",
+      "city": "Edmonton",
+      "serviceRequested": "Whole Home Deep Clean + Windows",
+      "bedrooms": 4,
+      "bathrooms": 3,
+      "source": "Facebook Ad",
+      "sourceTab": "Tidy FB Leads_V2",
+      "campaignName": "Facebook Ad - Windermere & Heritage Pointe",
+      "dateReceived": "2026-10-10T15:30:00-06:00",
+      "status": "New",
+      "verdict": "Good lead",
+      "notes": "2 storey home, dog friendly. Prefers Cindy Guay as cleaner if possible."
+    },
+    {
+      "id": "lead-goog-112",
+      "customerName": "Harpreet Singh",
+      "phone": "(587) 772-9104",
+      "email": "hsingh.investments@gmail.com",
+      "address": "11204 104 Ave Unit 502",
+      "city": "Edmonton",
+      "serviceRequested": "Commercial Office Suite Cleaning",
+      "bedrooms": 0,
+      "bathrooms": 2,
+      "source": "Google Ad",
+      "sourceTab": "Google Leads_V2",
+      "campaignName": "Google Search - Commercial Cleaning Edmonton",
+      "dateReceived": "2026-10-10T14:15:00-06:00",
+      "status": "New",
+      "verdict": "Good lead",
+      "notes": "1,800 sq ft office space. Nightly or 3x per week inquiry."
+    },
+    {
+      "id": "lead-fb-113",
+      "customerName": "Jessica Martens",
+      "phone": "(780) 819-4402",
+      "email": "jess.martens@hotmail.com",
+      "address": "52 Meadowview Drive",
+      "city": "St. Albert",
+      "serviceRequested": "Move-Out Cleaning",
+      "bedrooms": 3,
+      "bathrooms": 2.5,
+      "source": "Facebook Ad",
+      "sourceTab": "Tidy FB Leads_V2",
+      "campaignName": "Tidy FB Leads_V2",
+      "dateReceived": "2026-10-10T11:50:00-06:00",
+      "status": "New",
+      "verdict": "Good lead",
+      "notes": "Landlord inspection scheduled for October 18. Wants estimate for 4 hours."
+    },
+    {
+      "id": "lead-jobber-114",
+      "customerName": "Gail Wilkinson",
+      "phone": "(780) 435-0960",
+      "email": "gwilkinson@shaw.ca",
+      "address": "1517 Bearspaw Dr E Northwest",
+      "city": "Edmonton",
+      "serviceRequested": "Standard Home Cleaning",
+      "bedrooms": 3,
+      "bathrooms": 2,
+      "source": "From Jobber",
+      "sourceTab": "Jobber Client Requests",
+      "dateReceived": "2026-10-09T16:40:00-06:00",
+      "status": "Converted",
+      "verdict": "Client",
+      "isJobberSynced": true,
+      "notes": "Jobber request synced from online client portal."
+    },
+    {
+      "id": "lead-dismiss-115",
+      "customerName": "Crypto Seo Marketing Bot",
+      "phone": "(555) 019-2834",
+      "email": "seo.boost@rankings-crypto.io",
+      "address": "Internet",
+      "city": "Edmonton",
+      "serviceRequested": "Spam Submission",
+      "source": "Website form",
+      "sourceTab": "Website form",
+      "dateReceived": "2026-10-09T12:00:00-06:00",
+      "status": "Dismissed",
+      "verdict": "Spam",
+      "notes": "Automated contact form marketing spam. Automatically flagged."
+    },
+    {
+      "id": "lead-auto-18",
+      "customerName": "Brittany Taylor",
+      "phone": "(780) 210-1100",
+      "email": "brittanytaylor@gmail.com",
+      "address": "1010 52 Ave NW",
+      "city": "Edmonton",
+      "serviceRequested": "2 Bed 2 Bath Standard Clean",
+      "bedrooms": 1,
+      "bathrooms": 1,
+      "source": "Facebook Ad",
+      "sourceTab": "Tidy FB Leads_V2",
+      "campaignName": "Tidy FB Leads_V2 - Adset #1",
+      "dateReceived": "2026-10-09T13:00:00.000Z",
+      "status": "Converted",
+      "verdict": "Client",
+      "notes": "Imported from Google Sheets \"Tidy FB Leads_V2\". Adset targeting Edmonton."
+    },
+    {
+      "id": "lead-auto-19",
+      "customerName": "Nathaniel Ward",
+      "phone": "(780) 217-1237",
+      "email": "nathanielward@gmail.com",
+      "address": "1093 55 Ave NW",
+      "city": "St. Albert",
+      "serviceRequested": "3 Bed 2.5 Bath Deep Scrub Clean",
+      "bedrooms": 2,
+      "bathrooms": 2,
+      "source": "Google Ad",
+      "sourceTab": "FB Leads_V1",
+      "campaignName": "FB Leads_V1 - Adset #2",
+      "dateReceived": "2026-10-09T10:00:00.000Z",
+      "status": "New",
+      "verdict": "Good lead",
+      "notes": "Imported from Google Sheets \"FB Leads_V1\". Adset targeting St. Albert."
+    },
+    {
+      "id": "lead-auto-20",
+      "customerName": "Amara Patel",
+      "phone": "(780) 224-1374",
+      "email": "amarapatel@gmail.com",
+      "address": "1176 58 Ave NW",
+      "city": "Sherwood Park",
+      "serviceRequested": "Move-Out Tenant Vacate Clean",
+      "bedrooms": 3,
+      "bathrooms": 3,
+      "source": "Instagram",
+      "sourceTab": "Google Leads_V3",
+      "campaignName": "Google Leads_V3 - Adset #3",
+      "dateReceived": "2026-10-09T07:00:00.000Z",
+      "status": "New",
+      "verdict": "Good lead",
+      "notes": "Imported from Google Sheets \"Google Leads_V3\". Adset targeting Sherwood Park."
+    },
+    {
+      "id": "lead-auto-21",
+      "customerName": "Lucas Bennett",
+      "phone": "(780) 231-1511",
+      "email": "lucasbennett@gmail.com",
+      "address": "1259 61 Ave NW",
+      "city": "Spruce Grove",
+      "serviceRequested": "Bi-Weekly 3 Hour Refresh",
+      "bedrooms": 4,
+      "bathrooms": 1,
+      "source": "From Google Sheet",
+      "sourceTab": "ScrubbyBuilder Leads",
+      "campaignName": "ScrubbyBuilder Leads - Adset #4",
+      "dateReceived": "2026-10-09T04:00:00.000Z",
+      "status": "New",
+      "verdict": "Good lead",
+      "notes": "Imported from Google Sheets \"ScrubbyBuilder Leads\". Adset targeting Spruce Grove."
+    },
+    {
+      "id": "lead-auto-22",
+      "customerName": "Sophia Chen",
+      "phone": "(780) 238-1648",
+      "email": "sophiachen@gmail.com",
+      "address": "1342 64 Ave NW",
+      "city": "Leduc",
+      "serviceRequested": "Post-Construction Dust Scrub",
+      "bedrooms": 1,
+      "bathrooms": 2,
+      "source": "Website form",
+      "sourceTab": "Sheets-New App-V1",
+      "campaignName": "Sheets-New App-V1 - Adset #5",
+      "dateReceived": "2026-10-09T01:00:00.000Z",
+      "status": "New",
+      "verdict": "Good lead",
+      "notes": "Imported from Google Sheets \"Sheets-New App-V1\". Adset targeting Leduc."
+    },
+    {
+      "id": "lead-auto-23",
+      "customerName": "Noah Tremblay",
+      "phone": "(780) 245-1785",
+      "email": "noahtremblay@gmail.com",
+      "address": "1425 67 Ave NW",
+      "city": "Edmonton",
+      "serviceRequested": "Condo Turnover Cleaning",
+      "bedrooms": 2,
+      "bathrooms": 3,
+      "source": "Phone call",
+      "sourceTab": "Tidy FB Leads_V2",
+      "campaignName": "Tidy FB Leads_V2 - Adset #1",
+      "dateReceived": "2026-10-08T22:00:00.000Z",
+      "status": "New",
+      "verdict": "Good lead",
+      "notes": "Imported from Google Sheets \"Tidy FB Leads_V2\". Adset targeting Edmonton."
+    },
+    {
+      "id": "lead-auto-24",
+      "customerName": "Emma Roy",
+      "phone": "(780) 252-1922",
+      "email": "emmaroy@gmail.com",
+      "address": "1508 70 Ave NW",
+      "city": "St. Albert",
+      "serviceRequested": "2 Bed 2 Bath Standard Clean",
+      "bedrooms": 3,
+      "bathrooms": 1,
+      "source": "Facebook Ad",
+      "sourceTab": "FB Leads_V1",
+      "campaignName": "FB Leads_V1 - Adset #2",
+      "dateReceived": "2026-10-08T19:00:00.000Z",
+      "status": "Converted",
+      "verdict": "Client",
+      "notes": "Imported from Google Sheets \"FB Leads_V1\". Adset targeting St. Albert."
+    },
+    {
+      "id": "lead-auto-25",
+      "customerName": "Jackson Fisher",
+      "phone": "(780) 259-2059",
+      "email": "jacksonfisher@gmail.com",
+      "address": "1591 73 Ave NW",
+      "city": "Sherwood Park",
+      "serviceRequested": "3 Bed 2.5 Bath Deep Scrub Clean",
+      "bedrooms": 4,
+      "bathrooms": 2,
+      "source": "Google Ad",
+      "sourceTab": "Google Leads_V3",
+      "campaignName": "Google Leads_V3 - Adset #3",
+      "dateReceived": "2026-10-08T16:00:00.000Z",
+      "status": "New",
+      "verdict": "Good lead",
+      "notes": "Imported from Google Sheets \"Google Leads_V3\". Adset targeting Sherwood Park."
+    },
+    {
+      "id": "lead-auto-26",
+      "customerName": "Olivia Martin",
+      "phone": "(780) 266-2196",
+      "email": "oliviamartin@gmail.com",
+      "address": "1674 76 Ave NW",
+      "city": "Spruce Grove",
+      "serviceRequested": "Move-Out Tenant Vacate Clean",
+      "bedrooms": 1,
+      "bathrooms": 3,
+      "source": "Instagram",
+      "sourceTab": "ScrubbyBuilder Leads",
+      "campaignName": "ScrubbyBuilder Leads - Adset #4",
+      "dateReceived": "2026-10-08T13:00:00.000Z",
+      "status": "New",
+      "verdict": "Good lead",
+      "notes": "Imported from Google Sheets \"ScrubbyBuilder Leads\". Adset targeting Spruce Grove."
+    },
+    {
+      "id": "lead-auto-27",
+      "customerName": "Benjamin Cote",
+      "phone": "(780) 273-2333",
+      "email": "benjamincote@gmail.com",
+      "address": "1757 79 Ave NW",
+      "city": "Leduc",
+      "serviceRequested": "Bi-Weekly 3 Hour Refresh",
+      "bedrooms": 2,
+      "bathrooms": 1,
+      "source": "From Google Sheet",
+      "sourceTab": "Sheets-New App-V1",
+      "campaignName": "Sheets-New App-V1 - Adset #5",
+      "dateReceived": "2026-10-08T10:00:00.000Z",
+      "status": "New",
+      "verdict": "Good lead",
+      "notes": "Imported from Google Sheets \"Sheets-New App-V1\". Adset targeting Leduc."
+    },
+    {
+      "id": "lead-auto-28",
+      "customerName": "Ava MacLeod",
+      "phone": "(780) 280-2470",
+      "email": "avamacleod@gmail.com",
+      "address": "1840 82 Ave NW",
+      "city": "Edmonton",
+      "serviceRequested": "Post-Construction Dust Scrub",
+      "bedrooms": 3,
+      "bathrooms": 2,
+      "source": "Website form",
+      "sourceTab": "Tidy FB Leads_V2",
+      "campaignName": "Tidy FB Leads_V2 - Adset #1",
+      "dateReceived": "2026-10-08T07:00:00.000Z",
+      "status": "New",
+      "verdict": "Good lead",
+      "notes": "Imported from Google Sheets \"Tidy FB Leads_V2\". Adset targeting Edmonton."
+    },
+    {
+      "id": "lead-auto-29",
+      "customerName": "Ethan Gauthier",
+      "phone": "(780) 287-2607",
+      "email": "ethangauthier@gmail.com",
+      "address": "1923 85 Ave NW",
+      "city": "St. Albert",
+      "serviceRequested": "Condo Turnover Cleaning",
+      "bedrooms": 4,
+      "bathrooms": 3,
+      "source": "Phone call",
+      "sourceTab": "FB Leads_V1",
+      "campaignName": "FB Leads_V1 - Adset #2",
+      "dateReceived": "2026-10-08T04:00:00.000Z",
+      "status": "New",
+      "verdict": "Good lead",
+      "notes": "Imported from Google Sheets \"FB Leads_V1\". Adset targeting St. Albert."
+    },
+    {
+      "id": "lead-auto-30",
+      "customerName": "Mia Beaulieu",
+      "phone": "(780) 294-2744",
+      "email": "miabeaulieu@gmail.com",
+      "address": "2006 88 Ave NW",
+      "city": "Sherwood Park",
+      "serviceRequested": "2 Bed 2 Bath Standard Clean",
+      "bedrooms": 1,
+      "bathrooms": 1,
+      "source": "Facebook Ad",
+      "sourceTab": "Google Leads_V3",
+      "campaignName": "Google Leads_V3 - Adset #3",
+      "dateReceived": "2026-10-08T01:00:00.000Z",
+      "status": "Converted",
+      "verdict": "Client",
+      "notes": "Imported from Google Sheets \"Google Leads_V3\". Adset targeting Sherwood Park."
+    },
+    {
+      "id": "lead-auto-31",
+      "customerName": "Jacob Levesque",
+      "phone": "(780) 301-2881",
+      "email": "jacoblevesque@gmail.com",
+      "address": "2089 91 Ave NW",
+      "city": "Spruce Grove",
+      "serviceRequested": "3 Bed 2.5 Bath Deep Scrub Clean",
+      "bedrooms": 2,
+      "bathrooms": 2,
+      "source": "Google Ad",
+      "sourceTab": "ScrubbyBuilder Leads",
+      "campaignName": "ScrubbyBuilder Leads - Adset #4",
+      "dateReceived": "2026-10-07T22:00:00.000Z",
+      "status": "New",
+      "verdict": "Good lead",
+      "notes": "Imported from Google Sheets \"ScrubbyBuilder Leads\". Adset targeting Spruce Grove."
+    },
+    {
+      "id": "lead-auto-32",
+      "customerName": "Charlotte Bouchard",
+      "phone": "(780) 308-3018",
+      "email": "charlottebouchard@gmail.com",
+      "address": "2172 94 Ave NW",
+      "city": "Leduc",
+      "serviceRequested": "Move-Out Tenant Vacate Clean",
+      "bedrooms": 3,
+      "bathrooms": 3,
+      "source": "Instagram",
+      "sourceTab": "Sheets-New App-V1",
+      "campaignName": "Sheets-New App-V1 - Adset #5",
+      "dateReceived": "2026-10-07T19:00:00.000Z",
+      "status": "New",
+      "verdict": "Good lead",
+      "notes": "Imported from Google Sheets \"Sheets-New App-V1\". Adset targeting Leduc."
+    },
+    {
+      "id": "lead-auto-33",
+      "customerName": "William Morin",
+      "phone": "(780) 315-3155",
+      "email": "williammorin@gmail.com",
+      "address": "2255 97 Ave NW",
+      "city": "Edmonton",
+      "serviceRequested": "Bi-Weekly 3 Hour Refresh",
+      "bedrooms": 4,
+      "bathrooms": 1,
+      "source": "From Google Sheet",
+      "sourceTab": "Tidy FB Leads_V2",
+      "campaignName": "Tidy FB Leads_V2 - Adset #1",
+      "dateReceived": "2026-10-07T16:00:00.000Z",
+      "status": "Dismissed",
+      "verdict": "Garbage",
+      "notes": "Imported from Google Sheets \"Tidy FB Leads_V2\". Adset targeting Edmonton."
+    },
+    {
+      "id": "lead-auto-34",
+      "customerName": "Amelia Fortin",
+      "phone": "(780) 322-3292",
+      "email": "ameliafortin@gmail.com",
+      "address": "2338 100 Ave NW",
+      "city": "St. Albert",
+      "serviceRequested": "Post-Construction Dust Scrub",
+      "bedrooms": 1,
+      "bathrooms": 2,
+      "source": "Website form",
+      "sourceTab": "FB Leads_V1",
+      "campaignName": "FB Leads_V1 - Adset #2",
+      "dateReceived": "2026-10-07T13:00:00.000Z",
+      "status": "New",
+      "verdict": "Good lead",
+      "notes": "Imported from Google Sheets \"FB Leads_V1\". Adset targeting St. Albert."
+    },
+    {
+      "id": "lead-auto-35",
+      "customerName": "James Gagnon",
+      "phone": "(780) 329-3429",
+      "email": "jamesgagnon@gmail.com",
+      "address": "2421 103 Ave NW",
+      "city": "Sherwood Park",
+      "serviceRequested": "Condo Turnover Cleaning",
+      "bedrooms": 2,
+      "bathrooms": 3,
+      "source": "Phone call",
+      "sourceTab": "Google Leads_V3",
+      "campaignName": "Google Leads_V3 - Adset #3",
+      "dateReceived": "2026-10-07T10:00:00.000Z",
+      "status": "New",
+      "verdict": "Good lead",
+      "notes": "Imported from Google Sheets \"Google Leads_V3\". Adset targeting Sherwood Park."
+    },
+    {
+      "id": "lead-auto-36",
+      "customerName": "Harper Belanger",
+      "phone": "(780) 336-3566",
+      "email": "harperbelanger@gmail.com",
+      "address": "2504 106 Ave NW",
+      "city": "Spruce Grove",
+      "serviceRequested": "2 Bed 2 Bath Standard Clean",
+      "bedrooms": 3,
+      "bathrooms": 1,
+      "source": "Facebook Ad",
+      "sourceTab": "ScrubbyBuilder Leads",
+      "campaignName": "ScrubbyBuilder Leads - Adset #4",
+      "dateReceived": "2026-10-07T07:00:00.000Z",
+      "status": "Converted",
+      "verdict": "Client",
+      "notes": "Imported from Google Sheets \"ScrubbyBuilder Leads\". Adset targeting Spruce Grove."
+    },
+    {
+      "id": "lead-auto-37",
+      "customerName": "Brittany Taylor",
+      "phone": "(780) 343-3703",
+      "email": "brittanytaylor@gmail.com",
+      "address": "2587 109 Ave NW",
+      "city": "Leduc",
+      "serviceRequested": "3 Bed 2.5 Bath Deep Scrub Clean",
+      "bedrooms": 4,
+      "bathrooms": 2,
+      "source": "Google Ad",
+      "sourceTab": "Sheets-New App-V1",
+      "campaignName": "Sheets-New App-V1 - Adset #5",
+      "dateReceived": "2026-10-07T04:00:00.000Z",
+      "status": "New",
+      "verdict": "Good lead",
+      "notes": "Imported from Google Sheets \"Sheets-New App-V1\". Adset targeting Leduc."
+    },
+    {
+      "id": "lead-auto-38",
+      "customerName": "Nathaniel Ward",
+      "phone": "(780) 350-3840",
+      "email": "nathanielward@gmail.com",
+      "address": "2670 112 Ave NW",
+      "city": "Edmonton",
+      "serviceRequested": "Move-Out Tenant Vacate Clean",
+      "bedrooms": 1,
+      "bathrooms": 3,
+      "source": "Instagram",
+      "sourceTab": "Tidy FB Leads_V2",
+      "campaignName": "Tidy FB Leads_V2 - Adset #1",
+      "dateReceived": "2026-10-07T01:00:00.000Z",
+      "status": "New",
+      "verdict": "Good lead",
+      "notes": "Imported from Google Sheets \"Tidy FB Leads_V2\". Adset targeting Edmonton."
+    },
+    {
+      "id": "lead-auto-39",
+      "customerName": "Amara Patel",
+      "phone": "(780) 357-3977",
+      "email": "amarapatel@gmail.com",
+      "address": "2753 115 Ave NW",
+      "city": "St. Albert",
+      "serviceRequested": "Bi-Weekly 3 Hour Refresh",
+      "bedrooms": 2,
+      "bathrooms": 1,
+      "source": "From Google Sheet",
+      "sourceTab": "FB Leads_V1",
+      "campaignName": "FB Leads_V1 - Adset #2",
+      "dateReceived": "2026-10-06T22:00:00.000Z",
+      "status": "New",
+      "verdict": "Good lead",
+      "notes": "Imported from Google Sheets \"FB Leads_V1\". Adset targeting St. Albert."
+    },
+    {
+      "id": "lead-auto-40",
+      "customerName": "Lucas Bennett",
+      "phone": "(780) 364-4114",
+      "email": "lucasbennett@gmail.com",
+      "address": "2836 118 Ave NW",
+      "city": "Sherwood Park",
+      "serviceRequested": "Post-Construction Dust Scrub",
+      "bedrooms": 3,
+      "bathrooms": 2,
+      "source": "Website form",
+      "sourceTab": "Google Leads_V3",
+      "campaignName": "Google Leads_V3 - Adset #3",
+      "dateReceived": "2026-10-06T19:00:00.000Z",
+      "status": "New",
+      "verdict": "Good lead",
+      "notes": "Imported from Google Sheets \"Google Leads_V3\". Adset targeting Sherwood Park."
+    },
+    {
+      "id": "lead-auto-41",
+      "customerName": "Sophia Chen",
+      "phone": "(780) 371-4251",
+      "email": "sophiachen@gmail.com",
+      "address": "2919 121 Ave NW",
+      "city": "Spruce Grove",
+      "serviceRequested": "Condo Turnover Cleaning",
+      "bedrooms": 4,
+      "bathrooms": 3,
+      "source": "Phone call",
+      "sourceTab": "ScrubbyBuilder Leads",
+      "campaignName": "ScrubbyBuilder Leads - Adset #4",
+      "dateReceived": "2026-10-06T16:00:00.000Z",
+      "status": "New",
+      "verdict": "Good lead",
+      "notes": "Imported from Google Sheets \"ScrubbyBuilder Leads\". Adset targeting Spruce Grove."
+    },
+    {
+      "id": "lead-auto-42",
+      "customerName": "Noah Tremblay",
+      "phone": "(780) 378-4388",
+      "email": "noahtremblay@gmail.com",
+      "address": "3002 124 Ave NW",
+      "city": "Leduc",
+      "serviceRequested": "2 Bed 2 Bath Standard Clean",
+      "bedrooms": 1,
+      "bathrooms": 1,
+      "source": "Facebook Ad",
+      "sourceTab": "Sheets-New App-V1",
+      "campaignName": "Sheets-New App-V1 - Adset #5",
+      "dateReceived": "2026-10-06T13:00:00.000Z",
+      "status": "Converted",
+      "verdict": "Client",
+      "notes": "Imported from Google Sheets \"Sheets-New App-V1\". Adset targeting Leduc."
+    },
+    {
+      "id": "lead-auto-43",
+      "customerName": "Emma Roy",
+      "phone": "(780) 385-4525",
+      "email": "emmaroy@gmail.com",
+      "address": "3085 127 Ave NW",
+      "city": "Edmonton",
+      "serviceRequested": "3 Bed 2.5 Bath Deep Scrub Clean",
+      "bedrooms": 2,
+      "bathrooms": 2,
+      "source": "Google Ad",
+      "sourceTab": "Tidy FB Leads_V2",
+      "campaignName": "Tidy FB Leads_V2 - Adset #1",
+      "dateReceived": "2026-10-06T10:00:00.000Z",
+      "status": "New",
+      "verdict": "Good lead",
+      "notes": "Imported from Google Sheets \"Tidy FB Leads_V2\". Adset targeting Edmonton."
+    },
+    {
+      "id": "lead-auto-44",
+      "customerName": "Jackson Fisher",
+      "phone": "(780) 392-4662",
+      "email": "jacksonfisher@gmail.com",
+      "address": "3168 130 Ave NW",
+      "city": "St. Albert",
+      "serviceRequested": "Move-Out Tenant Vacate Clean",
+      "bedrooms": 3,
+      "bathrooms": 3,
+      "source": "Instagram",
+      "sourceTab": "FB Leads_V1",
+      "campaignName": "FB Leads_V1 - Adset #2",
+      "dateReceived": "2026-10-06T07:00:00.000Z",
+      "status": "New",
+      "verdict": "Good lead",
+      "notes": "Imported from Google Sheets \"FB Leads_V1\". Adset targeting St. Albert."
+    },
+    {
+      "id": "lead-auto-45",
+      "customerName": "Olivia Martin",
+      "phone": "(780) 399-4799",
+      "email": "oliviamartin@gmail.com",
+      "address": "3251 133 Ave NW",
+      "city": "Sherwood Park",
+      "serviceRequested": "Bi-Weekly 3 Hour Refresh",
+      "bedrooms": 4,
+      "bathrooms": 1,
+      "source": "From Google Sheet",
+      "sourceTab": "Google Leads_V3",
+      "campaignName": "Google Leads_V3 - Adset #3",
+      "dateReceived": "2026-10-06T04:00:00.000Z",
+      "status": "New",
+      "verdict": "Good lead",
+      "notes": "Imported from Google Sheets \"Google Leads_V3\". Adset targeting Sherwood Park."
+    },
+    {
+      "id": "lead-auto-46",
+      "customerName": "Benjamin Cote",
+      "phone": "(780) 406-4936",
+      "email": "benjamincote@gmail.com",
+      "address": "3334 136 Ave NW",
+      "city": "Spruce Grove",
+      "serviceRequested": "Post-Construction Dust Scrub",
+      "bedrooms": 1,
+      "bathrooms": 2,
+      "source": "Website form",
+      "sourceTab": "ScrubbyBuilder Leads",
+      "campaignName": "ScrubbyBuilder Leads - Adset #4",
+      "dateReceived": "2026-10-06T01:00:00.000Z",
+      "status": "New",
+      "verdict": "Good lead",
+      "notes": "Imported from Google Sheets \"ScrubbyBuilder Leads\". Adset targeting Spruce Grove."
+    },
+    {
+      "id": "lead-auto-47",
+      "customerName": "Ava MacLeod",
+      "phone": "(780) 413-5073",
+      "email": "avamacleod@gmail.com",
+      "address": "3417 139 Ave NW",
+      "city": "Leduc",
+      "serviceRequested": "Condo Turnover Cleaning",
+      "bedrooms": 2,
+      "bathrooms": 3,
+      "source": "Phone call",
+      "sourceTab": "Sheets-New App-V1",
+      "campaignName": "Sheets-New App-V1 - Adset #5",
+      "dateReceived": "2026-10-05T22:00:00.000Z",
+      "status": "New",
+      "verdict": "Good lead",
+      "notes": "Imported from Google Sheets \"Sheets-New App-V1\". Adset targeting Leduc."
+    },
+    {
+      "id": "lead-auto-48",
+      "customerName": "Ethan Gauthier",
+      "phone": "(780) 420-5210",
+      "email": "ethangauthier@gmail.com",
+      "address": "3500 142 Ave NW",
+      "city": "Edmonton",
+      "serviceRequested": "2 Bed 2 Bath Standard Clean",
+      "bedrooms": 3,
+      "bathrooms": 1,
+      "source": "Facebook Ad",
+      "sourceTab": "Tidy FB Leads_V2",
+      "campaignName": "Tidy FB Leads_V2 - Adset #1",
+      "dateReceived": "2026-10-05T19:00:00.000Z",
+      "status": "Converted",
+      "verdict": "Client",
+      "notes": "Imported from Google Sheets \"Tidy FB Leads_V2\". Adset targeting Edmonton."
+    },
+    {
+      "id": "lead-auto-49",
+      "customerName": "Mia Beaulieu",
+      "phone": "(780) 427-5347",
+      "email": "miabeaulieu@gmail.com",
+      "address": "3583 145 Ave NW",
+      "city": "St. Albert",
+      "serviceRequested": "3 Bed 2.5 Bath Deep Scrub Clean",
+      "bedrooms": 4,
+      "bathrooms": 2,
+      "source": "Google Ad",
+      "sourceTab": "FB Leads_V1",
+      "campaignName": "FB Leads_V1 - Adset #2",
+      "dateReceived": "2026-10-05T16:00:00.000Z",
+      "status": "New",
+      "verdict": "Good lead",
+      "notes": "Imported from Google Sheets \"FB Leads_V1\". Adset targeting St. Albert."
+    },
+    {
+      "id": "lead-auto-50",
+      "customerName": "Jacob Levesque",
+      "phone": "(780) 434-5484",
+      "email": "jacoblevesque@gmail.com",
+      "address": "3666 148 Ave NW",
+      "city": "Sherwood Park",
+      "serviceRequested": "Move-Out Tenant Vacate Clean",
+      "bedrooms": 1,
+      "bathrooms": 3,
+      "source": "Instagram",
+      "sourceTab": "Google Leads_V3",
+      "campaignName": "Google Leads_V3 - Adset #3",
+      "dateReceived": "2026-10-05T13:00:00.000Z",
+      "status": "New",
+      "verdict": "Good lead",
+      "notes": "Imported from Google Sheets \"Google Leads_V3\". Adset targeting Sherwood Park."
+    },
+    {
+      "id": "lead-auto-51",
+      "customerName": "Charlotte Bouchard",
+      "phone": "(780) 441-5621",
+      "email": "charlottebouchard@gmail.com",
+      "address": "3749 151 Ave NW",
+      "city": "Spruce Grove",
+      "serviceRequested": "Bi-Weekly 3 Hour Refresh",
+      "bedrooms": 2,
+      "bathrooms": 1,
+      "source": "From Google Sheet",
+      "sourceTab": "ScrubbyBuilder Leads",
+      "campaignName": "ScrubbyBuilder Leads - Adset #4",
+      "dateReceived": "2026-10-05T10:00:00.000Z",
+      "status": "New",
+      "verdict": "Good lead",
+      "notes": "Imported from Google Sheets \"ScrubbyBuilder Leads\". Adset targeting Spruce Grove."
+    },
+    {
+      "id": "lead-auto-52",
+      "customerName": "William Morin",
+      "phone": "(780) 448-5758",
+      "email": "williammorin@gmail.com",
+      "address": "3832 154 Ave NW",
+      "city": "Leduc",
+      "serviceRequested": "Post-Construction Dust Scrub",
+      "bedrooms": 3,
+      "bathrooms": 2,
+      "source": "Website form",
+      "sourceTab": "Sheets-New App-V1",
+      "campaignName": "Sheets-New App-V1 - Adset #5",
+      "dateReceived": "2026-10-05T07:00:00.000Z",
+      "status": "New",
+      "verdict": "Good lead",
+      "notes": "Imported from Google Sheets \"Sheets-New App-V1\". Adset targeting Leduc."
+    },
+    {
+      "id": "lead-auto-53",
+      "customerName": "Amelia Fortin",
+      "phone": "(780) 455-5895",
+      "email": "ameliafortin@gmail.com",
+      "address": "3915 157 Ave NW",
+      "city": "Edmonton",
+      "serviceRequested": "Condo Turnover Cleaning",
+      "bedrooms": 4,
+      "bathrooms": 3,
+      "source": "Phone call",
+      "sourceTab": "Tidy FB Leads_V2",
+      "campaignName": "Tidy FB Leads_V2 - Adset #1",
+      "dateReceived": "2026-10-05T04:00:00.000Z",
+      "status": "New",
+      "verdict": "Good lead",
+      "notes": "Imported from Google Sheets \"Tidy FB Leads_V2\". Adset targeting Edmonton."
+    },
+    {
+      "id": "lead-auto-54",
+      "customerName": "James Gagnon",
+      "phone": "(780) 462-6032",
+      "email": "jamesgagnon@gmail.com",
+      "address": "3998 160 Ave NW",
+      "city": "St. Albert",
+      "serviceRequested": "2 Bed 2 Bath Standard Clean",
+      "bedrooms": 1,
+      "bathrooms": 1,
+      "source": "Facebook Ad",
+      "sourceTab": "FB Leads_V1",
+      "campaignName": "FB Leads_V1 - Adset #2",
+      "dateReceived": "2026-10-05T01:00:00.000Z",
+      "status": "Converted",
+      "verdict": "Client",
+      "notes": "Imported from Google Sheets \"FB Leads_V1\". Adset targeting St. Albert."
+    },
+    {
+      "id": "lead-auto-55",
+      "customerName": "Harper Belanger",
+      "phone": "(780) 469-6169",
+      "email": "harperbelanger@gmail.com",
+      "address": "4081 163 Ave NW",
+      "city": "Sherwood Park",
+      "serviceRequested": "3 Bed 2.5 Bath Deep Scrub Clean",
+      "bedrooms": 2,
+      "bathrooms": 2,
+      "source": "Google Ad",
+      "sourceTab": "Google Leads_V3",
+      "campaignName": "Google Leads_V3 - Adset #3",
+      "dateReceived": "2026-10-04T22:00:00.000Z",
+      "status": "New",
+      "verdict": "Good lead",
+      "notes": "Imported from Google Sheets \"Google Leads_V3\". Adset targeting Sherwood Park."
+    },
+    {
+      "id": "lead-auto-56",
+      "customerName": "Brittany Taylor",
+      "phone": "(780) 476-6306",
+      "email": "brittanytaylor@gmail.com",
+      "address": "4164 166 Ave NW",
+      "city": "Spruce Grove",
+      "serviceRequested": "Move-Out Tenant Vacate Clean",
+      "bedrooms": 3,
+      "bathrooms": 3,
+      "source": "Instagram",
+      "sourceTab": "ScrubbyBuilder Leads",
+      "campaignName": "ScrubbyBuilder Leads - Adset #4",
+      "dateReceived": "2026-10-04T19:00:00.000Z",
+      "status": "New",
+      "verdict": "Good lead",
+      "notes": "Imported from Google Sheets \"ScrubbyBuilder Leads\". Adset targeting Spruce Grove."
+    },
+    {
+      "id": "lead-auto-57",
+      "customerName": "Nathaniel Ward",
+      "phone": "(780) 483-6443",
+      "email": "nathanielward@gmail.com",
+      "address": "4247 54 Ave NW",
+      "city": "Leduc",
+      "serviceRequested": "Bi-Weekly 3 Hour Refresh",
+      "bedrooms": 4,
+      "bathrooms": 1,
+      "source": "From Google Sheet",
+      "sourceTab": "Sheets-New App-V1",
+      "campaignName": "Sheets-New App-V1 - Adset #5",
+      "dateReceived": "2026-10-04T16:00:00.000Z",
+      "status": "New",
+      "verdict": "Good lead",
+      "notes": "Imported from Google Sheets \"Sheets-New App-V1\". Adset targeting Leduc."
+    },
+    {
+      "id": "lead-auto-58",
+      "customerName": "Amara Patel",
+      "phone": "(780) 490-6580",
+      "email": "amarapatel@gmail.com",
+      "address": "4330 57 Ave NW",
+      "city": "Edmonton",
+      "serviceRequested": "Post-Construction Dust Scrub",
+      "bedrooms": 1,
+      "bathrooms": 2,
+      "source": "Website form",
+      "sourceTab": "Tidy FB Leads_V2",
+      "campaignName": "Tidy FB Leads_V2 - Adset #1",
+      "dateReceived": "2026-10-04T13:00:00.000Z",
+      "status": "New",
+      "verdict": "Good lead",
+      "notes": "Imported from Google Sheets \"Tidy FB Leads_V2\". Adset targeting Edmonton."
+    },
+    {
+      "id": "lead-auto-59",
+      "customerName": "Lucas Bennett",
+      "phone": "(780) 497-6717",
+      "email": "lucasbennett@gmail.com",
+      "address": "4413 60 Ave NW",
+      "city": "St. Albert",
+      "serviceRequested": "Condo Turnover Cleaning",
+      "bedrooms": 2,
+      "bathrooms": 3,
+      "source": "Phone call",
+      "sourceTab": "FB Leads_V1",
+      "campaignName": "FB Leads_V1 - Adset #2",
+      "dateReceived": "2026-10-04T10:00:00.000Z",
+      "status": "New",
+      "verdict": "Good lead",
+      "notes": "Imported from Google Sheets \"FB Leads_V1\". Adset targeting St. Albert."
+    },
+    {
+      "id": "lead-auto-60",
+      "customerName": "Sophia Chen",
+      "phone": "(780) 504-6854",
+      "email": "sophiachen@gmail.com",
+      "address": "4496 63 Ave NW",
+      "city": "Sherwood Park",
+      "serviceRequested": "2 Bed 2 Bath Standard Clean",
+      "bedrooms": 3,
+      "bathrooms": 1,
+      "source": "Facebook Ad",
+      "sourceTab": "Google Leads_V3",
+      "campaignName": "Google Leads_V3 - Adset #3",
+      "dateReceived": "2026-10-04T07:00:00.000Z",
+      "status": "Converted",
+      "verdict": "Client",
+      "notes": "Imported from Google Sheets \"Google Leads_V3\". Adset targeting Sherwood Park."
+    },
+    {
+      "id": "lead-auto-61",
+      "customerName": "Noah Tremblay",
+      "phone": "(780) 511-6991",
+      "email": "noahtremblay@gmail.com",
+      "address": "4579 66 Ave NW",
+      "city": "Spruce Grove",
+      "serviceRequested": "3 Bed 2.5 Bath Deep Scrub Clean",
+      "bedrooms": 4,
+      "bathrooms": 2,
+      "source": "Google Ad",
+      "sourceTab": "ScrubbyBuilder Leads",
+      "campaignName": "ScrubbyBuilder Leads - Adset #4",
+      "dateReceived": "2026-10-04T04:00:00.000Z",
+      "status": "New",
+      "verdict": "Good lead",
+      "notes": "Imported from Google Sheets \"ScrubbyBuilder Leads\". Adset targeting Spruce Grove."
+    },
+    {
+      "id": "lead-auto-62",
+      "customerName": "Emma Roy",
+      "phone": "(780) 518-7128",
+      "email": "emmaroy@gmail.com",
+      "address": "4662 69 Ave NW",
+      "city": "Leduc",
+      "serviceRequested": "Move-Out Tenant Vacate Clean",
+      "bedrooms": 1,
+      "bathrooms": 3,
+      "source": "Instagram",
+      "sourceTab": "Sheets-New App-V1",
+      "campaignName": "Sheets-New App-V1 - Adset #5",
+      "dateReceived": "2026-10-04T01:00:00.000Z",
+      "status": "New",
+      "verdict": "Good lead",
+      "notes": "Imported from Google Sheets \"Sheets-New App-V1\". Adset targeting Leduc."
+    },
+    {
+      "id": "lead-auto-63",
+      "customerName": "Jackson Fisher",
+      "phone": "(780) 525-7265",
+      "email": "jacksonfisher@gmail.com",
+      "address": "4745 72 Ave NW",
+      "city": "Edmonton",
+      "serviceRequested": "Bi-Weekly 3 Hour Refresh",
+      "bedrooms": 2,
+      "bathrooms": 1,
+      "source": "From Google Sheet",
+      "sourceTab": "Tidy FB Leads_V2",
+      "campaignName": "Tidy FB Leads_V2 - Adset #1",
+      "dateReceived": "2026-10-03T22:00:00.000Z",
+      "status": "Dismissed",
+      "verdict": "Garbage",
+      "notes": "Imported from Google Sheets \"Tidy FB Leads_V2\". Adset targeting Edmonton."
+    },
+    {
+      "id": "lead-auto-64",
+      "customerName": "Olivia Martin",
+      "phone": "(780) 532-7402",
+      "email": "oliviamartin@gmail.com",
+      "address": "4828 75 Ave NW",
+      "city": "St. Albert",
+      "serviceRequested": "Post-Construction Dust Scrub",
+      "bedrooms": 3,
+      "bathrooms": 2,
+      "source": "Website form",
+      "sourceTab": "FB Leads_V1",
+      "campaignName": "FB Leads_V1 - Adset #2",
+      "dateReceived": "2026-10-03T19:00:00.000Z",
+      "status": "New",
+      "verdict": "Good lead",
+      "notes": "Imported from Google Sheets \"FB Leads_V1\". Adset targeting St. Albert."
+    },
+    {
+      "id": "lead-auto-65",
+      "customerName": "Benjamin Cote",
+      "phone": "(780) 539-7539",
+      "email": "benjamincote@gmail.com",
+      "address": "4911 78 Ave NW",
+      "city": "Sherwood Park",
+      "serviceRequested": "Condo Turnover Cleaning",
+      "bedrooms": 4,
+      "bathrooms": 3,
+      "source": "Phone call",
+      "sourceTab": "Google Leads_V3",
+      "campaignName": "Google Leads_V3 - Adset #3",
+      "dateReceived": "2026-10-03T16:00:00.000Z",
+      "status": "New",
+      "verdict": "Good lead",
+      "notes": "Imported from Google Sheets \"Google Leads_V3\". Adset targeting Sherwood Park."
+    },
+    {
+      "id": "lead-auto-66",
+      "customerName": "Ava MacLeod",
+      "phone": "(780) 546-7676",
+      "email": "avamacleod@gmail.com",
+      "address": "4994 81 Ave NW",
+      "city": "Spruce Grove",
+      "serviceRequested": "2 Bed 2 Bath Standard Clean",
+      "bedrooms": 1,
+      "bathrooms": 1,
+      "source": "Facebook Ad",
+      "sourceTab": "ScrubbyBuilder Leads",
+      "campaignName": "ScrubbyBuilder Leads - Adset #4",
+      "dateReceived": "2026-10-03T13:00:00.000Z",
+      "status": "Converted",
+      "verdict": "Client",
+      "notes": "Imported from Google Sheets \"ScrubbyBuilder Leads\". Adset targeting Spruce Grove."
+    },
+    {
+      "id": "lead-auto-67",
+      "customerName": "Ethan Gauthier",
+      "phone": "(780) 553-7813",
+      "email": "ethangauthier@gmail.com",
+      "address": "5077 84 Ave NW",
+      "city": "Leduc",
+      "serviceRequested": "3 Bed 2.5 Bath Deep Scrub Clean",
+      "bedrooms": 2,
+      "bathrooms": 2,
+      "source": "Google Ad",
+      "sourceTab": "Sheets-New App-V1",
+      "campaignName": "Sheets-New App-V1 - Adset #5",
+      "dateReceived": "2026-10-03T10:00:00.000Z",
+      "status": "New",
+      "verdict": "Good lead",
+      "notes": "Imported from Google Sheets \"Sheets-New App-V1\". Adset targeting Leduc."
+    },
+    {
+      "id": "lead-auto-68",
+      "customerName": "Mia Beaulieu",
+      "phone": "(780) 560-7950",
+      "email": "miabeaulieu@gmail.com",
+      "address": "5160 87 Ave NW",
+      "city": "Edmonton",
+      "serviceRequested": "Move-Out Tenant Vacate Clean",
+      "bedrooms": 3,
+      "bathrooms": 3,
+      "source": "Instagram",
+      "sourceTab": "Tidy FB Leads_V2",
+      "campaignName": "Tidy FB Leads_V2 - Adset #1",
+      "dateReceived": "2026-10-03T07:00:00.000Z",
+      "status": "New",
+      "verdict": "Good lead",
+      "notes": "Imported from Google Sheets \"Tidy FB Leads_V2\". Adset targeting Edmonton."
+    },
+    {
+      "id": "lead-auto-69",
+      "customerName": "Jacob Levesque",
+      "phone": "(780) 567-8087",
+      "email": "jacoblevesque@gmail.com",
+      "address": "5243 90 Ave NW",
+      "city": "St. Albert",
+      "serviceRequested": "Bi-Weekly 3 Hour Refresh",
+      "bedrooms": 4,
+      "bathrooms": 1,
+      "source": "From Google Sheet",
+      "sourceTab": "FB Leads_V1",
+      "campaignName": "FB Leads_V1 - Adset #2",
+      "dateReceived": "2026-10-03T04:00:00.000Z",
+      "status": "New",
+      "verdict": "Good lead",
+      "notes": "Imported from Google Sheets \"FB Leads_V1\". Adset targeting St. Albert."
+    },
+    {
+      "id": "lead-auto-70",
+      "customerName": "Charlotte Bouchard",
+      "phone": "(780) 574-8224",
+      "email": "charlottebouchard@gmail.com",
+      "address": "5326 93 Ave NW",
+      "city": "Sherwood Park",
+      "serviceRequested": "Post-Construction Dust Scrub",
+      "bedrooms": 1,
+      "bathrooms": 2,
+      "source": "Website form",
+      "sourceTab": "Google Leads_V3",
+      "campaignName": "Google Leads_V3 - Adset #3",
+      "dateReceived": "2026-10-03T01:00:00.000Z",
+      "status": "New",
+      "verdict": "Good lead",
+      "notes": "Imported from Google Sheets \"Google Leads_V3\". Adset targeting Sherwood Park."
+    },
+    {
+      "id": "lead-auto-71",
+      "customerName": "William Morin",
+      "phone": "(780) 581-8361",
+      "email": "williammorin@gmail.com",
+      "address": "5409 96 Ave NW",
+      "city": "Spruce Grove",
+      "serviceRequested": "Condo Turnover Cleaning",
+      "bedrooms": 2,
+      "bathrooms": 3,
+      "source": "Phone call",
+      "sourceTab": "ScrubbyBuilder Leads",
+      "campaignName": "ScrubbyBuilder Leads - Adset #4",
+      "dateReceived": "2026-10-02T22:00:00.000Z",
+      "status": "New",
+      "verdict": "Good lead",
+      "notes": "Imported from Google Sheets \"ScrubbyBuilder Leads\". Adset targeting Spruce Grove."
+    },
+    {
+      "id": "lead-auto-72",
+      "customerName": "Amelia Fortin",
+      "phone": "(780) 588-8498",
+      "email": "ameliafortin@gmail.com",
+      "address": "5492 99 Ave NW",
+      "city": "Leduc",
+      "serviceRequested": "2 Bed 2 Bath Standard Clean",
+      "bedrooms": 3,
+      "bathrooms": 1,
+      "source": "Facebook Ad",
+      "sourceTab": "Sheets-New App-V1",
+      "campaignName": "Sheets-New App-V1 - Adset #5",
+      "dateReceived": "2026-10-02T19:00:00.000Z",
+      "status": "Converted",
+      "verdict": "Client",
+      "notes": "Imported from Google Sheets \"Sheets-New App-V1\". Adset targeting Leduc."
+    },
+    {
+      "id": "lead-auto-73",
+      "customerName": "James Gagnon",
+      "phone": "(780) 595-8635",
+      "email": "jamesgagnon@gmail.com",
+      "address": "5575 102 Ave NW",
+      "city": "Edmonton",
+      "serviceRequested": "3 Bed 2.5 Bath Deep Scrub Clean",
+      "bedrooms": 4,
+      "bathrooms": 2,
+      "source": "Google Ad",
+      "sourceTab": "Tidy FB Leads_V2",
+      "campaignName": "Tidy FB Leads_V2 - Adset #1",
+      "dateReceived": "2026-10-02T16:00:00.000Z",
+      "status": "New",
+      "verdict": "Good lead",
+      "notes": "Imported from Google Sheets \"Tidy FB Leads_V2\". Adset targeting Edmonton."
+    },
+    {
+      "id": "lead-auto-74",
+      "customerName": "Harper Belanger",
+      "phone": "(780) 602-8772",
+      "email": "harperbelanger@gmail.com",
+      "address": "5658 105 Ave NW",
+      "city": "St. Albert",
+      "serviceRequested": "Move-Out Tenant Vacate Clean",
+      "bedrooms": 1,
+      "bathrooms": 3,
+      "source": "Instagram",
+      "sourceTab": "FB Leads_V1",
+      "campaignName": "FB Leads_V1 - Adset #2",
+      "dateReceived": "2026-10-02T13:00:00.000Z",
+      "status": "New",
+      "verdict": "Good lead",
+      "notes": "Imported from Google Sheets \"FB Leads_V1\". Adset targeting St. Albert."
+    },
+    {
+      "id": "lead-auto-75",
+      "customerName": "Brittany Taylor",
+      "phone": "(780) 609-8909",
+      "email": "brittanytaylor@gmail.com",
+      "address": "5741 108 Ave NW",
+      "city": "Sherwood Park",
+      "serviceRequested": "Bi-Weekly 3 Hour Refresh",
+      "bedrooms": 2,
+      "bathrooms": 1,
+      "source": "From Google Sheet",
+      "sourceTab": "Google Leads_V3",
+      "campaignName": "Google Leads_V3 - Adset #3",
+      "dateReceived": "2026-10-02T10:00:00.000Z",
+      "status": "New",
+      "verdict": "Good lead",
+      "notes": "Imported from Google Sheets \"Google Leads_V3\". Adset targeting Sherwood Park."
+    },
+    {
+      "id": "lead-auto-76",
+      "customerName": "Nathaniel Ward",
+      "phone": "(780) 616-9046",
+      "email": "nathanielward@gmail.com",
+      "address": "5824 111 Ave NW",
+      "city": "Spruce Grove",
+      "serviceRequested": "Post-Construction Dust Scrub",
+      "bedrooms": 3,
+      "bathrooms": 2,
+      "source": "Website form",
+      "sourceTab": "ScrubbyBuilder Leads",
+      "campaignName": "ScrubbyBuilder Leads - Adset #4",
+      "dateReceived": "2026-10-02T07:00:00.000Z",
+      "status": "New",
+      "verdict": "Good lead",
+      "notes": "Imported from Google Sheets \"ScrubbyBuilder Leads\". Adset targeting Spruce Grove."
+    },
+    {
+      "id": "lead-auto-77",
+      "customerName": "Amara Patel",
+      "phone": "(780) 623-9183",
+      "email": "amarapatel@gmail.com",
+      "address": "5907 114 Ave NW",
+      "city": "Leduc",
+      "serviceRequested": "Condo Turnover Cleaning",
+      "bedrooms": 4,
+      "bathrooms": 3,
+      "source": "Phone call",
+      "sourceTab": "Sheets-New App-V1",
+      "campaignName": "Sheets-New App-V1 - Adset #5",
+      "dateReceived": "2026-10-02T04:00:00.000Z",
+      "status": "New",
+      "verdict": "Good lead",
+      "notes": "Imported from Google Sheets \"Sheets-New App-V1\". Adset targeting Leduc."
+    },
+    {
+      "id": "lead-auto-78",
+      "customerName": "Lucas Bennett",
+      "phone": "(780) 630-9320",
+      "email": "lucasbennett@gmail.com",
+      "address": "5990 117 Ave NW",
+      "city": "Edmonton",
+      "serviceRequested": "2 Bed 2 Bath Standard Clean",
+      "bedrooms": 1,
+      "bathrooms": 1,
+      "source": "Facebook Ad",
+      "sourceTab": "Tidy FB Leads_V2",
+      "campaignName": "Tidy FB Leads_V2 - Adset #1",
+      "dateReceived": "2026-10-02T01:00:00.000Z",
+      "status": "Converted",
+      "verdict": "Client",
+      "notes": "Imported from Google Sheets \"Tidy FB Leads_V2\". Adset targeting Edmonton."
+    },
+    {
+      "id": "lead-auto-79",
+      "customerName": "Sophia Chen",
+      "phone": "(780) 637-9457",
+      "email": "sophiachen@gmail.com",
+      "address": "6073 120 Ave NW",
+      "city": "St. Albert",
+      "serviceRequested": "3 Bed 2.5 Bath Deep Scrub Clean",
+      "bedrooms": 2,
+      "bathrooms": 2,
+      "source": "Google Ad",
+      "sourceTab": "FB Leads_V1",
+      "campaignName": "FB Leads_V1 - Adset #2",
+      "dateReceived": "2026-10-01T22:00:00.000Z",
+      "status": "New",
+      "verdict": "Good lead",
+      "notes": "Imported from Google Sheets \"FB Leads_V1\". Adset targeting St. Albert."
+    },
+    {
+      "id": "lead-auto-80",
+      "customerName": "Noah Tremblay",
+      "phone": "(780) 644-9594",
+      "email": "noahtremblay@gmail.com",
+      "address": "6156 123 Ave NW",
+      "city": "Sherwood Park",
+      "serviceRequested": "Move-Out Tenant Vacate Clean",
+      "bedrooms": 3,
+      "bathrooms": 3,
+      "source": "Instagram",
+      "sourceTab": "Google Leads_V3",
+      "campaignName": "Google Leads_V3 - Adset #3",
+      "dateReceived": "2026-10-01T19:00:00.000Z",
+      "status": "New",
+      "verdict": "Good lead",
+      "notes": "Imported from Google Sheets \"Google Leads_V3\". Adset targeting Sherwood Park."
+    },
+    {
+      "id": "lead-auto-81",
+      "customerName": "Emma Roy",
+      "phone": "(780) 651-9731",
+      "email": "emmaroy@gmail.com",
+      "address": "6239 126 Ave NW",
+      "city": "Spruce Grove",
+      "serviceRequested": "Bi-Weekly 3 Hour Refresh",
+      "bedrooms": 4,
+      "bathrooms": 1,
+      "source": "From Google Sheet",
+      "sourceTab": "ScrubbyBuilder Leads",
+      "campaignName": "ScrubbyBuilder Leads - Adset #4",
+      "dateReceived": "2026-10-01T16:00:00.000Z",
+      "status": "New",
+      "verdict": "Good lead",
+      "notes": "Imported from Google Sheets \"ScrubbyBuilder Leads\". Adset targeting Spruce Grove."
+    },
+    {
+      "id": "lead-auto-82",
+      "customerName": "Jackson Fisher",
+      "phone": "(780) 658-9868",
+      "email": "jacksonfisher@gmail.com",
+      "address": "6322 129 Ave NW",
+      "city": "Leduc",
+      "serviceRequested": "Post-Construction Dust Scrub",
+      "bedrooms": 1,
+      "bathrooms": 2,
+      "source": "Website form",
+      "sourceTab": "Sheets-New App-V1",
+      "campaignName": "Sheets-New App-V1 - Adset #5",
+      "dateReceived": "2026-10-01T13:00:00.000Z",
+      "status": "New",
+      "verdict": "Good lead",
+      "notes": "Imported from Google Sheets \"Sheets-New App-V1\". Adset targeting Leduc."
+    },
+    {
+      "id": "lead-auto-83",
+      "customerName": "Olivia Martin",
+      "phone": "(780) 665-1205",
+      "email": "oliviamartin@gmail.com",
+      "address": "6405 132 Ave NW",
+      "city": "Edmonton",
+      "serviceRequested": "Condo Turnover Cleaning",
+      "bedrooms": 2,
+      "bathrooms": 3,
+      "source": "Phone call",
+      "sourceTab": "Tidy FB Leads_V2",
+      "campaignName": "Tidy FB Leads_V2 - Adset #1",
+      "dateReceived": "2026-10-01T10:00:00.000Z",
+      "status": "New",
+      "verdict": "Good lead",
+      "notes": "Imported from Google Sheets \"Tidy FB Leads_V2\". Adset targeting Edmonton."
+    },
+    {
+      "id": "lead-auto-84",
+      "customerName": "Benjamin Cote",
+      "phone": "(780) 672-1342",
+      "email": "benjamincote@gmail.com",
+      "address": "6488 135 Ave NW",
+      "city": "St. Albert",
+      "serviceRequested": "2 Bed 2 Bath Standard Clean",
+      "bedrooms": 3,
+      "bathrooms": 1,
+      "source": "Facebook Ad",
+      "sourceTab": "FB Leads_V1",
+      "campaignName": "FB Leads_V1 - Adset #2",
+      "dateReceived": "2026-10-01T07:00:00.000Z",
+      "status": "Converted",
+      "verdict": "Client",
+      "notes": "Imported from Google Sheets \"FB Leads_V1\". Adset targeting St. Albert."
+    },
+    {
+      "id": "lead-auto-85",
+      "customerName": "Ava MacLeod",
+      "phone": "(780) 679-1479",
+      "email": "avamacleod@gmail.com",
+      "address": "6571 138 Ave NW",
+      "city": "Sherwood Park",
+      "serviceRequested": "3 Bed 2.5 Bath Deep Scrub Clean",
+      "bedrooms": 4,
+      "bathrooms": 2,
+      "source": "Google Ad",
+      "sourceTab": "Google Leads_V3",
+      "campaignName": "Google Leads_V3 - Adset #3",
+      "dateReceived": "2026-10-01T04:00:00.000Z",
+      "status": "New",
+      "verdict": "Good lead",
+      "notes": "Imported from Google Sheets \"Google Leads_V3\". Adset targeting Sherwood Park."
+    },
+    {
+      "id": "lead-auto-86",
+      "customerName": "Ethan Gauthier",
+      "phone": "(780) 686-1616",
+      "email": "ethangauthier@gmail.com",
+      "address": "6654 141 Ave NW",
+      "city": "Spruce Grove",
+      "serviceRequested": "Move-Out Tenant Vacate Clean",
+      "bedrooms": 1,
+      "bathrooms": 3,
+      "source": "Instagram",
+      "sourceTab": "ScrubbyBuilder Leads",
+      "campaignName": "ScrubbyBuilder Leads - Adset #4",
+      "dateReceived": "2026-10-01T01:00:00.000Z",
+      "status": "New",
+      "verdict": "Good lead",
+      "notes": "Imported from Google Sheets \"ScrubbyBuilder Leads\". Adset targeting Spruce Grove."
+    },
+    {
+      "id": "lead-auto-87",
+      "customerName": "Mia Beaulieu",
+      "phone": "(780) 693-1753",
+      "email": "miabeaulieu@gmail.com",
+      "address": "6737 144 Ave NW",
+      "city": "Leduc",
+      "serviceRequested": "Bi-Weekly 3 Hour Refresh",
+      "bedrooms": 2,
+      "bathrooms": 1,
+      "source": "From Google Sheet",
+      "sourceTab": "Sheets-New App-V1",
+      "campaignName": "Sheets-New App-V1 - Adset #5",
+      "dateReceived": "2026-09-30T22:00:00.000Z",
+      "status": "New",
+      "verdict": "Good lead",
+      "notes": "Imported from Google Sheets \"Sheets-New App-V1\". Adset targeting Leduc."
+    },
+    {
+      "id": "lead-auto-88",
+      "customerName": "Jacob Levesque",
+      "phone": "(780) 700-1890",
+      "email": "jacoblevesque@gmail.com",
+      "address": "6820 147 Ave NW",
+      "city": "Edmonton",
+      "serviceRequested": "Post-Construction Dust Scrub",
+      "bedrooms": 3,
+      "bathrooms": 2,
+      "source": "Website form",
+      "sourceTab": "Tidy FB Leads_V2",
+      "campaignName": "Tidy FB Leads_V2 - Adset #1",
+      "dateReceived": "2026-09-30T19:00:00.000Z",
+      "status": "New",
+      "verdict": "Good lead",
+      "notes": "Imported from Google Sheets \"Tidy FB Leads_V2\". Adset targeting Edmonton."
+    },
+    {
+      "id": "lead-auto-89",
+      "customerName": "Charlotte Bouchard",
+      "phone": "(780) 707-2027",
+      "email": "charlottebouchard@gmail.com",
+      "address": "6903 150 Ave NW",
+      "city": "St. Albert",
+      "serviceRequested": "Condo Turnover Cleaning",
+      "bedrooms": 4,
+      "bathrooms": 3,
+      "source": "Phone call",
+      "sourceTab": "FB Leads_V1",
+      "campaignName": "FB Leads_V1 - Adset #2",
+      "dateReceived": "2026-09-30T16:00:00.000Z",
+      "status": "New",
+      "verdict": "Good lead",
+      "notes": "Imported from Google Sheets \"FB Leads_V1\". Adset targeting St. Albert."
+    },
+    {
+      "id": "lead-auto-90",
+      "customerName": "William Morin",
+      "phone": "(780) 714-2164",
+      "email": "williammorin@gmail.com",
+      "address": "6986 153 Ave NW",
+      "city": "Sherwood Park",
+      "serviceRequested": "2 Bed 2 Bath Standard Clean",
+      "bedrooms": 1,
+      "bathrooms": 1,
+      "source": "Facebook Ad",
+      "sourceTab": "Google Leads_V3",
+      "campaignName": "Google Leads_V3 - Adset #3",
+      "dateReceived": "2026-09-30T13:00:00.000Z",
+      "status": "Converted",
+      "verdict": "Client",
+      "notes": "Imported from Google Sheets \"Google Leads_V3\". Adset targeting Sherwood Park."
+    },
+    {
+      "id": "lead-auto-91",
+      "customerName": "Amelia Fortin",
+      "phone": "(780) 721-2301",
+      "email": "ameliafortin@gmail.com",
+      "address": "7069 156 Ave NW",
+      "city": "Spruce Grove",
+      "serviceRequested": "3 Bed 2.5 Bath Deep Scrub Clean",
+      "bedrooms": 2,
+      "bathrooms": 2,
+      "source": "Google Ad",
+      "sourceTab": "ScrubbyBuilder Leads",
+      "campaignName": "ScrubbyBuilder Leads - Adset #4",
+      "dateReceived": "2026-09-30T10:00:00.000Z",
+      "status": "New",
+      "verdict": "Good lead",
+      "notes": "Imported from Google Sheets \"ScrubbyBuilder Leads\". Adset targeting Spruce Grove."
+    },
+    {
+      "id": "lead-auto-92",
+      "customerName": "James Gagnon",
+      "phone": "(780) 728-2438",
+      "email": "jamesgagnon@gmail.com",
+      "address": "7152 159 Ave NW",
+      "city": "Leduc",
+      "serviceRequested": "Move-Out Tenant Vacate Clean",
+      "bedrooms": 3,
+      "bathrooms": 3,
+      "source": "Instagram",
+      "sourceTab": "Sheets-New App-V1",
+      "campaignName": "Sheets-New App-V1 - Adset #5",
+      "dateReceived": "2026-09-30T07:00:00.000Z",
+      "status": "New",
+      "verdict": "Good lead",
+      "notes": "Imported from Google Sheets \"Sheets-New App-V1\". Adset targeting Leduc."
+    },
+    {
+      "id": "lead-auto-93",
+      "customerName": "Harper Belanger",
+      "phone": "(780) 735-2575",
+      "email": "harperbelanger@gmail.com",
+      "address": "7235 162 Ave NW",
+      "city": "Edmonton",
+      "serviceRequested": "Bi-Weekly 3 Hour Refresh",
+      "bedrooms": 4,
+      "bathrooms": 1,
+      "source": "From Google Sheet",
+      "sourceTab": "Tidy FB Leads_V2",
+      "campaignName": "Tidy FB Leads_V2 - Adset #1",
+      "dateReceived": "2026-09-30T04:00:00.000Z",
+      "status": "Dismissed",
+      "verdict": "Garbage",
+      "notes": "Imported from Google Sheets \"Tidy FB Leads_V2\". Adset targeting Edmonton."
+    },
+    {
+      "id": "lead-auto-94",
+      "customerName": "Brittany Taylor",
+      "phone": "(780) 742-2712",
+      "email": "brittanytaylor@gmail.com",
+      "address": "7318 165 Ave NW",
+      "city": "St. Albert",
+      "serviceRequested": "Post-Construction Dust Scrub",
+      "bedrooms": 1,
+      "bathrooms": 2,
+      "source": "Website form",
+      "sourceTab": "FB Leads_V1",
+      "campaignName": "FB Leads_V1 - Adset #2",
+      "dateReceived": "2026-09-30T01:00:00.000Z",
+      "status": "New",
+      "verdict": "Good lead",
+      "notes": "Imported from Google Sheets \"FB Leads_V1\". Adset targeting St. Albert."
+    },
+    {
+      "id": "lead-auto-95",
+      "customerName": "Nathaniel Ward",
+      "phone": "(780) 749-2849",
+      "email": "nathanielward@gmail.com",
+      "address": "7401 53 Ave NW",
+      "city": "Sherwood Park",
+      "serviceRequested": "Condo Turnover Cleaning",
+      "bedrooms": 2,
+      "bathrooms": 3,
+      "source": "Phone call",
+      "sourceTab": "Google Leads_V3",
+      "campaignName": "Google Leads_V3 - Adset #3",
+      "dateReceived": "2026-09-29T22:00:00.000Z",
+      "status": "New",
+      "verdict": "Good lead",
+      "notes": "Imported from Google Sheets \"Google Leads_V3\". Adset targeting Sherwood Park."
+    },
+    {
+      "id": "lead-auto-96",
+      "customerName": "Amara Patel",
+      "phone": "(780) 756-2986",
+      "email": "amarapatel@gmail.com",
+      "address": "7484 56 Ave NW",
+      "city": "Spruce Grove",
+      "serviceRequested": "2 Bed 2 Bath Standard Clean",
+      "bedrooms": 3,
+      "bathrooms": 1,
+      "source": "Facebook Ad",
+      "sourceTab": "ScrubbyBuilder Leads",
+      "campaignName": "ScrubbyBuilder Leads - Adset #4",
+      "dateReceived": "2026-09-29T19:00:00.000Z",
+      "status": "Converted",
+      "verdict": "Client",
+      "notes": "Imported from Google Sheets \"ScrubbyBuilder Leads\". Adset targeting Spruce Grove."
+    },
+    {
+      "id": "lead-auto-97",
+      "customerName": "Lucas Bennett",
+      "phone": "(780) 763-3123",
+      "email": "lucasbennett@gmail.com",
+      "address": "7567 59 Ave NW",
+      "city": "Leduc",
+      "serviceRequested": "3 Bed 2.5 Bath Deep Scrub Clean",
+      "bedrooms": 4,
+      "bathrooms": 2,
+      "source": "Google Ad",
+      "sourceTab": "Sheets-New App-V1",
+      "campaignName": "Sheets-New App-V1 - Adset #5",
+      "dateReceived": "2026-09-29T16:00:00.000Z",
+      "status": "New",
+      "verdict": "Good lead",
+      "notes": "Imported from Google Sheets \"Sheets-New App-V1\". Adset targeting Leduc."
+    },
+    {
+      "id": "lead-auto-98",
+      "customerName": "Sophia Chen",
+      "phone": "(780) 770-3260",
+      "email": "sophiachen@gmail.com",
+      "address": "7650 62 Ave NW",
+      "city": "Edmonton",
+      "serviceRequested": "Move-Out Tenant Vacate Clean",
+      "bedrooms": 1,
+      "bathrooms": 3,
+      "source": "Instagram",
+      "sourceTab": "Tidy FB Leads_V2",
+      "campaignName": "Tidy FB Leads_V2 - Adset #1",
+      "dateReceived": "2026-09-29T13:00:00.000Z",
+      "status": "New",
+      "verdict": "Good lead",
+      "notes": "Imported from Google Sheets \"Tidy FB Leads_V2\". Adset targeting Edmonton."
+    },
+    {
+      "id": "lead-auto-99",
+      "customerName": "Noah Tremblay",
+      "phone": "(780) 777-3397",
+      "email": "noahtremblay@gmail.com",
+      "address": "7733 65 Ave NW",
+      "city": "St. Albert",
+      "serviceRequested": "Bi-Weekly 3 Hour Refresh",
+      "bedrooms": 2,
+      "bathrooms": 1,
+      "source": "From Google Sheet",
+      "sourceTab": "FB Leads_V1",
+      "campaignName": "FB Leads_V1 - Adset #2",
+      "dateReceived": "2026-09-29T10:00:00.000Z",
+      "status": "New",
+      "verdict": "Good lead",
+      "notes": "Imported from Google Sheets \"FB Leads_V1\". Adset targeting St. Albert."
+    },
+    {
+      "id": "lead-auto-100",
+      "customerName": "Emma Roy",
+      "phone": "(780) 784-3534",
+      "email": "emmaroy@gmail.com",
+      "address": "7816 68 Ave NW",
+      "city": "Sherwood Park",
+      "serviceRequested": "Post-Construction Dust Scrub",
+      "bedrooms": 3,
+      "bathrooms": 2,
+      "source": "Website form",
+      "sourceTab": "Google Leads_V3",
+      "campaignName": "Google Leads_V3 - Adset #3",
+      "dateReceived": "2026-09-29T07:00:00.000Z",
+      "status": "New",
+      "verdict": "Good lead",
+      "notes": "Imported from Google Sheets \"Google Leads_V3\". Adset targeting Sherwood Park."
+    },
+    {
+      "id": "lead-auto-101",
+      "customerName": "Jackson Fisher",
+      "phone": "(780) 791-3671",
+      "email": "jacksonfisher@gmail.com",
+      "address": "7899 71 Ave NW",
+      "city": "Spruce Grove",
+      "serviceRequested": "Condo Turnover Cleaning",
+      "bedrooms": 4,
+      "bathrooms": 3,
+      "source": "Phone call",
+      "sourceTab": "ScrubbyBuilder Leads",
+      "campaignName": "ScrubbyBuilder Leads - Adset #4",
+      "dateReceived": "2026-09-29T04:00:00.000Z",
+      "status": "New",
+      "verdict": "Good lead",
+      "notes": "Imported from Google Sheets \"ScrubbyBuilder Leads\". Adset targeting Spruce Grove."
+    },
+    {
+      "id": "lead-auto-102",
+      "customerName": "Olivia Martin",
+      "phone": "(780) 798-3808",
+      "email": "oliviamartin@gmail.com",
+      "address": "7982 74 Ave NW",
+      "city": "Leduc",
+      "serviceRequested": "2 Bed 2 Bath Standard Clean",
+      "bedrooms": 1,
+      "bathrooms": 1,
+      "source": "Facebook Ad",
+      "sourceTab": "Sheets-New App-V1",
+      "campaignName": "Sheets-New App-V1 - Adset #5",
+      "dateReceived": "2026-09-29T01:00:00.000Z",
+      "status": "Converted",
+      "verdict": "Client",
+      "notes": "Imported from Google Sheets \"Sheets-New App-V1\". Adset targeting Leduc."
+    },
+    {
+      "id": "lead-auto-103",
+      "customerName": "Benjamin Cote",
+      "phone": "(780) 805-3945",
+      "email": "benjamincote@gmail.com",
+      "address": "8065 77 Ave NW",
+      "city": "Edmonton",
+      "serviceRequested": "3 Bed 2.5 Bath Deep Scrub Clean",
+      "bedrooms": 2,
+      "bathrooms": 2,
+      "source": "Google Ad",
+      "sourceTab": "Tidy FB Leads_V2",
+      "campaignName": "Tidy FB Leads_V2 - Adset #1",
+      "dateReceived": "2026-09-28T22:00:00.000Z",
+      "status": "New",
+      "verdict": "Good lead",
+      "notes": "Imported from Google Sheets \"Tidy FB Leads_V2\". Adset targeting Edmonton."
+    },
+    {
+      "id": "lead-auto-104",
+      "customerName": "Ava MacLeod",
+      "phone": "(780) 812-4082",
+      "email": "avamacleod@gmail.com",
+      "address": "8148 80 Ave NW",
+      "city": "St. Albert",
+      "serviceRequested": "Move-Out Tenant Vacate Clean",
+      "bedrooms": 3,
+      "bathrooms": 3,
+      "source": "Instagram",
+      "sourceTab": "FB Leads_V1",
+      "campaignName": "FB Leads_V1 - Adset #2",
+      "dateReceived": "2026-09-28T19:00:00.000Z",
+      "status": "New",
+      "verdict": "Good lead",
+      "notes": "Imported from Google Sheets \"FB Leads_V1\". Adset targeting St. Albert."
+    },
+    {
+      "id": "lead-auto-105",
+      "customerName": "Ethan Gauthier",
+      "phone": "(780) 819-4219",
+      "email": "ethangauthier@gmail.com",
+      "address": "8231 83 Ave NW",
+      "city": "Sherwood Park",
+      "serviceRequested": "Bi-Weekly 3 Hour Refresh",
+      "bedrooms": 4,
+      "bathrooms": 1,
+      "source": "From Google Sheet",
+      "sourceTab": "Google Leads_V3",
+      "campaignName": "Google Leads_V3 - Adset #3",
+      "dateReceived": "2026-09-28T16:00:00.000Z",
+      "status": "New",
+      "verdict": "Good lead",
+      "notes": "Imported from Google Sheets \"Google Leads_V3\". Adset targeting Sherwood Park."
+    },
+    {
+      "id": "lead-auto-106",
+      "customerName": "Mia Beaulieu",
+      "phone": "(780) 826-4356",
+      "email": "miabeaulieu@gmail.com",
+      "address": "8314 86 Ave NW",
+      "city": "Spruce Grove",
+      "serviceRequested": "Post-Construction Dust Scrub",
+      "bedrooms": 1,
+      "bathrooms": 2,
+      "source": "Website form",
+      "sourceTab": "ScrubbyBuilder Leads",
+      "campaignName": "ScrubbyBuilder Leads - Adset #4",
+      "dateReceived": "2026-09-28T13:00:00.000Z",
+      "status": "New",
+      "verdict": "Good lead",
+      "notes": "Imported from Google Sheets \"ScrubbyBuilder Leads\". Adset targeting Spruce Grove."
+    }
+  ]
 }

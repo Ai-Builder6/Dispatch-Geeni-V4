@@ -1,4 +1,4 @@
-export type ClientVerdict = 'Client' | 'Good lead' | 'Bad lead' | 'Spam';
+export type ClientVerdict = 'Client' | 'Good lead' | 'Bad lead' | 'Spam' | 'Garbage';
 
 export interface CallTranscriptLog {
   id: string;

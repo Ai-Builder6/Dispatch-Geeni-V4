@@ -26,7 +26,9 @@ import {
 } from 'lucide-react';
 import { getCustomerIntelligence } from '../services/customerIntelligenceService';
 import { CustomerIntelligenceBadge } from './CustomerIntelligenceBadge';
+import { QuoteDetailModal } from './QuoteDetailModal';
 import { AdLeadItem } from '../types/lead';
+import { JobberQuote } from '../services/jobberSyncModules';
 
 interface QuickQuoteViewProps {
   initialLead?: AdLeadItem | null;
@@ -75,6 +77,7 @@ export const QuickQuoteView: React.FC<QuickQuoteViewProps> = ({
   const [isSubmitting, setIsSubmitting] = useState<boolean>(false);
   const [copiedBreakdown, setCopiedBreakdown] = useState<boolean>(false);
   const [feedbackNotice, setFeedbackNotice] = useState<string | null>(null);
+  const [createdQuoteModalItem, setCreatedQuoteModalItem] = useState<JobberQuote | null>(null);
 
   // Hourly Rate resolution
   const hourlyRate = useMemo(() => {
@@ -163,11 +166,43 @@ ${depositAmount > 0 ? `• Deposit: $${Number(depositAmount).toFixed(2)}\n` : ''
     }
   };
 
-  // Create official Jobber Quote
+  // Create official Jobber Quote & Sync Client + Google Sheet
   const handleSaveJobberQuote = async () => {
     setIsSubmitting(true);
     setFeedbackNotice(null);
     try {
+      const lineItems = [
+        {
+          name: `${serviceType} (${hours} hrs)`,
+          description: `${crewSelection === '1_CLEANER' ? '1 Cleaner @ $52.50/hr' : crewSelection === '2_CLEANERS' ? '2 Cleaners @ $105.00/hr' : `Custom Crew @ $${hourlyRate.toFixed(2)}/hr`} — ${serviceAddress || 'Edmonton, AB'}`,
+          quantity: hours,
+          unitPrice: hourlyRate,
+          total: calculations.labor,
+        },
+        ...(Number(fuelSurcharge) > 0
+          ? [
+              {
+                name: 'Fuel & Dispatch Surcharge',
+                description: 'Standard Edmonton & Area mobile dispatch fuel surcharge',
+                quantity: 1,
+                unitPrice: Number(fuelSurcharge),
+                total: Number(fuelSurcharge),
+              },
+            ]
+          : []),
+        ...(Number(discountAmount) > 0
+          ? [
+              {
+                name: 'Promotional / Loyalty Discount',
+                description: 'Applied customer discount',
+                quantity: 1,
+                unitPrice: -Number(discountAmount),
+                total: -Number(discountAmount),
+              },
+            ]
+          : []),
+      ];
+
       const res = await fetch(`/api/database/quotes?project=${projectId}`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json', 'x-project-id': projectId },
@@ -175,16 +210,21 @@ ${depositAmount > 0 ? `• Deposit: $${Number(depositAmount).toFixed(2)}\n` : ''
           clientName: customerName || 'Phone Lead',
           clientPhone: customerPhone || '(780) 555-0199',
           clientEmail: customerEmail,
+          serviceAddress: serviceAddress || 'Edmonton, AB',
           service: `${serviceType} (${hours} hrs)`,
           total: calculations.total,
           depositRequired: depositAmount,
+          lineItems,
           notes: `Quick Quoted: ${hours} hrs @ $${hourlyRate}/hr + $${fuelSurcharge} fuel. Source: ${selectedSource}. ${quoteNotes}`,
         }),
       });
       const data = await res.json();
       if (data.success && data.quote) {
-        setFeedbackNotice(`✓ Jobber Quote #${data.quote.quoteNumber} created and staged for Jobber sync!`);
+        setFeedbackNotice(
+          data.message || `✓ Jobber Quote ${data.quote.quoteNumber} created & synced to Jobber Client + Google Sheets!`
+        );
         if (onQuoteCreated) onQuoteCreated(data.quote);
+        setCreatedQuoteModalItem(data.quote);
       } else {
         setFeedbackNotice(data.error || 'Failed to create quote.');
       }
@@ -699,6 +739,15 @@ ${depositAmount > 0 ? `• Deposit: $${Number(depositAmount).toFixed(2)}\n` : ''
           </div>
         </div>
       </div>
+
+      {/* Exact Jobber Quote & "This is your quote" SMS Modal */}
+      <QuoteDetailModal
+        isOpen={Boolean(createdQuoteModalItem)}
+        onClose={() => setCreatedQuoteModalItem(null)}
+        quote={createdQuoteModalItem}
+        projectId={projectId}
+        onQuoteUpdated={(updated) => setCreatedQuoteModalItem(updated)}
+      />
     </div>
   );
 };
