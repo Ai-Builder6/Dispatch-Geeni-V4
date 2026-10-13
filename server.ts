@@ -4291,19 +4291,34 @@ app.post("/api/twilio/test-number", (req, res) => {
   const store = loadStore(projectId);
   const config = store?.spamShieldConfig || DEFAULT_SPAM_SHIELD_CONFIG;
 
-  const { number } = req.body || {};
+  const { number, calledNumber } = req.body || {};
   if (!number) return res.status(400).json({ error: "Phone number is required to test" });
 
   const evaluation = evaluateSpamCallRule(String(number), config);
   const rejectionAction = config.rejectionAction || "busy";
-  const forwardTarget = config.forwardDestinationNumber || "+15879007223";
+  let forwardTarget = config.forwardDestinationNumber || "+15879007223";
+
+  if (config.lineMappings && calledNumber) {
+    const dialedDigits = normalizePhoneDigits(calledNumber);
+    for (const [inboundLine, target] of Object.entries(config.lineMappings)) {
+      if (normalizePhoneDigits(inboundLine) === dialedDigits || inboundLine === calledNumber) {
+        if (target && typeof target === "string" && target.trim()) {
+          forwardTarget = target.trim();
+          break;
+        }
+      }
+    }
+  }
+
+  const outboundCallerId = calledNumber ? String(calledNumber) : "+18338439877";
   const twimlPreview = evaluation.isBlocked
     ? `<?xml version="1.0" encoding="UTF-8"?>\n<Response>\n  <Reject reason="${rejectionAction}"/>\n</Response>`
-    : `<?xml version="1.0" encoding="UTF-8"?>\n<Response>\n  <Say voice="alice">Connecting call...</Say>\n  <Dial timeout="25" callerId="+18338439877">${forwardTarget}</Dial>\n</Response>`;
+    : `<?xml version="1.0" encoding="UTF-8"?>\n<Response>\n  <Say voice="alice">Connecting call...</Say>\n  <Dial timeout="25" callerId="${outboundCallerId}">${forwardTarget}</Dial>\n</Response>`;
 
   res.json({
     success: true,
     number,
+    calledNumber: calledNumber || undefined,
     isBlocked: evaluation.isBlocked,
     reason: evaluation.reason || "Allowed caller — passes all filter rules",
     countryCode: evaluation.countryCode || "+1",

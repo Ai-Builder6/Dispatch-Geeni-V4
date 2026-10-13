@@ -115,6 +115,12 @@ export const TwilioSpamShieldModal: React.FC<TwilioSpamShieldModalProps> = ({
   const [copiedWebhook, setCopiedWebhook] = useState(false);
   const [forwardNumberInput, setForwardNumberInput] = useState('+15879007223');
 
+  // 1-to-1 Line Router Inputs
+  const [mapTwilioNumber, setMapTwilioNumber] = useState('');
+  const [mapQuoNumber, setMapQuoNumber] = useState('+15875708005');
+  const [mapLabel, setMapLabel] = useState('Primary Dispatch');
+  const [testDialedLine, setTestDialedLine] = useState('');
+
   const webhookUrl = typeof window !== 'undefined'
     ? `${window.location.origin}/api/twilio/voice`
     : 'https://dispatchgeeni.com/api/twilio/voice';
@@ -214,6 +220,30 @@ export const TwilioSpamShieldModal: React.FC<TwilioSpamShieldModalProps> = ({
     }
   };
 
+  // Add 1-to-1 line mapping
+  const handleAddLineMapping = () => {
+    if (!mapTwilioNumber.trim() || !mapQuoNumber.trim()) {
+      setStatusNotice('Please enter both the Twilio Inbound Number and target Quo Number.');
+      return;
+    }
+    const currentMappings = config.lineMappings || {};
+    const updated = {
+      ...currentMappings,
+      [mapTwilioNumber.trim()]: mapQuoNumber.trim(),
+    };
+    handleSaveConfig({ lineMappings: updated });
+    setMapTwilioNumber('');
+    setStatusNotice(`Mapped 1-to-1 route: ${mapTwilioNumber.trim()} ➔ ${mapQuoNumber.trim()}`);
+  };
+
+  // Remove 1-to-1 line mapping
+  const handleRemoveLineMapping = (inboundNumber: string) => {
+    const currentMappings = { ...(config.lineMappings || {}) };
+    delete currentMappings[inboundNumber];
+    handleSaveConfig({ lineMappings: currentMappings });
+    setStatusNotice(`Removed 1-to-1 route for ${inboundNumber}`);
+  };
+
   // Test phone number
   const handleRunTest = async (e?: React.FormEvent) => {
     if (e) e.preventDefault();
@@ -224,7 +254,10 @@ export const TwilioSpamShieldModal: React.FC<TwilioSpamShieldModalProps> = ({
       const res = await fetch(`/api/twilio/test-number?project=${projectId}`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ number: testNumberInput.trim() }),
+        body: JSON.stringify({
+          number: testNumberInput.trim(),
+          calledNumber: testDialedLine.trim() || undefined,
+        }),
       });
       const data = await res.json();
       setTestResult(data);
@@ -1253,6 +1286,146 @@ export const TwilioSpamShieldModal: React.FC<TwilioSpamShieldModalProps> = ({
                       <div className="font-semibold text-white">Google My Business Direct</div>
                       <div className="font-mono text-emerald-400 text-[11px]">+1 (587) 900-7223</div>
                     </div>
+                  </div>
+                </div>
+
+                {/* 1-to-1 Line Router & Twilio Multi-Line Manager */}
+                <div className="bg-[#151926] p-5 rounded-2xl border border-slate-800 space-y-4">
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-2">
+                      <Split className="w-4 h-4 text-emerald-400" />
+                      <h4 className="font-bold text-sm text-white">Active 1-to-1 Line Routes</h4>
+                    </div>
+                    <span className="text-[11px] text-slate-400 font-mono">
+                      {Object.keys(config.lineMappings || {}).length} custom routes configured
+                    </span>
+                  </div>
+
+                  <p className="text-xs text-slate-400 leading-relaxed">
+                    When someone dials any of your Twilio numbers, the Spam Shield inspects the caller. Clean calls are automatically routed 1-to-1 to that specific number's Quo destination, preserving marketing attribution and separate inboxes.
+                  </p>
+
+                  {/* Active Mappings Table */}
+                  <div className="space-y-2">
+                    {Object.entries(config.lineMappings || {}).length === 0 ? (
+                      <div className="p-4 bg-[#0f121d] rounded-xl border border-dashed border-slate-800 text-center space-y-2">
+                        <p className="text-xs text-slate-400">
+                          No custom 1-to-1 line pairs added yet. All allowed callers currently route to your default destination (<span className="text-emerald-400 font-mono">{config.forwardDestinationNumber || '+15879007223'}</span>).
+                        </p>
+                        <p className="text-[11px] text-slate-500">
+                          Use the form below to pair your Twilio lines to their matching Quo lines, or reply with your numbers and I will set them up for you.
+                        </p>
+                      </div>
+                    ) : (
+                      <div className="space-y-2">
+                        {Object.entries(config.lineMappings || {}).map(([inbound, target]) => (
+                          <div
+                            key={inbound}
+                            className="p-3 bg-[#0f121d] rounded-xl border border-slate-800 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3"
+                          >
+                            <div className="flex items-center gap-3 text-xs">
+                              <div className="px-2.5 py-1 bg-violet-500/20 text-violet-300 rounded-lg font-mono font-semibold">
+                                Twilio: {inbound}
+                              </div>
+                              <ArrowRight className="w-3.5 h-3.5 text-slate-500 shrink-0" />
+                              <div className="px-2.5 py-1 bg-emerald-500/20 text-emerald-300 rounded-lg font-mono font-semibold">
+                                Quo: {target}
+                              </div>
+                            </div>
+                            <div className="flex items-center gap-2 self-end sm:self-auto">
+                              <button
+                                type="button"
+                                onClick={() => {
+                                  setTestDialedLine(inbound);
+                                  setActiveTab('TEST');
+                                }}
+                                className="px-2.5 py-1 bg-slate-800 hover:bg-slate-700 text-slate-300 text-[11px] font-bold rounded-lg transition-all cursor-pointer flex items-center gap-1"
+                              >
+                                <Zap className="w-3 h-3 text-amber-400" />
+                                <span>Simulate</span>
+                              </button>
+                              <button
+                                type="button"
+                                onClick={() => handleRemoveLineMapping(inbound)}
+                                className="p-1.5 bg-rose-500/20 hover:bg-rose-500/40 text-rose-300 rounded-lg transition-all cursor-pointer"
+                                title="Delete Route"
+                              >
+                                <Trash2 className="w-3.5 h-3.5" />
+                              </button>
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+
+                  {/* Add New Line Pair Form */}
+                  <div className="p-4 bg-[#0f121d] rounded-xl border border-slate-800 space-y-3">
+                    <div className="text-xs font-bold text-slate-300">Pair a Twilio Line to a Quo Destination:</div>
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
+                      <div>
+                        <label className="text-[11px] text-slate-400 block mb-1">Inbound Twilio Number:</label>
+                        <input
+                          type="text"
+                          placeholder="e.g. +1 (587) 742-2500"
+                          value={mapTwilioNumber}
+                          onChange={(e) => setMapTwilioNumber(e.target.value)}
+                          className="w-full px-3 py-2 bg-[#141824] border border-slate-700 rounded-lg text-xs text-white font-mono placeholder-slate-500 focus:outline-none focus:border-emerald-500"
+                        />
+                      </div>
+                      <div>
+                        <label className="text-[11px] text-slate-400 block mb-1">Target Quo (OpenPhone) Line:</label>
+                        <select
+                          value={mapQuoNumber}
+                          onChange={(e) => setMapQuoNumber(e.target.value)}
+                          className="w-full px-3 py-2 bg-[#141824] border border-slate-700 rounded-lg text-xs text-white font-mono focus:outline-none focus:border-emerald-500 cursor-pointer"
+                        >
+                          <option value="+15875708005">+1 (587) 570-8005 (Primary Dispatch)</option>
+                          <option value="+18338439877">+1 (833) 843-9877 (Toll Free TIDYUPS)</option>
+                          <option value="+15877422500">+1 (587) 742-2500 (Cleaning Services Ads)</option>
+                          <option value="+15876027792">+1 (587) 602-7792 (Door Hangers &amp; Signs)</option>
+                          <option value="+15879007223">+1 (587) 900-7223 (Google My Business Direct)</option>
+                        </select>
+                      </div>
+                    </div>
+                    <div className="flex items-center justify-between pt-1">
+                      <span className="text-[11px] text-slate-500">Pick any of your 5 Quo lines or enter custom number</span>
+                      <button
+                        type="button"
+                        onClick={handleAddLineMapping}
+                        className="px-4 py-2 bg-emerald-600 hover:bg-emerald-500 text-white rounded-lg text-xs font-bold transition-all flex items-center gap-1.5 cursor-pointer shadow-md"
+                      >
+                        <Plus className="w-3.5 h-3.5" />
+                        <span>Save 1-to-1 Route</span>
+                      </button>
+                    </div>
+                  </div>
+
+                  {/* Twilio Setup Instructions Card */}
+                  <div className="p-4 bg-[#111420] rounded-xl border border-slate-800 text-xs text-slate-300 space-y-2.5 leading-relaxed">
+                    <div className="font-bold text-white flex items-center gap-1.5">
+                      <FileCode className="w-4 h-4 text-violet-400" />
+                      <span>How to configure multiple lines in your Twilio Console (Takes 1 minute):</span>
+                    </div>
+                    <p className="text-slate-400">
+                      <strong>Great news:</strong> You use the <strong>exact same webhook URL</strong> on all 3, 4, or 6 of your Twilio numbers! When someone dials any number, Twilio passes the dialed number to our backend, which automatically matches the correct 1-to-1 route above.
+                    </p>
+                    <div className="flex items-center gap-2 bg-[#0a0d15] p-2.5 rounded-lg border border-slate-800">
+                      <span className="font-mono text-xs text-violet-300 flex-1 truncate select-all">{webhookUrl}</span>
+                      <button
+                        onClick={handleCopyWebhook}
+                        className="px-2.5 py-1 rounded bg-violet-600 hover:bg-violet-500 text-white text-[11px] font-bold transition-all flex items-center gap-1 cursor-pointer shrink-0"
+                      >
+                        {copiedWebhook ? <Check className="w-3 h-3" /> : <Copy className="w-3 h-3" />}
+                        <span>{copiedWebhook ? 'Copied' : 'Copy'}</span>
+                      </button>
+                    </div>
+                    <ol className="list-decimal list-inside space-y-1 text-slate-400 text-[11px]">
+                      <li>In your <strong>Twilio Console</strong>, navigate to <strong>Phone Numbers → Manage → Active Numbers</strong>.</li>
+                      <li>Click into your first phone line (e.g. Ads Line).</li>
+                      <li>Under <strong>Voice Configuration ("A CALL COMES IN")</strong>, choose <strong>Webhook</strong> and paste the URL above. Click Save.</li>
+                      <li>Repeat the exact same step for your other 2 or 3 numbers.</li>
+                    </ol>
                   </div>
                 </div>
               </div>

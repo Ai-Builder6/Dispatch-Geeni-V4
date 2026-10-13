@@ -62,6 +62,7 @@ export interface AppPersistentStore {
     rejectionAction: 'busy' | 'reject';
     forwardDestinationNumber?: string;
     lineMappings?: Record<string, string>;
+    lineLabels?: Record<string, string>;
   };
   blockedCallsHistory?: any[];
   jobberConfig?: {
