@@ -4067,6 +4067,7 @@ const DEFAULT_SPAM_SHIELD_CONFIG = {
   blockRobocallFloods: true,
   rejectionAction: "busy" as const,
   forwardDestinationNumber: "+15879007223",
+  lineMappings: {} as Record<string, string>,
 };
 
 const INITIAL_BLOCKED_CALLS_HISTORY = [
@@ -4367,11 +4368,29 @@ const handleTwilioVoiceWebhook = (req: express.Request, res: express.Response) =
   }
 
   // Allowed legitimate caller: Forward to Quo / Dispatch Line
-  const destination = config.forwardDestinationNumber || "+15879007223";
+  const dialedRaw = req.body?.To || req.query?.To || req.body?.Called || req.query?.Called || "";
+  const dialedDigits = normalizePhoneDigits(dialedRaw);
+  let destination = config.forwardDestinationNumber || "+15879007223";
+
+  // Check if there is a 1-to-1 route for this specific line dialed
+  if (config.lineMappings && typeof config.lineMappings === "object") {
+    for (const [inboundLine, target] of Object.entries(config.lineMappings)) {
+      if (normalizePhoneDigits(inboundLine) === dialedDigits || inboundLine === dialedRaw) {
+        if (target && typeof target === "string" && target.trim()) {
+          destination = target.trim();
+          break;
+        }
+      }
+    }
+  }
+
+  // Preserve the dialed caller ID so Quo/OpenPhone identifies which line was called
+  const callerIdToPresent = dialedRaw ? dialedRaw : "+18338439877";
+
   const twiml = `<?xml version="1.0" encoding="UTF-8"?>
 <Response>
   <Say voice="alice">Thank you for calling. Connecting you now.</Say>
-  <Dial timeout="25" callerId="+18338439877">${destination}</Dial>
+  <Dial timeout="25" callerId="${callerIdToPresent}">${destination}</Dial>
 </Response>`;
   return res.send(twiml);
 };

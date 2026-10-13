@@ -20,7 +20,13 @@ import {
   Zap,
   Clock,
   ExternalLink,
-  Layers
+  Layers,
+  DollarSign,
+  Split,
+  Info,
+  HelpCircle,
+  ArrowRight,
+  TrendingDown
 } from 'lucide-react';
 
 interface SpamShieldConfig {
@@ -32,6 +38,7 @@ interface SpamShieldConfig {
   blockRobocallFloods?: boolean;
   rejectionAction?: 'busy' | 'rejected';
   forwardDestinationNumber?: string;
+  lineMappings?: Record<string, string>;
 }
 
 interface BlockedCallHistoryItem {
@@ -81,7 +88,9 @@ export const TwilioSpamShieldModal: React.FC<TwilioSpamShieldModalProps> = ({
   projectId = 'dispatchgeeni',
   preFillNumber = '',
 }) => {
-  const [activeTab, setActiveTab] = useState<'PREFIXES' | 'COUNTRIES' | 'NUMBERS' | 'LOGS' | 'TEST'>('PREFIXES');
+  const [activeTab, setActiveTab] = useState<'PREFIXES' | 'COUNTRIES' | 'NUMBERS' | 'LOGS' | 'TEST' | 'COST_LINES'>('PREFIXES');
+  const [calcMinutes, setCalcMinutes] = useState(1000);
+  const [calcBlockedCalls, setCalcBlockedCalls] = useState(350);
   const [config, setConfig] = useState<SpamShieldConfig>({
     enabled: true,
     blockAllNonNorthAmerica: true,
@@ -416,6 +425,18 @@ export const TwilioSpamShieldModal: React.FC<TwilioSpamShieldModalProps> = ({
           >
             <Zap className="w-3.5 h-3.5" />
             <span>Live Tester &amp; Webhook</span>
+          </button>
+
+          <button
+            onClick={() => setActiveTab('COST_LINES')}
+            className={`pb-3 px-3.5 font-bold transition-all flex items-center gap-1.5 border-b-2 cursor-pointer whitespace-nowrap ${
+              activeTab === 'COST_LINES'
+                ? 'border-amber-400 text-amber-300'
+                : 'border-transparent text-slate-400 hover:text-slate-200'
+            }`}
+          >
+            <DollarSign className="w-3.5 h-3.5" />
+            <span>Pricing &amp; 6-Line Strategy</span>
           </button>
         </div>
 
@@ -999,6 +1020,240 @@ export const TwilioSpamShieldModal: React.FC<TwilioSpamShieldModalProps> = ({
                   <p>
                     4. Genuine customers are forwarded directly to your Quo phone line (<span className="text-emerald-400 font-mono">{forwardNumberInput || '+15879007223'}</span>).
                   </p>
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* TAB 6: PRICING & 6-LINE STRATEGY */}
+          {activeTab === 'COST_LINES' && (
+            <div className="space-y-6 animate-fadeIn">
+              {/* Top Summary Banner */}
+              <div className="p-5 rounded-2xl bg-gradient-to-r from-amber-950/40 via-purple-950/30 to-slate-900 border border-amber-500/30 text-slate-200 shadow-xl space-y-3">
+                <div className="flex items-center gap-2.5">
+                  <div className="w-8 h-8 rounded-xl bg-amber-500/20 text-amber-400 flex items-center justify-center font-bold">
+                    <DollarSign className="w-5 h-5" />
+                  </div>
+                  <div>
+                    <h3 className="font-extrabold text-base text-white">Twilio Forwarding Costs vs. Retail Services</h3>
+                    <p className="text-xs text-amber-200/80">The short answer: Twilio is raw carrier wholesale, not marked-up retail pricing.</p>
+                  </div>
+                </div>
+                <p className="text-xs text-slate-300 leading-relaxed">
+                  Unlike traditional answering services or call-forwarding software that charge <strong>$0.50 to $1.50 per minute</strong> (or $100+/mo flat fees), Twilio charges wholesale carrier rates: <strong>~$0.0225 per minute</strong> (~2.2 cents) total when a call connects and forwards.
+                </p>
+                <div className="p-3 bg-emerald-950/40 border border-emerald-500/30 rounded-xl flex items-center gap-3">
+                  <ShieldCheck className="w-5 h-5 text-emerald-400 shrink-0" />
+                  <div className="text-xs text-emerald-200">
+                    <strong>Critical Cost Advantage:</strong> Calls blocked by the Spam Shield (robocallers, international spoofers, 1-800 telemarketers) cost <strong className="text-white underline">$0.00</strong>. Twilio drops them before connection, so zero forward minutes are ever billed!
+                  </div>
+                </div>
+              </div>
+
+              {/* Interactive Cost Estimator */}
+              <div className="bg-[#151926] p-5 rounded-2xl border border-slate-800 space-y-4">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-2">
+                    <TrendingDown className="w-4 h-4 text-emerald-400" />
+                    <h4 className="font-bold text-sm text-white">Live Monthly Cost Estimator</h4>
+                  </div>
+                  <span className="text-[11px] text-slate-400">Carrier wholesale rate: ~$0.0225/min connected</span>
+                </div>
+
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div className="space-y-3 bg-[#0f121d] p-4 rounded-xl border border-slate-800">
+                    <label className="text-xs font-semibold text-slate-300 flex items-center justify-between">
+                      <span>Monthly Connected Talk Minutes:</span>
+                      <span className="text-emerald-400 font-bold font-mono text-sm">{calcMinutes} mins (~{(calcMinutes / 60).toFixed(1)} hrs)</span>
+                    </label>
+                    <input
+                      type="range"
+                      min="100"
+                      max="4000"
+                      step="50"
+                      value={calcMinutes}
+                      onChange={(e) => setCalcMinutes(Number(e.target.value))}
+                      className="w-full accent-emerald-500 cursor-pointer"
+                    />
+                    <div className="flex items-center gap-2 pt-1 text-[11px] text-slate-400">
+                      <span>Presets:</span>
+                      {[250, 500, 1000, 2000, 3000].map((m) => (
+                        <button
+                          key={m}
+                          type="button"
+                          onClick={() => setCalcMinutes(m)}
+                          className={`px-2 py-0.5 rounded text-[10px] font-mono transition-all ${
+                            calcMinutes === m ? 'bg-emerald-600 text-white font-bold' : 'bg-slate-800 text-slate-300 hover:bg-slate-700'
+                          }`}
+                        >
+                          {m}m
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+
+                  <div className="space-y-3 bg-[#0f121d] p-4 rounded-xl border border-slate-800">
+                    <label className="text-xs font-semibold text-slate-300 flex items-center justify-between">
+                      <span>Spam Robocalls Dropped by Shield:</span>
+                      <span className="text-rose-400 font-bold font-mono text-sm">{calcBlockedCalls} robocalls</span>
+                    </label>
+                    <input
+                      type="range"
+                      min="50"
+                      max="1500"
+                      step="25"
+                      value={calcBlockedCalls}
+                      onChange={(e) => setCalcBlockedCalls(Number(e.target.value))}
+                      className="w-full accent-rose-500 cursor-pointer"
+                    />
+                    <div className="flex items-center gap-2 pt-1 text-[11px] text-slate-400">
+                      <span>Presets:</span>
+                      {[150, 350, 750, 1200].map((c) => (
+                        <button
+                          key={c}
+                          type="button"
+                          onClick={() => setCalcBlockedCalls(c)}
+                          className={`px-2 py-0.5 rounded text-[10px] font-mono transition-all ${
+                            calcBlockedCalls === c ? 'bg-rose-600 text-white font-bold' : 'bg-slate-800 text-slate-300 hover:bg-slate-700'
+                          }`}
+                        >
+                          {c}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                </div>
+
+                {/* Calculation Result Cards */}
+                <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 pt-2">
+                  <div className="p-3 bg-[#111420] rounded-xl border border-slate-800">
+                    <div className="text-[10px] uppercase font-bold text-slate-500">Inbound Twilio Rate</div>
+                    <div className="text-sm font-black text-slate-300 font-mono mt-0.5">
+                      ${(calcMinutes * 0.0085).toFixed(2)}
+                    </div>
+                    <div className="text-[10px] text-slate-500 mt-0.5">@ $0.0085 / min</div>
+                  </div>
+
+                  <div className="p-3 bg-[#111420] rounded-xl border border-slate-800">
+                    <div className="text-[10px] uppercase font-bold text-slate-500">Outbound Forward</div>
+                    <div className="text-sm font-black text-slate-300 font-mono mt-0.5">
+                      ${(calcMinutes * 0.014).toFixed(2)}
+                    </div>
+                    <div className="text-[10px] text-slate-500 mt-0.5">@ $0.014 / min</div>
+                  </div>
+
+                  <div className="p-3 bg-[#111420] rounded-xl border border-slate-800">
+                    <div className="text-[10px] uppercase font-bold text-slate-500">Blocked Robocalls</div>
+                    <div className="text-sm font-black text-emerald-400 font-mono mt-0.5">
+                      $0.00
+                    </div>
+                    <div className="text-[10px] text-emerald-500/80 mt-0.5">{calcBlockedCalls} calls dropped free</div>
+                  </div>
+
+                  <div className="p-3 bg-emerald-950/30 rounded-xl border border-emerald-500/40">
+                    <div className="text-[10px] uppercase font-bold text-emerald-400">Total Twilio Estimate</div>
+                    <div className="text-base font-black text-emerald-300 font-mono mt-0.5">
+                      ${(calcMinutes * 0.0225 + 1.15).toFixed(2)}<span className="text-[10px] font-normal text-slate-400">/mo</span>
+                    </div>
+                    <div className="text-[10px] text-slate-400 mt-0.5">Includes $1.15 number fee</div>
+                  </div>
+                </div>
+              </div>
+
+              {/* The 6-Line Strategy (No Hectic Merging) */}
+              <div className="bg-[#151926] p-5 rounded-2xl border border-slate-800 space-y-4">
+                <div className="flex items-center gap-2">
+                  <Split className="w-4 h-4 text-purple-400" />
+                  <h4 className="font-bold text-sm text-white">
+                    "Will forwarding 6 different phone lines get hectic?"
+                  </h4>
+                </div>
+
+                <div className="p-4 bg-purple-950/20 border border-purple-800/40 rounded-xl text-xs text-purple-200/90 leading-relaxed space-y-2">
+                  <p>
+                    <strong>You are 100% right:</strong> Blindly dumping 6 phone lines into 1 single destination would create chaos. You have multiple numbers for marketing attribution (tracking Google Ads, Door Hangers, GMB Direct, Toll Free, and Dispatch).
+                  </p>
+                  <p>
+                    Here is how to set up your phone lines smoothly with <strong>zero confusion</strong>:
+                  </p>
+                </div>
+
+                {/* 3 Clear Architecture Approaches */}
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-3.5 pt-1">
+                  {/* Option 1 */}
+                  <div className="p-4 bg-[#0f121d] rounded-xl border border-emerald-500/40 space-y-2.5 relative">
+                    <div className="inline-block px-2 py-0.5 rounded text-[10px] font-bold bg-emerald-500/20 text-emerald-300 uppercase">
+                      Option 1 (Recommended &amp; 100% Free)
+                    </div>
+                    <h5 className="font-bold text-xs text-white">Keep all 6 lines in Quo/OpenPhone</h5>
+                    <p className="text-[11px] text-slate-400 leading-relaxed">
+                      You do <strong>NOT</strong> have to forward lines to Twilio! In OpenPhone, enable <em>"Call Screening"</em> or set up a simple 1-key auto-attendant (<em>"Press 1 for Dispatch"</em>). Robocalls cannot press 1, so 99% of spam dies instantly for <strong>$0 extra</strong>.
+                    </p>
+                    <div className="text-[11px] text-emerald-400 font-semibold flex items-center gap-1 pt-1">
+                      <Check className="w-3.5 h-3.5" />
+                      <span>Zero extra bills, all inboxes stay separate</span>
+                    </div>
+                  </div>
+
+                  {/* Option 2 */}
+                  <div className="p-4 bg-[#0f121d] rounded-xl border border-amber-500/40 space-y-2.5">
+                    <div className="inline-block px-2 py-0.5 rounded text-[10px] font-bold bg-amber-500/20 text-amber-300 uppercase">
+                      Option 2 (Surgical Shield)
+                    </div>
+                    <h5 className="font-bold text-xs text-white">Shield ONLY the 1 high-spam line</h5>
+                    <p className="text-[11px] text-slate-400 leading-relaxed">
+                      Usually 90% of spam comes to just <strong>one public line</strong> (like your Toll-Free 1-833 or Google My Business number). Keep your other 5 lines directly on Quo, and put the Twilio Spam Shield only on that single spam magnet.
+                    </p>
+                    <div className="text-[11px] text-amber-300 font-semibold flex items-center gap-1 pt-1">
+                      <Check className="w-3.5 h-3.5" />
+                      <span>Only 1 line touched, zero disruption to others</span>
+                    </div>
+                  </div>
+
+                  {/* Option 3 */}
+                  <div className="p-4 bg-[#0f121d] rounded-xl border border-blue-500/40 space-y-2.5">
+                    <div className="inline-block px-2 py-0.5 rounded text-[10px] font-bold bg-blue-500/20 text-blue-300 uppercase">
+                      Option 3 (1-to-1 Mapping)
+                    </div>
+                    <h5 className="font-bold text-xs text-white">Individual 1-to-1 Twilio lines</h5>
+                    <p className="text-[11px] text-slate-400 leading-relaxed">
+                      If you ever route multiple lines through Twilio, our system maps each Twilio number 1-to-1 to its matching Quo line. Twilio preserves the dialed line so your screen always tells you which marketing campaign was dialed.
+                    </p>
+                    <div className="text-[11px] text-blue-300 font-semibold flex items-center gap-1 pt-1">
+                      <Check className="w-3.5 h-3.5" />
+                      <span>Full attribution preserved for each campaign</span>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Display Current 5 Quo Marketing Lines */}
+                <div className="p-4 bg-[#0f121d] rounded-xl border border-slate-800 space-y-2.5 mt-2">
+                  <div className="text-xs font-bold text-slate-300 flex items-center justify-between">
+                    <span>Your Current 5 Quo (OpenPhone) Marketing Lines:</span>
+                    <span className="text-[11px] text-slate-500 font-normal">All active and ready for webhook transcripts</span>
+                  </div>
+                  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2 pt-1 text-xs">
+                    <div className="p-2.5 bg-[#141824] rounded-lg border border-slate-800/80">
+                      <div className="font-semibold text-white">Primary Dispatch</div>
+                      <div className="font-mono text-emerald-400 text-[11px]">+1 (587) 570-8005</div>
+                    </div>
+                    <div className="p-2.5 bg-[#141824] rounded-lg border border-slate-800/80">
+                      <div className="font-semibold text-white">Toll Free TIDYUPS</div>
+                      <div className="font-mono text-emerald-400 text-[11px]">+1 (833) 843-9877</div>
+                    </div>
+                    <div className="p-2.5 bg-[#141824] rounded-lg border border-slate-800/80">
+                      <div className="font-semibold text-white">Cleaning Services Ads</div>
+                      <div className="font-mono text-emerald-400 text-[11px]">+1 (587) 742-2500</div>
+                    </div>
+                    <div className="p-2.5 bg-[#141824] rounded-lg border border-slate-800/80">
+                      <div className="font-semibold text-white">Door Hangers &amp; Signs</div>
+                      <div className="font-mono text-emerald-400 text-[11px]">+1 (587) 602-7792</div>
+                    </div>
+                    <div className="p-2.5 bg-[#141824] rounded-lg border border-slate-800/80">
+                      <div className="font-semibold text-white">Google My Business Direct</div>
+                      <div className="font-mono text-emerald-400 text-[11px]">+1 (587) 900-7223</div>
+                    </div>
+                  </div>
                 </div>
               </div>
             </div>
