@@ -10,13 +10,14 @@ export default defineConfig(() => {
       react(),
       tailwindcss(),
       VitePWA({
+        selfDestroying: true,
         registerType: 'autoUpdate',
         includeAssets: ['favicon.ico', 'icon.svg'],
         manifest: {
           id: '/',
-          name: 'Dispatch Genie',
-          short_name: 'Dispatch Genie',
-          description: 'Dispatch Genie intelligent operations console, live field service dispatch board, automated scheduling, and Jobber sync.',
+          name: 'TidyUps Cleaning & Dispatch Genie',
+          short_name: 'TidyUps',
+          description: 'TidyUps Cleaning, EasyCleans & Dispatch Genie operations console, live field service dispatch board, automated scheduling, and Jobber sync.',
           theme_color: '#2563EB',
           background_color: '#F8FAFC',
           display: 'standalone',
@@ -38,43 +39,8 @@ export default defineConfig(() => {
             },
           ],
         },
-        workbox: {
-          maximumFileSizeToCacheInBytes: 6 * 1024 * 1024,
-          globPatterns: ['**/*.{js,css,html,ico,png,svg,woff,woff2}'],
-          runtimeCaching: [
-            {
-              urlPattern: /^https:\/\/fonts\.googleapis\.com\/.*/i,
-              handler: 'CacheFirst',
-              options: {
-                cacheName: 'google-fonts-cache',
-                expiration: {
-                  maxEntries: 10,
-                  maxAgeSeconds: 60 * 60 * 24 * 365,
-                },
-                cacheableResponse: {
-                  statuses: [0, 200],
-                },
-              },
-            },
-            {
-              urlPattern: /^https:\/\/fonts\.gstatic\.com\/.*/i,
-              handler: 'CacheFirst',
-              options: {
-                cacheName: 'gstatic-fonts-cache',
-                expiration: {
-                  maxEntries: 10,
-                  maxAgeSeconds: 60 * 60 * 24 * 365,
-                },
-                cacheableResponse: {
-                  statuses: [0, 200],
-                },
-              },
-            },
-          ],
-        },
         devOptions: {
-          enabled: true,
-          type: 'module',
+          enabled: false,
         },
       }),
     ],

@@ -77,6 +77,7 @@ export interface AppPersistentStore {
     lineMappings?: Record<string, string>;
   };
   blockedCallsHistory?: any[];
+  recentInboundCalls?: any[];
   jobberConfig?: {
     isConnected: boolean;
     accountName: string;

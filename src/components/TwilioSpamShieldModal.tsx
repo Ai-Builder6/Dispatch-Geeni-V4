@@ -102,8 +102,12 @@ export const TwilioSpamShieldModal: React.FC<TwilioSpamShieldModalProps> = ({
     rejectionAction: 'busy',
   });
   const [history, setHistory] = useState<BlockedCallHistoryItem[]>([]);
+  const [recentCalls, setRecentCalls] = useState<any[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [statusNotice, setStatusNotice] = useState<string | null>(null);
+
+  // Quick Block Input (Supports full phone number OR 3-digit area code)
+  const [quickBlockInput, setQuickBlockInput] = useState(preFillNumber);
 
   // Form Inputs
   const [newPrefixInput, setNewPrefixInput] = useState('');
@@ -139,6 +143,7 @@ export const TwilioSpamShieldModal: React.FC<TwilioSpamShieldModalProps> = ({
           setForwardNumberInput(data.config.forwardDestinationNumber);
         }
         if (data.history) setHistory(data.history);
+        if (data.recentInboundCalls) setRecentCalls(data.recentInboundCalls);
       }
     } catch (e) {
       console.warn('Failed to fetch spam shield config:', e);
@@ -151,6 +156,7 @@ export const TwilioSpamShieldModal: React.FC<TwilioSpamShieldModalProps> = ({
     if (isOpen) {
       fetchSpamShield();
       if (preFillNumber) {
+        setQuickBlockInput(preFillNumber);
         setNewNumberInput(preFillNumber);
         setTestNumberInput(preFillNumber);
       }
@@ -158,6 +164,16 @@ export const TwilioSpamShieldModal: React.FC<TwilioSpamShieldModalProps> = ({
   }, [isOpen, preFillNumber]);
 
   if (!isOpen) return null;
+
+  // Extract 3-digit area code from any input (e.g. "844", "(780) 555-1234", "+18449328819")
+  const extractAreaCode = (rawInput: string): string => {
+    const digits = (rawInput || '').replace(/\D/g, '');
+    const norm = digits.length >= 4 && digits.startsWith('1') ? digits.slice(1) : digits;
+    return norm.length >= 3 ? norm.slice(0, 3) : '';
+  };
+
+  const quickDetectedAreaCode = extractAreaCode(quickBlockInput);
+  const quickDigitsCount = (quickBlockInput || '').replace(/\D/g, '').length;
 
   // Save config update
   const handleSaveConfig = async (newConfig: Partial<SpamShieldConfig>) => {
@@ -179,8 +195,8 @@ export const TwilioSpamShieldModal: React.FC<TwilioSpamShieldModalProps> = ({
     }
   };
 
-  // Block item (number, prefix, country)
-  const handleBlockItem = async (number: string, type: 'number' | 'prefix' | 'country', reason?: string) => {
+  // Block item (number, prefix, areacode, country)
+  const handleBlockItem = async (number: string, type: 'number' | 'prefix' | 'areacode' | 'country', reason?: string) => {
     if (!number.trim()) return;
     try {
       const res = await fetch(`/api/twilio/block-number?project=${projectId}`, {
@@ -192,11 +208,13 @@ export const TwilioSpamShieldModal: React.FC<TwilioSpamShieldModalProps> = ({
       if (data.success) {
         setConfig(data.config);
         if (data.history) setHistory(data.history);
-        setStatusNotice(`Blocked: ${number.trim()}`);
-        setTimeout(() => setStatusNotice(null), 3000);
-        if (type === 'prefix') setNewPrefixInput('');
+        if (data.recentInboundCalls) setRecentCalls(data.recentInboundCalls);
+        setStatusNotice(data.message || `Blocked: ${data.appliedRule || number.trim()}`);
+        setTimeout(() => setStatusNotice(null), 4000);
+        if (type === 'prefix' || type === 'areacode') setNewPrefixInput('');
         if (type === 'country') setNewCountryInput('');
         if (type === 'number') setNewNumberInput('');
+        setQuickBlockInput('');
       }
     } catch {
       setStatusNotice('Error blocking rule.');
@@ -356,14 +374,154 @@ export const TwilioSpamShieldModal: React.FC<TwilioSpamShieldModalProps> = ({
 
         {/* Status Notification Toast */}
         {statusNotice && (
-          <div className="mx-6 mt-4 p-3 rounded-xl bg-emerald-950/80 border border-emerald-500/40 text-emerald-200 text-xs flex items-center justify-between shadow-lg animate-fadeIn">
+          <div className="mx-6 mt-4 p-3 rounded-xl bg-emerald-950/90 border border-emerald-500/50 text-emerald-200 text-xs flex items-center justify-between shadow-lg animate-fadeIn">
             <div className="flex items-center gap-2">
               <CheckCircle2 className="w-4 h-4 text-emerald-400 shrink-0" />
-              <span className="font-semibold">{statusNotice}</span>
+              <span className="font-extrabold">{statusNotice}</span>
             </div>
             <button onClick={() => setStatusNotice(null)} className="text-emerald-400 hover:text-white font-bold">×</button>
           </div>
         )}
+
+        {/* ⚡ INSTANT 1-CLICK BLOCK CALLER OR 3-DIGIT AREA CODE BAR */}
+        <div className="mx-6 mt-4 p-4 rounded-2xl bg-gradient-to-r from-rose-950/70 via-[#1a1528] to-slate-900 border border-rose-500/40 shadow-lg">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 mb-2.5">
+            <div className="flex items-center gap-2">
+              <span className="px-2 py-0.5 rounded-md bg-rose-600 text-white text-[10px] font-black uppercase tracking-wider">
+                Instant Blocker
+              </span>
+              <h3 className="text-xs sm:text-sm font-black text-white">
+                Someone Just Called? Block Their Phone Number or Entire 3-Digit Area Code Now
+              </h3>
+            </div>
+            <button
+              type="button"
+              onClick={fetchSpamShield}
+              className="self-start sm:self-auto px-2.5 py-1 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-300 text-[11px] font-bold flex items-center gap-1.5 border border-slate-700 cursor-pointer"
+            >
+              <RefreshCw className={`w-3 h-3 ${isLoading ? 'animate-spin' : ''}`} />
+              <span>Refresh Live Calls</span>
+            </button>
+          </div>
+
+          <div className="flex flex-col md:flex-row gap-2">
+            <input
+              type="text"
+              value={quickBlockInput}
+              onChange={(e) => setQuickBlockInput(e.target.value)}
+              placeholder="Type phone number (e.g. 780-555-0199) OR 3-digit Area Code (e.g. 844, 647)..."
+              className="flex-1 px-3.5 py-2.5 rounded-xl bg-slate-950/90 border border-slate-700 text-white text-xs sm:text-sm font-mono placeholder:text-slate-500 focus:outline-none focus:border-rose-500"
+            />
+            <div className="flex flex-wrap sm:flex-nowrap gap-2">
+              <button
+                type="button"
+                disabled={quickDigitsCount < 7}
+                onClick={() =>
+                  handleBlockItem(
+                    quickBlockInput,
+                    'number',
+                    `Blocked exact caller (${quickBlockInput.trim()}) from main website`
+                  )
+                }
+                className="flex-1 sm:flex-initial px-4 py-2.5 rounded-xl bg-rose-600 hover:bg-rose-500 disabled:opacity-40 disabled:cursor-not-allowed text-white font-extrabold text-xs flex items-center justify-center gap-1.5 shadow-md cursor-pointer transition-all whitespace-nowrap"
+                title="Block this exact phone number"
+              >
+                <PhoneOff className="w-3.5 h-3.5" />
+                <span>Block Exact Number</span>
+              </button>
+
+              <button
+                type="button"
+                disabled={!quickDetectedAreaCode}
+                onClick={() =>
+                  handleBlockItem(
+                    quickDetectedAreaCode,
+                    'areacode',
+                    `Blocked entire (${quickDetectedAreaCode}) area code from main website`
+                  )
+                }
+                className="flex-1 sm:flex-initial px-4 py-2.5 rounded-xl bg-amber-600 hover:bg-amber-500 disabled:opacity-40 disabled:cursor-not-allowed text-white font-extrabold text-xs flex items-center justify-center gap-1.5 shadow-md cursor-pointer transition-all whitespace-nowrap"
+                title="Block all calls from this 3-digit area code"
+              >
+                <Hash className="w-3.5 h-3.5" />
+                <span>
+                  {quickDetectedAreaCode
+                    ? `Block Area Code (${quickDetectedAreaCode}*)`
+                    : 'Block 3-Digit Area Code'}
+                </span>
+              </button>
+            </div>
+          </div>
+
+          {/* Live Recent Callers Strip (1-Click Block Without Typing) */}
+          {recentCalls.length > 0 && (
+            <div className="mt-3 pt-2.5 border-t border-slate-800/80">
+              <div className="text-[10px] font-extrabold uppercase tracking-wider text-slate-400 mb-1.5 flex items-center gap-1.5">
+                <PhoneCall className="w-3 h-3 text-emerald-400" />
+                <span>Recent Live Callers to Your Twilio Lines — Click to Block in 1 Tap:</span>
+              </div>
+              <div className="flex items-center gap-2 overflow-x-auto pb-1 no-scrollbar">
+                {recentCalls.slice(0, 6).map((call) => {
+                  const callArea = call.areaCode || extractAreaCode(call.callerNumber || '');
+                  const isAlreadyBlocked = call.status === 'BLOCKED';
+                  return (
+                    <div
+                      key={call.id}
+                      className={`shrink-0 px-3 py-1.5 rounded-xl border flex items-center gap-2.5 text-xs ${
+                        isAlreadyBlocked
+                          ? 'bg-rose-950/40 border-rose-500/30 text-rose-200'
+                          : 'bg-slate-900/90 border-slate-700/80 text-slate-200'
+                      }`}
+                    >
+                      <div className="flex flex-col">
+                        <span className="font-mono font-black text-white text-[11px]">
+                          {call.callerNumber}
+                        </span>
+                        <span className="text-[9px] text-slate-400">
+                          {new Date(call.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                          {' • '}
+                          {isAlreadyBlocked ? '🚫 Blocked' : '✅ Rang Line'}
+                        </span>
+                      </div>
+                      <div className="flex items-center gap-1">
+                        <button
+                          type="button"
+                          onClick={() =>
+                            handleBlockItem(
+                              call.callerNumber,
+                              'number',
+                              `Blocked recent caller ${call.callerNumber}`
+                            )
+                          }
+                          className="px-2 py-1 rounded-lg bg-rose-600/90 hover:bg-rose-500 text-white font-extrabold text-[10px] cursor-pointer"
+                          title={`Block ${call.callerNumber}`}
+                        >
+                          Block Caller
+                        </button>
+                        {callArea && (
+                          <button
+                            type="button"
+                            onClick={() =>
+                              handleBlockItem(
+                                callArea,
+                                'areacode',
+                                `Blocked area code (${callArea}) from caller ${call.callerNumber}`
+                              )
+                            }
+                            className="px-2 py-1 rounded-lg bg-amber-600/90 hover:bg-amber-500 text-white font-extrabold text-[10px] cursor-pointer"
+                            title={`Block entire (${callArea}) area code`}
+                          >
+                            Block {callArea}*
+                          </button>
+                        )}
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+          )}
+        </div>
 
         {/* Quick Stats Bar */}
         <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 px-6 pt-4">

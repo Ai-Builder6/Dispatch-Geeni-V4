@@ -1,7 +1,62 @@
-import {StrictMode} from 'react';
+import React, {StrictMode} from 'react';
 import {createRoot} from 'react-dom/client';
 import App from './App.tsx';
 import './index.css';
+
+class RootErrorBoundary extends React.Component<
+  { children: React.ReactNode },
+  { hasError: boolean; errorMsg: string; retried: boolean }
+> {
+  constructor(props: { children: React.ReactNode }) {
+    super(props);
+    this.state = { hasError: false, errorMsg: '', retried: false };
+  }
+
+  static getDerivedStateFromError(error: Error) {
+    return { hasError: true, errorMsg: error?.message || String(error) };
+  }
+
+  componentDidCatch(error: Error) {
+    console.warn('RootErrorBoundary caught error, clearing stale local cache:', error);
+    try {
+      localStorage.removeItem('tidyups_dispatch_data');
+      localStorage.removeItem('dispatchgeeni_dispatch_data');
+      localStorage.removeItem('easycleans_dispatch_data');
+    } catch {
+      // ignore storage errors
+    }
+    if (!this.state.retried) {
+      this.setState({ hasError: false, retried: true });
+    }
+  }
+
+  render() {
+    if (this.state.hasError) {
+      return (
+        <div className="min-h-screen bg-slate-950 text-white flex flex-col items-center justify-center p-6 text-center">
+          <div className="max-w-md bg-slate-900 border border-slate-800 rounded-2xl p-6 shadow-2xl">
+            <h2 className="text-lg font-extrabold text-white mb-2">Refreshing Application Cache</h2>
+            <p className="text-xs text-slate-300 mb-4">
+              A new update was published. Click below to reload with the latest live version.
+            </p>
+            <button
+              onClick={() => {
+                try {
+                  localStorage.clear();
+                } catch {}
+                window.location.reload();
+              }}
+              className="px-5 py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white font-extrabold text-xs cursor-pointer shadow-lg"
+            >
+              Reload Live Website Now
+            </button>
+          </div>
+        </div>
+      );
+    }
+    return this.props.children;
+  }
+}
 
 // Early interceptor for Google Maps JavaScript API authentication & target blocked errors, plus quota and referrer limits
 if (typeof window !== 'undefined') {
@@ -120,7 +175,9 @@ if (typeof window !== 'undefined') {
 
 createRoot(document.getElementById('root')!).render(
   <StrictMode>
-    <App />
+    <RootErrorBoundary>
+      <App />
+    </RootErrorBoundary>
   </StrictMode>,
 );
 

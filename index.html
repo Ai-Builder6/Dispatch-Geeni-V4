@@ -3,27 +3,61 @@
   <head>
     <meta charset="UTF-8" />
     <script>
-      // Suppress Vite HMR WebSocket notices and stub HMR transport in proxied cloud preview
+      // 1. Immediately unregister any stale Service Workers & clear old Workbox precaches to prevent blank white pages after deploys
+      (function() {
+        try {
+          if ('serviceWorker' in navigator) {
+            navigator.serviceWorker.getRegistrations().then(function(registrations) {
+              for (var i = 0; i < registrations.length; i++) {
+                registrations[i].unregister();
+              }
+            }).catch(function() {});
+          }
+          if ('caches' in window && window.caches) {
+            caches.keys().then(function(keys) {
+              for (var j = 0; j < keys.length; j++) {
+                if (keys[j].indexOf('workbox') !== -1 || keys[j].indexOf('precache') !== -1) {
+                  caches.delete(keys[j]);
+                }
+              }
+            }).catch(function() {});
+          }
+        } catch (_) {}
+
+        // Auto-recover if a hashed JS chunk fails to load after a new deployment
+        window.addEventListener('vite:preloadError', function(event) {
+          event.preventDefault();
+          if (!sessionStorage.getItem('chunk_reload_attempted')) {
+            sessionStorage.setItem('chunk_reload_attempted', '1');
+            window.location.reload();
+          }
+        });
+      })();
+
+      // 2. Suppress Vite HMR WebSocket notices and safely stub HMR transport in proxied cloud preview
       (function() {
         try {
           var RealWS = window.WebSocket;
           if (RealWS) {
             function createMockViteSocket(url, protocols) {
               var target = new EventTarget();
-              var state = 1; // WebSocket.OPEN
-              var mock = Object.create(RealWS.prototype, {
-                url: { value: String(url || ""), writable: true, configurable: true },
-                protocol: { value: typeof protocols === "string" ? protocols : "vite-hmr", writable: true, configurable: true },
-                readyState: { get: function() { return state; }, configurable: true },
-                bufferedAmount: { value: 0, writable: true, configurable: true },
-                extensions: { value: "", writable: true, configurable: true },
-                binaryType: { value: "blob", writable: true, configurable: true },
-                send: { value: function() {}, writable: true, configurable: true },
-                close: { value: function() { state = 3; }, writable: true, configurable: true },
-                addEventListener: { value: target.addEventListener.bind(target), writable: true, configurable: true },
-                removeEventListener: { value: target.removeEventListener.bind(target), writable: true, configurable: true },
-                dispatchEvent: { value: target.dispatchEvent.bind(target), writable: true, configurable: true }
-              });
+              var mock = {
+                url: String(url || ""),
+                protocol: typeof protocols === "string" ? protocols : "vite-hmr",
+                readyState: 1,
+                bufferedAmount: 0,
+                extensions: "",
+                binaryType: "blob",
+                onopen: null,
+                onmessage: null,
+                onerror: null,
+                onclose: null,
+                send: function() {},
+                close: function() { mock.readyState = 3; },
+                addEventListener: target.addEventListener.bind(target),
+                removeEventListener: target.removeEventListener.bind(target),
+                dispatchEvent: target.dispatchEvent.bind(target)
+              };
               setTimeout(function() {
                 try {
                   var evt = new Event("open");
@@ -45,7 +79,10 @@
               if (isViteHmr) {
                 return createMockViteSocket(url, protocols);
               }
-              return new RealWS(url, protocols);
+              if (protocols !== undefined) {
+                return new RealWS(url, protocols);
+              }
+              return new RealWS(url);
             }
 
             PatchedWebSocket.prototype = RealWS.prototype;

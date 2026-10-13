@@ -31,7 +31,14 @@ export async function signOutFirebase(): Promise<void> {
 }
 
 export function onFirebaseAuthStateChanged(callback: (user: User | null) => void): Unsubscribe {
-  return onAuthStateChanged(auth, callback);
+  try {
+    return onAuthStateChanged(auth, callback, (err) => {
+      console.warn('Firebase Auth listener notice:', err?.message || err);
+    });
+  } catch (e) {
+    console.warn('Firebase Auth init notice:', e);
+    return () => {};
+  }
 }
 
 export enum OperationType {

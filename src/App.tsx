@@ -209,13 +209,17 @@ export function App() {
   // Dedicated Top Bar Navigation Tabs: 'MAP' | 'CUSTOMER_PORTAL' | 'SCHEDULED_JOBS' | 'CLIENTS' | 'ADDRESS_SEARCH' | 'MANAGEMENT' | 'QUOTES' | 'INVOICES' | 'LEGAL' | 'LEADS' | 'QUICK_QUOTE'
   const [activeTopView, setActiveTopView] = useState<'MAP' | 'CUSTOMER_PORTAL' | 'SCHEDULED_JOBS' | 'CLIENTS' | 'ADDRESS_SEARCH' | 'MANAGEMENT' | 'QUOTES' | 'INVOICES' | 'LEGAL' | 'LEADS' | 'QUICK_QUOTE'>(() => {
     if (typeof window !== 'undefined') {
-      const isAuth = localStorage.getItem('tidyups_staff_authenticated') === 'true';
-      if (!isAuth) return 'CUSTOMER_PORTAL';
-      const savedTab = localStorage.getItem('tidyups_active_tab');
-      if (savedTab && ['MAP', 'CUSTOMER_PORTAL', 'SCHEDULED_JOBS', 'CLIENTS', 'ADDRESS_SEARCH', 'MANAGEMENT', 'QUOTES', 'INVOICES', 'LEGAL', 'LEADS', 'QUICK_QUOTE'].includes(savedTab)) {
-        return savedTab as any;
+      try {
+        const isAuth = localStorage.getItem('tidyups_staff_authenticated') === 'true';
+        if (!isAuth) return 'CUSTOMER_PORTAL';
+        const savedTab = localStorage.getItem('tidyups_active_tab');
+        if (savedTab && ['MAP', 'CUSTOMER_PORTAL', 'SCHEDULED_JOBS', 'CLIENTS', 'ADDRESS_SEARCH', 'MANAGEMENT', 'QUOTES', 'INVOICES', 'LEGAL', 'LEADS', 'QUICK_QUOTE'].includes(savedTab)) {
+          return savedTab as any;
+        }
+        return 'MAP';
+      } catch {
+        return 'CUSTOMER_PORTAL';
       }
-      return 'MAP';
     }
     return 'CUSTOMER_PORTAL';
   });
@@ -290,10 +294,12 @@ export function App() {
       if (host.includes('easycleans')) return 'easycleans';
       if (host.includes('tidyupscleaning')) return 'tidyups';
       if (host.includes('dispatchgeeni') || host.includes('dispatchgenie')) return 'dispatchgeeni';
-      const savedBrand = localStorage.getItem('active_brand_id');
-      if (savedBrand === 'tidyups' || savedBrand === 'easycleans' || savedBrand === 'dispatchgeeni') {
-        return savedBrand;
-      }
+      try {
+        const savedBrand = localStorage.getItem('active_brand_id');
+        if (savedBrand === 'tidyups' || savedBrand === 'easycleans' || savedBrand === 'dispatchgeeni') {
+          return savedBrand;
+        }
+      } catch {}
     }
     return 'tidyups';
   });
@@ -305,8 +311,10 @@ export function App() {
   const handleSwitchProject = useCallback(async (targetProj: 'dispatchgeeni' | 'tidyups' | 'easycleans') => {
     setActiveBrandId(targetProj);
     if (typeof window !== 'undefined') {
-      localStorage.setItem('active_brand_id', targetProj);
-      localStorage.setItem('active_project_id', targetProj === 'dispatchgeeni' ? 'dispatchgeeni' : 'tidyups');
+      try {
+        localStorage.setItem('active_brand_id', targetProj);
+        localStorage.setItem('active_project_id', targetProj === 'dispatchgeeni' ? 'dispatchgeeni' : 'tidyups');
+      } catch {}
     }
     try {
       const res = await fetch(`/api/store?project=${targetProj}`);
@@ -411,8 +419,10 @@ export function App() {
         ) || APP_USERS.find((u) => u.id === 'user-dispatcher-admin');
         if (match) {
           setCurrentUser(match);
-          localStorage.setItem('tidyups_staff_authenticated', 'true');
-          localStorage.setItem('bookmycleaning_active_user_id', match.id);
+          try {
+            localStorage.setItem('tidyups_staff_authenticated', 'true');
+            localStorage.setItem('bookmycleaning_active_user_id', match.id);
+          } catch {}
         }
       }
     });
@@ -1453,14 +1463,25 @@ export function App() {
                 <span className="hidden sm:inline">Support &amp; Policies</span>
               </button>
 
+              {/* 1-Click Block Caller / Area Code Button on Main Website */}
+              <button
+                onClick={() => handleOpenSpamShield()}
+                className="min-h-[36px] px-3 sm:px-3.5 py-1.5 rounded-xl bg-rose-600 hover:bg-rose-700 text-white font-extrabold text-xs flex items-center gap-1.5 shadow-xs transition-all active:scale-95 cursor-pointer"
+                title="Instant Call Blocker: Block a phone number or entire 3-digit area code across all Twilio lines"
+              >
+                <ShieldAlert className="w-3.5 h-3.5 text-white shrink-0" />
+                <span>Block Caller / Area Code</span>
+              </button>
+
               {/* Staff & Dispatch Login */}
               <button
                 onClick={() => setIsRoleModalOpen(true)}
-                className="min-h-[36px] px-4 py-1.5 rounded-xl bg-gradient-to-r from-purple-700 via-purple-600 to-pink-600 hover:opacity-95 text-white font-extrabold text-xs flex items-center gap-2 shadow-xs transition-all active:scale-95 cursor-pointer"
+                className="min-h-[36px] px-3.5 sm:px-4 py-1.5 rounded-xl bg-gradient-to-r from-purple-700 via-purple-600 to-pink-600 hover:opacity-95 text-white font-extrabold text-xs flex items-center gap-2 shadow-xs transition-all active:scale-95 cursor-pointer"
                 title="Staff Login: Owner, Dispatcher, and Cleaner Portals"
               >
-                <Lock className="w-3.5 h-3.5 text-white" />
-                <span>Staff &amp; Dispatch Login</span>
+                <Lock className="w-3.5 h-3.5 text-white shrink-0" />
+                <span className="hidden sm:inline">Staff &amp; Dispatch Login</span>
+                <span className="sm:hidden">Login</span>
               </button>
             </div>
           </header>
@@ -1534,6 +1555,17 @@ export function App() {
                 <span className="text-[9px] text-pink-700 font-extrabold font-mono">(833-843-9877) • Dispatch: (587) 900-7223</span>
               </div>
             </a>
+
+            {/* 1-Click Block Caller / Area Code Quick Button (Always Visible in Staff Header) */}
+            <button
+              type="button"
+              onClick={() => handleOpenSpamShield()}
+              className="px-3 py-1.5 rounded-xl bg-rose-600 hover:bg-rose-700 text-white font-extrabold text-xs flex items-center gap-1.5 shadow-xs transition-all active:scale-95 cursor-pointer shrink-0"
+              title="Block a phone number or entire 3-digit area code"
+            >
+              <ShieldAlert className="w-3.5 h-3.5 text-white shrink-0" />
+              <span>Block Caller / Area Code</span>
+            </button>
 
             {/* Dedicated Top Bar Primary Navigation Tabs */}
             <div className="flex items-center gap-1 bg-slate-100/90 p-1 rounded-xl border border-slate-200/80 flex-shrink-0">

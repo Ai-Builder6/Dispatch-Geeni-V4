@@ -1239,8 +1239,11 @@ app.get("/api/jobber/oauth/authorize-url", (req, res) => {
   });
 });
 
-// GET Jobber OAuth Callback handler
+// GET Jobber OAuth Callback handler (with safety check if Twilio accidentally calls this URL)
 app.get(["/api/jobber/oauth/callback", "/api/jobber/oauth/callback/"], async (req, res) => {
+  if (req.query.CallSid || req.query.From || req.query.Called) {
+    return handleTwilioVoiceWebhook(req, res);
+  }
   const code = req.query.code as string;
   const error = req.query.error as string;
   const errorDescription = req.query.error_description as string;
@@ -4197,35 +4200,42 @@ function evaluateSpamCallRule(fromRaw: string, config: any): { isBlocked: boolea
     };
   }
 
-  // 4. Prefix / Wildcard Patterns (e.g. "1800*", "1888*", "800*", "780999*")
-  const isPrefixMatched = (config.blockedPrefixes || []).some((prefixPattern: string) => {
+  // 4. Prefix / Wildcard Patterns & 3-Digit Area Codes (e.g. "1800*", "800*", "844*", "1647*")
+  const matchedPrefix = (config.blockedPrefixes || []).find((prefixPattern: string) => {
     const cleanPattern = prefixPattern.replace(/\*/g, "").replace(/\D/g, "");
     if (!cleanPattern) return false;
-    return digits.startsWith(cleanPattern) || (normalizedFromDigits && normalizedFromDigits.startsWith(cleanPattern));
+    const normPattern = cleanPattern.length >= 4 && cleanPattern.startsWith("1") ? cleanPattern.slice(1) : cleanPattern;
+    return (
+      digits.startsWith(cleanPattern) ||
+      (normalizedFromDigits && normalizedFromDigits.startsWith(cleanPattern)) ||
+      (normalizedFromDigits && normPattern && normalizedFromDigits.startsWith(normPattern))
+    );
   });
 
-  if (isPrefixMatched) {
+  if (matchedPrefix) {
     return {
       isBlocked: true,
       countryCode: detectedCountry,
-      reason: `Matched blocked prefix pattern (robocall / rotating numbers)`,
+      reason: `Blocked Area Code / Prefix Pattern: ${matchedPrefix}`,
     };
   }
 
   return { isBlocked: false };
 }
 
-// GET spam shield settings & blocked history
+// GET spam shield settings, blocked history & recent inbound calls
 app.get("/api/twilio/spam-shield", (req, res) => {
   const projectId = getProjectId(req);
   const store = loadStore(projectId);
   const config = store?.spamShieldConfig || DEFAULT_SPAM_SHIELD_CONFIG;
   const history = store?.blockedCallsHistory || INITIAL_BLOCKED_CALLS_HISTORY;
+  const recentInboundCalls = store?.recentInboundCalls || [];
   res.json({
     success: true,
     config,
     blockedCallsCount: history.length,
     history,
+    recentInboundCalls,
   });
 });
 
@@ -4263,40 +4273,74 @@ app.post("/api/twilio/spam-shield", (req, res) => {
   });
 });
 
-// POST block specific number or prefix pattern
+// POST block specific number, 3-digit area code, or prefix pattern
 app.post("/api/twilio/block-number", (req, res) => {
   const projectId = getProjectId(req);
   const store = loadStore(projectId);
   if (!store) return res.status(500).json({ error: "Store not loaded" });
 
   const { number, reason, type = "number" } = req.body || {};
-  if (!number) return res.status(400).json({ error: "Number is required" });
+  if (!number) return res.status(400).json({ error: "Number or area code is required" });
 
   if (!store.spamShieldConfig) store.spamShieldConfig = { ...DEFAULT_SPAM_SHIELD_CONFIG };
   if (!store.blockedCallsHistory) store.blockedCallsHistory = [...INITIAL_BLOCKED_CALLS_HISTORY];
 
-  if (type === "prefix") {
-    if (!store.spamShieldConfig.blockedPrefixes.includes(number)) {
-      store.spamShieldConfig.blockedPrefixes.push(number);
+  let appliedRuleLabel = String(number).trim();
+
+  if (type === "areacode" || type === "prefix") {
+    const rawDigits = String(number).replace(/\D/g, "");
+    const normDigits = rawDigits.length >= 4 && rawDigits.startsWith("1") ? rawDigits.slice(1) : rawDigits;
+    if (type === "areacode" || normDigits.length === 3) {
+      const areaCode = normDigits.slice(0, 3);
+      const pattern = `1${areaCode}*`;
+      appliedRuleLabel = pattern;
+      if (!store.spamShieldConfig.blockedPrefixes.includes(pattern)) {
+        store.spamShieldConfig.blockedPrefixes.unshift(pattern);
+      }
+    } else {
+      const pattern = appliedRuleLabel.endsWith("*") ? appliedRuleLabel : `${appliedRuleLabel}*`;
+      appliedRuleLabel = pattern;
+      if (!store.spamShieldConfig.blockedPrefixes.includes(pattern)) {
+        store.spamShieldConfig.blockedPrefixes.unshift(pattern);
+      }
     }
   } else if (type === "country") {
-    if (!store.spamShieldConfig.blockedCountryCodes.includes(number)) {
-      store.spamShieldConfig.blockedCountryCodes.push(number);
+    const code = appliedRuleLabel.startsWith("+") ? appliedRuleLabel : `+${appliedRuleLabel.replace(/\D/g, "")}`;
+    appliedRuleLabel = code;
+    if (!store.spamShieldConfig.blockedCountryCodes.includes(code)) {
+      store.spamShieldConfig.blockedCountryCodes.unshift(code);
     }
   } else {
-    if (!store.spamShieldConfig.blockedNumbers.includes(number)) {
-      store.spamShieldConfig.blockedNumbers.push(number);
+    if (!store.spamShieldConfig.blockedNumbers.includes(appliedRuleLabel)) {
+      store.spamShieldConfig.blockedNumbers.unshift(appliedRuleLabel);
     }
+  }
+
+  // Update status in recentInboundCalls if matching
+  if (Array.isArray(store.recentInboundCalls)) {
+    const targetDigits = String(number).replace(/\D/g, "");
+    const normTarget = targetDigits.length === 11 && targetDigits.startsWith("1") ? targetDigits.slice(1) : targetDigits;
+    store.recentInboundCalls = store.recentInboundCalls.map((call: any) => {
+      const cDigits = String(call.callerNumber || "").replace(/\D/g, "");
+      const normCall = cDigits.length === 11 && cDigits.startsWith("1") ? cDigits.slice(1) : cDigits;
+      if (
+        (type === "areacode" && call.areaCode && normTarget.startsWith(call.areaCode)) ||
+        (normCall && normTarget && (normCall === normTarget || normCall.startsWith(normTarget.slice(0, 3)) && type !== "number"))
+      ) {
+        return { ...call, status: "BLOCKED", reason: reason || `Blocked via Main Website (${appliedRuleLabel})` };
+      }
+      return call;
+    });
   }
 
   // Also record a block log item
   store.blockedCallsHistory.unshift({
     id: `blk-${Date.now().toString(36)}`,
     timestamp: new Date().toISOString(),
-    callerNumber: number,
-    callerName: reason || "Manual Blacklist",
-    countryCode: number.startsWith("+") ? number.slice(0, 3) : "+1",
-    reason: reason || `Manually blocked by dispatcher (${type})`,
+    callerNumber: appliedRuleLabel,
+    callerName: reason || (type === "areacode" ? "Blocked Area Code" : "Manual Blacklist"),
+    countryCode: appliedRuleLabel.startsWith("+") && !appliedRuleLabel.startsWith("+1") ? appliedRuleLabel.slice(0, 3) : "+1",
+    reason: reason || `Manually blocked from website (${type}: ${appliedRuleLabel})`,
   });
 
   store.lastSavedAt = new Date().toISOString();
@@ -4304,9 +4348,11 @@ app.post("/api/twilio/block-number", (req, res) => {
 
   res.json({
     success: true,
-    message: `Successfully blocked ${number}! Future calls will be rejected automatically.`,
+    appliedRule: appliedRuleLabel,
+    message: `Successfully blocked ${appliedRuleLabel}! Future calls will be rejected automatically.`,
     config: store.spamShieldConfig,
     history: store.blockedCallsHistory,
+    recentInboundCalls: store.recentInboundCalls || [],
   });
 });
 
@@ -4418,8 +4464,33 @@ const handleTwilioVoiceWebhook = (req: express.Request, res: express.Response) =
   const fromNumber = String(rawFrom).trim().replace(/^ 1/, "+1").replace(/^ (\d)/, "+$1");
   const callerCity = req.body?.FromCity || req.query?.FromCity || "";
   const callerCountry = req.body?.FromCountry || req.query?.FromCountry || "";
+  const rawDialed = req.body?.To || req.query?.To || req.body?.Called || req.query?.Called || "";
+
+  // Extract 3-digit North American area code for 1-click blocking on the website
+  const fromDigits = fromNumber.replace(/\D/g, "");
+  const norm10 = fromDigits.length === 11 && fromDigits.startsWith("1") ? fromDigits.slice(1) : fromDigits;
+  const extractedAreaCode = norm10.length >= 3 ? norm10.slice(0, 3) : "";
 
   const check = evaluateSpamCallRule(fromNumber, config);
+
+  // Record every inbound call in store.recentInboundCalls so user can 1-click block from main website
+  if (store && fromNumber && fromNumber !== "Unknown") {
+    if (!Array.isArray(store.recentInboundCalls)) store.recentInboundCalls = [];
+    store.recentInboundCalls.unshift({
+      id: `call-${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 5)}`,
+      timestamp: new Date().toISOString(),
+      callerNumber: fromNumber,
+      areaCode: extractedAreaCode,
+      dialedNumber: rawDialed || "+18338439877",
+      callerName: callerCity ? `${callerCity}, ${callerCountry}` : "Inbound Caller",
+      countryCode: check.countryCode || callerCountry || "+1",
+      status: check.isBlocked ? "BLOCKED" : "ALLOWED",
+      reason: check.isBlocked ? (check.reason || "Blocked by Spam Shield") : "Connected to Quo Dispatch Line",
+    });
+    if (store.recentInboundCalls.length > 40) {
+      store.recentInboundCalls = store.recentInboundCalls.slice(0, 40);
+    }
+  }
 
   res.setHeader("Content-Type", "text/xml");
 
@@ -4447,8 +4518,13 @@ const handleTwilioVoiceWebhook = (req: express.Request, res: express.Response) =
     return res.send(twiml);
   }
 
+  // Save recent inbound allowed call log so user sees it immediately on the main website
+  if (store) {
+    store.lastSavedAt = new Date().toISOString();
+    saveStore(store, projectId);
+  }
+
   // Allowed legitimate caller: Forward to Quo / Dispatch Line
-  const rawDialed = req.body?.To || req.query?.To || req.body?.Called || req.query?.Called || "";
   const dialedDigits = normalizePhoneDigits(rawDialed);
   let destination = config.forwardDestinationNumber || "+15879007223";
 
@@ -4488,6 +4564,8 @@ const handleTwilioVoiceWebhook = (req: express.Request, res: express.Response) =
 
 app.post("/api/twilio/voice", handleTwilioVoiceWebhook);
 app.get("/api/twilio/voice", handleTwilioVoiceWebhook);
+// Safety alias in case a Twilio number was accidentally pasted with the Jobber OAuth callback path
+app.post(["/api/jobber/oauth/callback", "/api/jobber/oauth/callback/"], handleTwilioVoiceWebhook);
 
 // In-memory cache for printable manifests to ensure zero URL bloat
 const manifestCache = new Map<string, any>();
@@ -5271,6 +5349,44 @@ async function startServer() {
   const distPath = path.join(process.cwd(), "dist");
   const hasDist = fs.existsSync(distPath) && fs.existsSync(path.join(distPath, "index.html"));
 
+  // Self-healing Service Worker endpoints: immediately unregister any stale cached Service Workers in visitors' browsers
+  app.get(["/sw.js", "/dev-sw.js"], (_req, res) => {
+    res.setHeader("Content-Type", "application/javascript; charset=UTF-8");
+    res.setHeader("Cache-Control", "no-store, no-cache, must-revalidate, max-age=0");
+    res.send(`
+      self.skipWaiting();
+      self.addEventListener('activate', function(event) {
+        event.waitUntil(
+          caches.keys().then(function(names) {
+            return Promise.all(names.map(function(name) { return caches.delete(name); }));
+          }).then(function() {
+            return self.registration.unregister();
+          }).then(function() {
+            return self.clients.matchAll();
+          }).then(function(clients) {
+            clients.forEach(function(client) {
+              if (client.url && 'navigate' in client) {
+                client.navigate(client.url);
+              }
+            });
+          })
+        );
+      });
+    `);
+  });
+
+  app.get("/registerSW.js", (_req, res) => {
+    res.setHeader("Content-Type", "application/javascript; charset=UTF-8");
+    res.setHeader("Cache-Control", "no-store, no-cache, must-revalidate, max-age=0");
+    res.send(`
+      if ('serviceWorker' in navigator) {
+        navigator.serviceWorker.getRegistrations().then(function(regs) {
+          regs.forEach(function(r) { r.unregister(); });
+        }).catch(function() {});
+      }
+    `);
+  });
+
   // Vite middleware for development or fallback if dist is unbuilt
   if (process.env.NODE_ENV !== "production" || !hasDist) {
     const { createServer: createViteServer } = await import("vite");
@@ -5280,8 +5396,48 @@ async function startServer() {
     });
     app.use(vite.middlewares);
   } else {
-    app.use(express.static(distPath));
+    app.use(
+      express.static(distPath, {
+        setHeaders: (res, filePath) => {
+          if (filePath.endsWith(".html")) {
+            res.setHeader("Cache-Control", "no-store, no-cache, must-revalidate, proxy-revalidate");
+          }
+        },
+      })
+    );
+
+    // Smart fallback for stale hashed JS/CSS bundle requests from tabs opened prior to a new deployment
+    app.get("/assets/:filename", (req, res, next) => {
+      const requested = req.params.filename || "";
+      const assetsDir = path.join(distPath, "assets");
+      const exactPath = path.join(assetsDir, requested);
+      if (fs.existsSync(exactPath)) {
+        return res.sendFile(exactPath);
+      }
+      try {
+        const files = fs.readdirSync(assetsDir);
+        if (requested.startsWith("index-") && requested.endsWith(".js")) {
+          const currentJs = files.find((f) => f.startsWith("index-") && f.endsWith(".js"));
+          if (currentJs) {
+            res.setHeader("Content-Type", "application/javascript; charset=UTF-8");
+            res.setHeader("Cache-Control", "no-store, no-cache, must-revalidate");
+            return res.sendFile(path.join(assetsDir, currentJs));
+          }
+        }
+        if (requested.startsWith("index-") && requested.endsWith(".css")) {
+          const currentCss = files.find((f) => f.startsWith("index-") && f.endsWith(".css"));
+          if (currentCss) {
+            res.setHeader("Content-Type", "text/css; charset=UTF-8");
+            res.setHeader("Cache-Control", "no-store, no-cache, must-revalidate");
+            return res.sendFile(path.join(assetsDir, currentCss));
+          }
+        }
+      } catch {}
+      next();
+    });
+
     app.get("*", (req, res) => {
+      res.setHeader("Cache-Control", "no-store, no-cache, must-revalidate, proxy-revalidate");
       res.sendFile(path.join(distPath, "index.html"));
     });
   }
