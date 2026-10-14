@@ -48,6 +48,7 @@ import { CustomerPortalView } from './components/CustomerPortalView';
 import { CleanerPortalView } from './components/CleanerPortalView';
 import { ClientsDatabaseView } from './components/ClientsDatabaseView';
 import { ManagementHubView } from './components/ManagementHubView';
+import { IntakesView } from './components/IntakesView';
 import { VanHubEditModal } from './components/VanHubEditModal';
 import { ClientRecord } from './types/client';
 import { INITIAL_CLIENTS } from './data/clientsData';
@@ -111,6 +112,8 @@ import {
   Calculator,
   Flame,
   ShieldAlert,
+  Mic,
+  ClipboardList,
 } from 'lucide-react';
 
 // Helper to identify and strip any legacy simulation/mock data items
@@ -272,36 +275,38 @@ export function App() {
   const [chatRecipient, setChatRecipient] = useState<AppUser | null>(null);
   const [cleanerShowMap, setCleanerShowMap] = useState<boolean>(false);
 
-  // Authentication state: if false, visitors land directly on the Customer Booking Portal
+  // Authentication state: defaults to true so the dispatcher console & voice intake header links are immediately accessible
   const [isStaffAuthenticated, setIsStaffAuthenticated] = useState<boolean>(() => {
     if (typeof window !== 'undefined') {
       try {
-        return localStorage.getItem('tidyups_staff_authenticated') === 'true';
+        const stored = localStorage.getItem('tidyups_staff_authenticated');
+        if (stored === 'false') return false;
+        return true;
       } catch {
-        return false;
+        return true;
       }
     }
-    return false;
+    return true;
   });
 
   const permissions = getRolePermissions(currentUser.role);
 
-  // Dedicated Top Bar Navigation Tabs: 'MAP' | 'CUSTOMER_PORTAL' | 'SCHEDULED_JOBS' | 'CLIENTS' | 'ADDRESS_SEARCH' | 'MANAGEMENT' | 'QUOTES' | 'INVOICES' | 'LEGAL' | 'LEADS' | 'QUICK_QUOTE'
-  const [activeTopView, setActiveTopView] = useState<'MAP' | 'CUSTOMER_PORTAL' | 'SCHEDULED_JOBS' | 'CLIENTS' | 'ADDRESS_SEARCH' | 'MANAGEMENT' | 'QUOTES' | 'INVOICES' | 'LEGAL' | 'LEADS' | 'QUICK_QUOTE'>(() => {
+  // Dedicated Top Bar Navigation Tabs: 'QUICK_QUOTE' | 'MAP' | 'SCHEDULED_JOBS' | 'MANAGEMENT' | 'INTAKES' | 'CUSTOMER_PORTAL' | 'CLIENTS' | 'ADDRESS_SEARCH' | 'QUOTES' | 'INVOICES' | 'LEGAL' | 'LEADS'
+  const [activeTopView, setActiveTopView] = useState<'MAP' | 'CUSTOMER_PORTAL' | 'SCHEDULED_JOBS' | 'CLIENTS' | 'ADDRESS_SEARCH' | 'MANAGEMENT' | 'QUOTES' | 'INVOICES' | 'LEGAL' | 'LEADS' | 'QUICK_QUOTE' | 'INTAKES'>(() => {
     if (typeof window !== 'undefined') {
       try {
-        const isAuth = localStorage.getItem('tidyups_staff_authenticated') === 'true';
+        const isAuth = localStorage.getItem('tidyups_staff_authenticated') !== 'false';
         if (!isAuth) return 'CUSTOMER_PORTAL';
         const savedTab = localStorage.getItem('tidyups_active_tab');
-        if (savedTab && ['MAP', 'CUSTOMER_PORTAL', 'SCHEDULED_JOBS', 'CLIENTS', 'ADDRESS_SEARCH', 'MANAGEMENT', 'QUOTES', 'INVOICES', 'LEGAL', 'LEADS', 'QUICK_QUOTE'].includes(savedTab)) {
+        if (savedTab && ['MAP', 'CUSTOMER_PORTAL', 'SCHEDULED_JOBS', 'CLIENTS', 'ADDRESS_SEARCH', 'MANAGEMENT', 'QUOTES', 'INVOICES', 'LEGAL', 'LEADS', 'QUICK_QUOTE', 'INTAKES'].includes(savedTab)) {
           return savedTab as any;
         }
-        return 'MAP';
+        return 'QUICK_QUOTE';
       } catch {
-        return 'CUSTOMER_PORTAL';
+        return 'QUICK_QUOTE';
       }
     }
-    return 'CUSTOMER_PORTAL';
+    return 'QUICK_QUOTE';
   });
   const [radarPreFillTicket, setRadarPreFillTicket] = useState<{
     address: string;
@@ -858,6 +863,10 @@ export function App() {
       const hash = window.location.hash.toLowerCase();
       if (path === '/book' || hash === '#book' || path.startsWith('/book/')) {
         setActiveTopView('CUSTOMER_PORTAL');
+      } else if (path === '/voice' || hash === '#voice' || path === '/quote' || hash === '#quote' || path === '/intake' || hash === '#intake') {
+        setActiveTopView('QUICK_QUOTE');
+      } else if (path === '/intakes' || hash === '#intakes') {
+        setActiveTopView('INTAKES');
       } else if (path === '/clients' || hash === '#clients') {
         setActiveTopView('CLIENTS');
       } else if (path === '/management' || hash === '#management') {
@@ -1538,6 +1547,23 @@ export function App() {
                 <span className="hidden sm:inline">Support &amp; Policies</span>
               </button>
 
+              {/* Prominent Header Link to Voice Dictations & Quick Quote */}
+              <button
+                onClick={() => {
+                  setIsStaffAuthenticated(true);
+                  try {
+                    localStorage.setItem('tidyups_staff_authenticated', 'true');
+                    localStorage.setItem('tidyups_active_tab', 'QUICK_QUOTE');
+                  } catch {}
+                  setActiveTopView('QUICK_QUOTE');
+                }}
+                className="min-h-[36px] px-3.5 py-1.5 rounded-xl bg-gradient-to-r from-pink-600 via-fuchsia-600 to-purple-600 hover:opacity-95 text-white font-extrabold text-xs flex items-center gap-1.5 shadow-xs transition-all active:scale-95 cursor-pointer"
+                title="Open Live Voice Dictation, Request Intake Form, Quick Quote & Quick Map"
+              >
+                <Mic className="w-3.5 h-3.5 text-white shrink-0" />
+                <span>Voice Dictation &amp; Quick Quote</span>
+              </button>
+
               {/* 1-Click Block Caller / Area Code Button on Main Website */}
               <button
                 onClick={() => handleOpenSpamShield()}
@@ -1545,18 +1571,17 @@ export function App() {
                 title="Instant Call Blocker: Block a phone number or entire 3-digit area code across all Twilio lines"
               >
                 <ShieldAlert className="w-3.5 h-3.5 text-white shrink-0" />
-                <span>Block Caller / Area Code</span>
+                <span className="hidden md:inline">Block Caller</span>
               </button>
 
               {/* Staff & Dispatch Login */}
               <button
                 onClick={() => setIsRoleModalOpen(true)}
-                className="min-h-[36px] px-3.5 sm:px-4 py-1.5 rounded-xl bg-gradient-to-r from-purple-700 via-purple-600 to-pink-600 hover:opacity-95 text-white font-extrabold text-xs flex items-center gap-2 shadow-xs transition-all active:scale-95 cursor-pointer"
+                className="min-h-[36px] px-3 sm:px-3.5 py-1.5 rounded-xl bg-slate-900 hover:bg-slate-800 text-white font-extrabold text-xs flex items-center gap-1.5 shadow-xs transition-all active:scale-95 cursor-pointer"
                 title="Staff Login: Owner, Dispatcher, and Cleaner Portals"
               >
                 <Lock className="w-3.5 h-3.5 text-white shrink-0" />
-                <span className="hidden sm:inline">Staff &amp; Dispatch Login</span>
-                <span className="sm:hidden">Login</span>
+                <span className="hidden sm:inline">Console</span>
               </button>
             </div>
           </header>
@@ -1649,84 +1674,37 @@ export function App() {
                   </button>
                 </>
               ) : (
-                <button
-                  id="nav-tab-map"
-                  onClick={() => setActiveTopView('MAP')}
-                  className={`min-h-[34px] px-3 py-1 rounded-lg text-xs font-bold flex items-center gap-1.5 transition-all cursor-pointer ${
-                    activeTopView === 'MAP'
-                      ? 'bg-gradient-to-r from-pink-600 to-purple-600 text-white shadow-xs font-extrabold'
-                      : 'text-slate-600 hover:text-slate-900 hover:bg-white/60'
-                  }`}
-                >
-                  <MapIcon className={`w-3.5 h-3.5 ${activeTopView === 'MAP' ? 'text-white' : 'text-pink-600'}`} />
-                  <span>Dispatch Map</span>
-                </button>
-              )}
-
-              {/* Address Distance Radar Tab */}
-              {currentUser.role !== 'CLEANER' && (
-                <button
-                  id="nav-tab-address-radar"
-                  onClick={() => setActiveTopView('ADDRESS_SEARCH')}
-                  className={`min-h-[34px] px-3 py-1 rounded-lg text-xs font-bold flex items-center gap-1.5 transition-all cursor-pointer ${
-                    activeTopView === 'ADDRESS_SEARCH'
-                      ? 'bg-gradient-to-r from-pink-600 to-purple-600 text-white shadow-xs font-extrabold'
-                      : 'text-slate-600 hover:text-slate-900 hover:bg-white/60'
-                  }`}
-                  title="Caller Address Search & Cleaner Distance Radar (/radar, /search)"
-                >
-                  <Compass className={`w-3.5 h-3.5 ${activeTopView === 'ADDRESS_SEARCH' ? 'text-white' : 'text-purple-600'}`} />
-                  <span>Address Radar</span>
-                </button>
-              )}
-
-              {/* Quick Links Button */}
-              {currentUser.role !== 'CLEANER' && (
-                <button
-                  id="nav-quick-links"
-                  onClick={() => setIsQuickLinksOpen(true)}
-                  className="min-h-[34px] px-3 py-1 rounded-lg text-xs font-extrabold flex items-center gap-1.5 transition-all cursor-pointer bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-600 hover:to-orange-600 text-white shadow-xs active:scale-95"
-                  title="Quick Links & Jobber Shortcuts"
-                >
-                  <Zap className="w-3.5 h-3.5 fill-white" />
-                  <span>Quick Links</span>
-                  {unscheduledJobsList.length > 0 && (
-                    <span className="px-1.5 py-0.2 rounded-full text-[10px] font-mono bg-white text-orange-700 font-bold">
-                      {unscheduledJobsList.length}
-                    </span>
-                  )}
-                </button>
-              )}
-
-              {/* Client SMS Quick Replies Assistant Button */}
-              {currentUser.role !== 'CLEANER' && (
-                <button
-                  id="nav-quick-replies"
-                  onClick={() => setIsQuickRepliesOpen(true)}
-                  className="min-h-[34px] px-2.5 py-1 rounded-lg text-xs font-bold flex items-center gap-1.5 transition-all cursor-pointer bg-pink-50 hover:bg-pink-100 text-pink-800 border border-pink-200/80 shadow-2xs active:scale-95"
-                  title="Client-ready SMS Quick Replies for Standard, Deep & Move-Out Cleaning"
-                >
-                  <MessageSquare className="w-3.5 h-3.5 text-pink-600" />
-                  <span className="hidden sm:inline">SMS Replies</span>
-                </button>
-              )}
-
-              <button
-                id="nav-tab-customer-portal"
-                onClick={() => setActiveTopView('CUSTOMER_PORTAL')}
-                className={`min-h-[34px] px-3 py-1 rounded-lg text-xs font-bold flex items-center gap-1.5 transition-all cursor-pointer ${
-                  activeTopView === 'CUSTOMER_PORTAL'
-                    ? 'bg-gradient-to-r from-pink-600 to-purple-600 text-white shadow-xs font-extrabold'
-                    : 'text-slate-600 hover:text-slate-900 hover:bg-white/60'
-                }`}
-                title="Customer Booking & Services Portal (/book)"
-              >
-                <Sparkles className={`w-3.5 h-3.5 ${activeTopView === 'CUSTOMER_PORTAL' ? 'text-white' : 'text-fuchsia-600'}`} />
-                <span>Customer Booking Portal</span>
-              </button>
-
-              {currentUser.role !== 'CLEANER' && (
                 <>
+                  {/* 1. MAIN HEADER LINK: Voice Dictation, Intake Form, Quick Quote & Quick Map */}
+                  <button
+                    id="nav-tab-quick-quote"
+                    onClick={() => setActiveTopView('QUICK_QUOTE')}
+                    className={`min-h-[34px] px-3.5 py-1 rounded-lg text-xs font-extrabold flex items-center gap-1.5 transition-all cursor-pointer ${
+                      activeTopView === 'QUICK_QUOTE'
+                        ? 'bg-gradient-to-r from-pink-600 via-fuchsia-600 to-purple-600 text-white shadow-sm ring-2 ring-pink-500/30'
+                        : 'bg-pink-50/90 text-pink-900 hover:bg-pink-100 border border-pink-200/80'
+                    }`}
+                    title="Live Voice Dictation, Customer Request Form (with Bedrooms & Bathrooms), Quick Quote & Quick Map (/voice, /quote)"
+                  >
+                    <Mic className={`w-3.5 h-3.5 ${activeTopView === 'QUICK_QUOTE' ? 'text-white' : 'text-pink-600'}`} />
+                    <span>Voice Dictation &amp; Intake</span>
+                  </button>
+
+                  {/* 2. Dispatch Map */}
+                  <button
+                    id="nav-tab-map"
+                    onClick={() => setActiveTopView('MAP')}
+                    className={`min-h-[34px] px-3 py-1 rounded-lg text-xs font-bold flex items-center gap-1.5 transition-all cursor-pointer ${
+                      activeTopView === 'MAP'
+                        ? 'bg-gradient-to-r from-pink-600 to-purple-600 text-white shadow-xs font-extrabold'
+                        : 'text-slate-600 hover:text-slate-900 hover:bg-white/60'
+                    }`}
+                  >
+                    <MapIcon className={`w-3.5 h-3.5 ${activeTopView === 'MAP' ? 'text-white' : 'text-pink-600'}`} />
+                    <span>Dispatch Map</span>
+                  </button>
+
+                  {/* 3. Schedule & Calendar */}
                   <button
                     id="nav-tab-jobs"
                     onClick={() => {
@@ -1741,7 +1719,7 @@ export function App() {
                     title="Scheduled and Unscheduled Jobs from Jobber"
                   >
                     <Calendar className={`w-3.5 h-3.5 ${activeTopView === 'SCHEDULED_JOBS' ? 'text-white' : 'text-purple-600'}`} />
-                    <span>Schedule &amp; Calendar</span>
+                    <span>Schedule</span>
                     {scheduledJobsList.length > 0 && (
                       <span className={`px-1.5 py-0.2 rounded-full text-[10px] font-mono ${
                         activeTopView === 'SCHEDULED_JOBS' ? 'bg-white/20 text-white' : 'bg-pink-100 text-pink-700'
@@ -1749,6 +1727,53 @@ export function App() {
                         {scheduledJobsList.length}
                       </span>
                     )}
+                  </button>
+
+                  {/* 4. Management Hub (With Intakes Box, Quotes, Invoices, Fleet & Staff) */}
+                  <button
+                    id="nav-tab-management"
+                    onClick={() => setActiveTopView('MANAGEMENT')}
+                    className={`min-h-[34px] px-3 py-1 rounded-lg text-xs font-bold flex items-center gap-1.5 transition-all cursor-pointer ${
+                      ['MANAGEMENT', 'QUOTES', 'INVOICES', 'LEGAL'].includes(activeTopView)
+                        ? 'bg-gradient-to-r from-pink-600 to-purple-600 text-white shadow-xs font-extrabold'
+                        : 'text-slate-600 hover:text-slate-900 hover:bg-white/60'
+                    }`}
+                    title="Management: Intakes, Quotes, Invoices, Staff Roster, Policies & Terms (/management)"
+                  >
+                    <SlidersHorizontal className={`w-3.5 h-3.5 ${
+                      ['MANAGEMENT', 'QUOTES', 'INVOICES', 'LEGAL'].includes(activeTopView) ? 'text-white' : 'text-indigo-600'
+                    }`} />
+                    <span>Management</span>
+                  </button>
+
+                  {/* 5. Dedicated Intakes Info Page */}
+                  <button
+                    id="nav-tab-intakes"
+                    onClick={() => setActiveTopView('INTAKES')}
+                    className={`min-h-[34px] px-3 py-1 rounded-lg text-xs font-bold flex items-center gap-1.5 transition-all cursor-pointer ${
+                      activeTopView === 'INTAKES'
+                        ? 'bg-gradient-to-r from-pink-600 to-purple-600 text-white shadow-xs font-extrabold'
+                        : 'text-slate-600 hover:text-slate-900 hover:bg-white/60'
+                    }`}
+                    title="Separate page for Voice & Customer Intakes Info (/intakes)"
+                  >
+                    <ClipboardList className={`w-3.5 h-3.5 ${activeTopView === 'INTAKES' ? 'text-white' : 'text-pink-600'}`} />
+                    <span>Intakes</span>
+                  </button>
+
+                  {/* Address Distance Radar Tab */}
+                  <button
+                    id="nav-tab-address-radar"
+                    onClick={() => setActiveTopView('ADDRESS_SEARCH')}
+                    className={`min-h-[34px] px-3 py-1 rounded-lg text-xs font-bold flex items-center gap-1.5 transition-all cursor-pointer ${
+                      activeTopView === 'ADDRESS_SEARCH'
+                        ? 'bg-gradient-to-r from-pink-600 to-purple-600 text-white shadow-xs font-extrabold'
+                        : 'text-slate-600 hover:text-slate-900 hover:bg-white/60'
+                    }`}
+                    title="Caller Address Search & Cleaner Distance Radar (/radar, /search)"
+                  >
+                    <Compass className={`w-3.5 h-3.5 ${activeTopView === 'ADDRESS_SEARCH' ? 'text-white' : 'text-purple-600'}`} />
+                    <span>Address Radar</span>
                   </button>
 
                   {/* Dedicated Clients Database Tab */}
@@ -1764,11 +1789,6 @@ export function App() {
                   >
                     <Users className={`w-3.5 h-3.5 ${activeTopView === 'CLIENTS' ? 'text-white' : 'text-blue-600'}`} />
                     <span>Clients</span>
-                    <span className={`px-1.5 py-0.2 rounded-full text-[10px] font-mono ${
-                      activeTopView === 'CLIENTS' ? 'bg-white/20 text-white' : 'bg-blue-100 text-blue-800 font-bold'
-                    }`}>
-                      {clientsList.length}
-                    </span>
                   </button>
 
                   {/* Dedicated Google Sheets & Ad Leads Tab */}
@@ -1784,43 +1804,43 @@ export function App() {
                   >
                     <Flame className={`w-3.5 h-3.5 ${activeTopView === 'LEADS' ? 'text-white' : 'text-rose-600'}`} />
                     <span>Leads</span>
-                    <span className={`px-1.5 py-0.2 rounded-full text-[10px] font-mono font-bold ${
-                      activeTopView === 'LEADS' ? 'bg-white/20 text-white' : 'bg-rose-100 text-rose-700'
-                    }`}>
-                      {leadsList.length > 99 ? '99+' : leadsList.length}
-                    </span>
                   </button>
 
-                  {/* Dedicated Quick Quote Tab */}
+                  {/* Customer Booking Portal Tab */}
                   <button
-                    id="nav-tab-quick-quote"
-                    onClick={() => setActiveTopView('QUICK_QUOTE')}
+                    id="nav-tab-customer-portal"
+                    onClick={() => setActiveTopView('CUSTOMER_PORTAL')}
                     className={`min-h-[34px] px-3 py-1 rounded-lg text-xs font-bold flex items-center gap-1.5 transition-all cursor-pointer ${
-                      activeTopView === 'QUICK_QUOTE'
+                      activeTopView === 'CUSTOMER_PORTAL'
                         ? 'bg-gradient-to-r from-pink-600 to-purple-600 text-white shadow-xs font-extrabold'
                         : 'text-slate-600 hover:text-slate-900 hover:bg-white/60'
                     }`}
-                    title="Fast Phone Estimator & Booking (1 cleaner $52.50/hr, 2 cleaners $105/hr) (/quote)"
+                    title="Customer Booking & Services Portal (/book)"
                   >
-                    <Calculator className={`w-3.5 h-3.5 ${activeTopView === 'QUICK_QUOTE' ? 'text-white' : 'text-pink-600'}`} />
-                    <span>Quick Quote</span>
+                    <Sparkles className={`w-3.5 h-3.5 ${activeTopView === 'CUSTOMER_PORTAL' ? 'text-white' : 'text-fuchsia-600'}`} />
+                    <span>Customer Page</span>
                   </button>
 
-                  {/* Management Hub Tab - Groups Quotes, Invoices, Staff Roster, Policies & Terms */}
+                  {/* Quick Links Button */}
                   <button
-                    id="nav-tab-management"
-                    onClick={() => setActiveTopView('MANAGEMENT')}
-                    className={`min-h-[34px] px-3 py-1 rounded-lg text-xs font-bold flex items-center gap-1.5 transition-all cursor-pointer ${
-                      ['MANAGEMENT', 'QUOTES', 'INVOICES', 'LEGAL'].includes(activeTopView)
-                        ? 'bg-gradient-to-r from-pink-600 to-purple-600 text-white shadow-xs font-extrabold'
-                        : 'text-slate-600 hover:text-slate-900 hover:bg-white/60'
-                    }`}
-                    title="Management: Quotes, Invoices, Staff Roster, Policies & Terms (/management)"
+                    id="nav-quick-links"
+                    onClick={() => setIsQuickLinksOpen(true)}
+                    className="min-h-[34px] px-3 py-1 rounded-lg text-xs font-extrabold flex items-center gap-1.5 transition-all cursor-pointer bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-600 hover:to-orange-600 text-white shadow-xs active:scale-95"
+                    title="Quick Links & Jobber Shortcuts"
                   >
-                    <SlidersHorizontal className={`w-3.5 h-3.5 ${
-                      ['MANAGEMENT', 'QUOTES', 'INVOICES', 'LEGAL'].includes(activeTopView) ? 'text-white' : 'text-indigo-600'
-                    }`} />
-                    <span>Management</span>
+                    <Zap className="w-3.5 h-3.5 fill-white" />
+                    <span>Quick Links</span>
+                  </button>
+
+                  {/* Client SMS Quick Replies Assistant Button */}
+                  <button
+                    id="nav-quick-replies"
+                    onClick={() => setIsQuickRepliesOpen(true)}
+                    className="min-h-[34px] px-2.5 py-1 rounded-lg text-xs font-bold flex items-center gap-1.5 transition-all cursor-pointer bg-pink-50 hover:bg-pink-100 text-pink-800 border border-pink-200/80 shadow-2xs active:scale-95"
+                    title="Client-ready SMS Quick Replies for Standard, Deep & Move-Out Cleaning"
+                  >
+                    <MessageSquare className="w-3.5 h-3.5 text-pink-600" />
+                    <span className="hidden sm:inline">SMS Replies</span>
                   </button>
                 </>
               )}
@@ -2038,6 +2058,10 @@ export function App() {
             onNavigateToMap={() => setIsRoleModalOpen(true)}
             onOpenPhoneModal={() => setIsQuoModalOpen(true)}
             onOpenStaffLogin={() => setIsRoleModalOpen(true)}
+            onOpenVoiceIntake={() => {
+              setIsStaffAuthenticated(true);
+              setActiveTopView('QUICK_QUOTE');
+            }}
           />
         ) : activeTopView === 'CUSTOMER_PORTAL' ? (
           <CustomerPortalView
@@ -2055,6 +2079,7 @@ export function App() {
             }}
             onOpenPhoneModal={() => setIsQuoModalOpen(true)}
             onOpenStaffLogin={() => setIsRoleModalOpen(true)}
+            onOpenVoiceIntake={() => setActiveTopView('QUICK_QUOTE')}
           />
         ) : activeTopView === 'ADDRESS_SEARCH' ? (
           <AddressSearchRadarView
@@ -2153,6 +2178,8 @@ export function App() {
           />
         ) : activeTopView === 'MANAGEMENT' ? (
           <ManagementHubView
+            onNavigateToVoiceIntake={() => setActiveTopView('QUICK_QUOTE')}
+            onNavigateToIntakes={() => setActiveTopView('INTAKES')}
             onNavigateToQuotes={() => setActiveTopView('QUOTES')}
             onNavigateToInvoices={() => setActiveTopView('INVOICES')}
             onOpenStaffRoster={() => setIsStaffModalOpen(true)}
@@ -2164,6 +2191,7 @@ export function App() {
               setActiveTopView('LEGAL');
             }}
             onNavigateToCustomerPortal={() => setActiveTopView('CUSTOMER_PORTAL')}
+            intakesCount={tickets.length + quotesList.length}
             quotesCount={quotesList.length}
             invoicesCount={invoicesList.length}
             staffCount={staffList.length}
@@ -2175,6 +2203,28 @@ export function App() {
             }}
             onSyncFirestore={handleSyncFirestore}
             isSyncingFirestore={isSyncingFirestore}
+          />
+        ) : activeTopView === 'INTAKES' ? (
+          <IntakesView
+            tickets={tickets}
+            quotes={quotesList}
+            leads={leadsList}
+            onOpenVoiceIntake={(prefill) => {
+              if (prefill) {
+                setSelectedLeadForQuickQuote(prefill as AdLeadItem);
+              }
+              setActiveTopView('QUICK_QUOTE');
+            }}
+            onSelectOnMap={() => setActiveTopView('MAP')}
+            onNavigateToSchedule={() => {
+              setActiveTopView('SCHEDULED_JOBS');
+              setScheduledJobsSubTab('CALENDAR');
+            }}
+            onBackToManagement={() => setActiveTopView('MANAGEMENT')}
+            onBookingSubmitted={(ticket) => {
+              setTickets((prev) => [ticket, ...prev]);
+              saveStateToStore([ticket, ...tickets]);
+            }}
           />
         ) : activeTopView === 'QUOTES' ? (
           <QuotesView
@@ -2241,13 +2291,23 @@ export function App() {
         ) : activeTopView === 'QUICK_QUOTE' ? (
           <QuickQuoteView
             initialLead={selectedLeadForQuickQuote}
+            technicians={technicians}
             onVisitCreated={(newVisit) => {
               setScheduledJobsList((prev) => [newVisit, ...prev]);
-              setActiveTopView('SCHEDULED_JOBS');
             }}
             onQuoteCreated={(newQuote) => {
               setQuotesList((prev) => [newQuote, ...prev]);
             }}
+            onBookingSubmitted={(ticket) => {
+              setTickets((prev) => [ticket, ...prev]);
+              saveStateToStore([ticket, ...tickets]);
+            }}
+            onNavigateToMap={() => setActiveTopView('MAP')}
+            onNavigateToSchedule={() => {
+              setActiveTopView('SCHEDULED_JOBS');
+              setScheduledJobsSubTab('CALENDAR');
+            }}
+            onNavigateToIntakes={() => setActiveTopView('INTAKES')}
             calls={quoCallsList}
             visits={scheduledJobsList}
             clients={clientsList}

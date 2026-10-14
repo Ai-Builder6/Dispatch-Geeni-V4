@@ -22,11 +22,15 @@ import {
   Phone,
   User,
   Navigation,
-  ShieldAlert
+  ShieldAlert,
+  Mic,
+  ClipboardList
 } from 'lucide-react';
 import { Technician } from '../types/dispatch';
 
 interface ManagementHubViewProps {
+  onNavigateToVoiceIntake?: () => void;
+  onNavigateToIntakes?: () => void;
   onNavigateToQuotes: () => void;
   onNavigateToInvoices: () => void;
   onOpenStaffRoster: () => void;
@@ -35,6 +39,7 @@ interface ManagementHubViewProps {
   onOpenSpamShield?: () => void;
   onNavigateToLegal: (tab: 'SUPPORT' | 'TERMS' | 'PRIVACY') => void;
   onNavigateToCustomerPortal: () => void;
+  intakesCount?: number;
   quotesCount?: number;
   invoicesCount?: number;
   staffCount?: number;
@@ -46,6 +51,8 @@ interface ManagementHubViewProps {
 }
 
 export const ManagementHubView: React.FC<ManagementHubViewProps> = ({
+  onNavigateToVoiceIntake,
+  onNavigateToIntakes,
   onNavigateToQuotes,
   onNavigateToInvoices,
   onOpenStaffRoster,
@@ -54,6 +61,7 @@ export const ManagementHubView: React.FC<ManagementHubViewProps> = ({
   onOpenSpamShield,
   onNavigateToLegal,
   onNavigateToCustomerPortal,
+  intakesCount = 0,
   quotesCount = 0,
   invoicesCount = 0,
   staffCount = 15,
@@ -92,6 +100,47 @@ export const ManagementHubView: React.FC<ManagementHubViewProps> = ({
 
       {/* Main Grid of Management Sections */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
+        {/* 0. Voice Dictations, Customer Request Intake & Quick Quote Box */}
+        <div className="bg-gradient-to-br from-[#1b1528] via-[#151923] to-[#151923] border border-pink-500/40 hover:border-pink-500 rounded-3xl p-5 sm:p-6 flex flex-col justify-between space-y-4 shadow-xl transition-all group">
+          <div className="space-y-3">
+            <div className="flex items-center justify-between">
+              <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-pink-500/25 to-purple-500/25 text-pink-400 border border-pink-500/40 flex items-center justify-center">
+                <ClipboardList className="w-6 h-6" />
+              </div>
+              <span className="px-2.5 py-0.5 rounded-full text-xs font-mono font-bold bg-pink-950 text-pink-300 border border-pink-800">
+                🎙️ {intakesCount > 0 ? `${intakesCount} Intakes` : 'Live Dictation'}
+              </span>
+            </div>
+            <div>
+              <h3 className="font-black text-lg text-white">Voice Intakes &amp; Quick Quote</h3>
+              <p className="text-xs text-slate-400 mt-1 leading-relaxed">
+                Live voice dictation auto-fills the customer request form (Name, Phone, Address, Cleaning Type, Bedrooms, Bathrooms &amp; Specific Info) with Quick Quote, Quick Map &amp; Jobber sync.
+              </p>
+            </div>
+          </div>
+
+          <div className="flex flex-col sm:flex-row gap-2">
+            {onNavigateToVoiceIntake && (
+              <button
+                onClick={onNavigateToVoiceIntake}
+                className="flex-1 py-2.5 px-3 bg-gradient-to-r from-pink-600 to-purple-600 hover:opacity-95 text-white rounded-xl text-xs font-black transition-all flex items-center justify-center gap-1.5 cursor-pointer shadow-md"
+              >
+                <Mic className="w-3.5 h-3.5" />
+                <span>Voice Intake &amp; Quote</span>
+              </button>
+            )}
+            {onNavigateToIntakes && (
+              <button
+                onClick={onNavigateToIntakes}
+                className="flex-1 py-2.5 px-3 bg-slate-800 hover:bg-slate-700 text-slate-100 border border-slate-700 rounded-xl text-xs font-bold transition-all flex items-center justify-center gap-1.5 cursor-pointer"
+              >
+                <span>Intakes Log ({intakesCount})</span>
+                <ArrowRight className="w-3.5 h-3.5" />
+              </button>
+            )}
+          </div>
+        </div>
+
         {/* 1. Quotes Pipeline */}
         <div className="bg-[#151923] border border-slate-800 hover:border-amber-500/50 rounded-3xl p-5 sm:p-6 flex flex-col justify-between space-y-4 shadow-xl transition-all group">
           <div className="space-y-3">

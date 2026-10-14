@@ -20,7 +20,10 @@ import {
   ExternalLink,
   PhoneCall,
   ChevronDown,
-  Lock
+  Lock,
+  Mic,
+  MicOff,
+  Wand2
 } from 'lucide-react';
 import { BookMyCleaningLogo } from './BookMyCleaningLogo';
 import { AddressAutocompleteInput } from './AddressAutocompleteInput';
@@ -31,6 +34,7 @@ interface CustomerPortalViewProps {
   onNavigateToMap?: () => void;
   onOpenPhoneModal?: () => void;
   onOpenStaffLogin?: () => void;
+  onOpenVoiceIntake?: () => void;
   projectId?: 'dispatchgeeni' | 'tidyups' | 'easycleans';
 }
 
@@ -190,6 +194,7 @@ export const CustomerPortalView: React.FC<CustomerPortalViewProps> = ({
   onNavigateToMap,
   onOpenPhoneModal,
   onOpenStaffLogin,
+  onOpenVoiceIntake,
   projectId = 'tidyups',
 }) => {
   const brandName =
@@ -218,7 +223,85 @@ export const CustomerPortalView: React.FC<CustomerPortalViewProps> = ({
   const [specialInstructions, setSpecialInstructions] = useState('');
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
+  // Live Voice Dictation state for the Customer Request Form
+  const [isRecordingFormVoice, setIsRecordingFormVoice] = useState(false);
+  const [dictationText, setDictationText] = useState('');
+  const [isParsingFormVoice, setIsParsingFormVoice] = useState(false);
+  const [voiceFillStatus, setVoiceFillStatus] = useState<string | null>(null);
+
   const activeServiceData = CLEANING_SERVICES.find((s) => s.id === selectedService) || CLEANING_SERVICES[0];
+
+  const handleParseDictationIntoBlanks = async (textToUse?: string) => {
+    const raw = (textToUse ?? dictationText).trim();
+    if (!raw) return;
+    setIsParsingFormVoice(true);
+    setVoiceFillStatus('Filling form blanks from voice dictation...');
+    try {
+      const res = await fetch('/api/dispatch/parse-voice-ticket', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ transcript: raw }),
+      });
+      const data = await res.json();
+      if (data) {
+        if (data.customerName && data.customerName !== 'Residential Client') setCustomerName(data.customerName);
+        if (data.phone) setCustomerPhone(data.phone);
+        if (data.email) setCustomerEmail(data.email);
+        if (data.address) setAddress(data.address);
+        if (data.city) setCity(data.city);
+        if (data.bedrooms) setBedrooms(data.bedrooms);
+        if (data.bathrooms) setBathrooms(data.bathrooms);
+        if (data.specificInstructions) setSpecialInstructions(data.specificInstructions);
+        else setSpecialInstructions(raw);
+
+        const cat = (data.serviceCategory || '').toLowerCase();
+        if (cat.includes('move')) setSelectedService('move-out');
+        else if (cat.includes('deep')) setSelectedService('deep');
+        else if (cat.includes('standard')) setSelectedService('standard');
+        else if (cat.includes('reno')) setSelectedService('post-renovation');
+        else if (cat.includes('commercial')) setSelectedService('commercial');
+
+        setVoiceFillStatus(`✓ Filled blanks: ${data.customerName || 'Caller'} • ${data.bedrooms || bedrooms} / ${data.bathrooms || bathrooms}`);
+      }
+    } catch {
+      setVoiceFillStatus('Filled form notes from dictation.');
+    } finally {
+      setIsParsingFormVoice(false);
+    }
+  };
+
+  const handleToggleFormMic = () => {
+    const SpeechRec = (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
+    if (!SpeechRec) {
+      setVoiceFillStatus('Type or paste voice notes below and click "Fill Blanks".');
+      return;
+    }
+    if (isRecordingFormVoice) {
+      setIsRecordingFormVoice(false);
+      return;
+    }
+    try {
+      const rec = new SpeechRec();
+      rec.lang = 'en-CA';
+      rec.continuous = false;
+      rec.interimResults = false;
+      rec.onstart = () => {
+        setIsRecordingFormVoice(true);
+        setVoiceFillStatus('Listening... Speak name, phone, address, bedrooms, bathrooms & cleaning notes.');
+      };
+      rec.onresult = (ev: any) => {
+        const t = ev.results?.[0]?.[0]?.transcript || '';
+        if (t) {
+          setDictationText(t);
+          handleParseDictationIntoBlanks(t);
+        }
+      };
+      rec.onend = () => setIsRecordingFormVoice(false);
+      rec.start();
+    } catch {
+      setIsRecordingFormVoice(false);
+    }
+  };
 
   const handleBookingSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -546,16 +629,71 @@ export const CustomerPortalView: React.FC<CustomerPortalViewProps> = ({
               ) : (
                 /* Booking Form */
                 <form onSubmit={handleBookingSubmit} className="space-y-4">
-                  <div>
-                    <span className="text-[10px] font-bold text-pink-600 uppercase tracking-wider block">
-                      Fast Online Intake
-                    </span>
-                    <h3 className="text-lg font-extrabold text-slate-900 leading-snug">
-                      Request Your {activeServiceData.name}
-                    </h3>
-                    <p className="text-xs text-slate-500 mt-0.5">
-                      No upfront charges required. We confirm your crew and time slot immediately.
-                    </p>
+                  <div className="flex items-start justify-between gap-2">
+                    <div>
+                      <span className="text-[10px] font-bold text-pink-600 uppercase tracking-wider block">
+                        Fast Online &amp; Voice Intake
+                      </span>
+                      <h3 className="text-lg font-extrabold text-slate-900 leading-snug">
+                        Request Your {activeServiceData.name}
+                      </h3>
+                      <p className="text-xs text-slate-500 mt-0.5">
+                        Speak live or fill out your details below to sync directly with Jobber.
+                      </p>
+                    </div>
+                    {onOpenVoiceIntake && (
+                      <button
+                        type="button"
+                        onClick={onOpenVoiceIntake}
+                        className="px-3 py-1.5 rounded-xl bg-purple-100 hover:bg-purple-200 text-purple-900 text-[11px] font-extrabold flex items-center gap-1 shrink-0 cursor-pointer transition-colors"
+                      >
+                        <Mic className="w-3.5 h-3.5 text-pink-600" />
+                        <span>Full Quote &amp; Map Page →</span>
+                      </button>
+                    )}
+                  </div>
+
+                  {/* Live Voice Dictation Box to Auto-Fill Request Form Blanks */}
+                  <div className="p-3.5 rounded-2xl bg-gradient-to-r from-pink-50 via-fuchsia-50 to-purple-50 border border-pink-200 space-y-2">
+                    <div className="flex items-center justify-between gap-2 flex-wrap">
+                      <span className="text-xs font-extrabold text-purple-950 flex items-center gap-1.5">
+                        <Mic className="w-3.5 h-3.5 text-pink-600" />
+                        <span>Live Voice Dictation (Auto-Fills Form Blanks)</span>
+                      </span>
+                      <div className="flex items-center gap-1.5">
+                        <button
+                          type="button"
+                          onClick={handleToggleFormMic}
+                          className={`px-3 py-1.5 rounded-xl text-xs font-extrabold flex items-center gap-1.5 cursor-pointer shadow-2xs transition-all ${
+                            isRecordingFormVoice
+                              ? 'bg-rose-600 text-white animate-pulse'
+                              : 'bg-gradient-to-r from-pink-600 to-purple-600 text-white hover:opacity-95'
+                          }`}
+                        >
+                          {isRecordingFormVoice ? <MicOff className="w-3.5 h-3.5" /> : <Mic className="w-3.5 h-3.5" />}
+                          <span>{isRecordingFormVoice ? 'Stop & Fill' : 'Dictate Live'}</span>
+                        </button>
+                        <button
+                          type="button"
+                          disabled={isParsingFormVoice || !dictationText.trim()}
+                          onClick={() => handleParseDictationIntoBlanks(dictationText)}
+                          className="px-2.5 py-1.5 rounded-xl bg-emerald-600 hover:bg-emerald-500 disabled:opacity-40 text-white text-xs font-extrabold flex items-center gap-1 cursor-pointer"
+                        >
+                          <Wand2 className="w-3.5 h-3.5" />
+                          <span>Fill Blanks</span>
+                        </button>
+                      </div>
+                    </div>
+                    <input
+                      type="text"
+                      value={dictationText}
+                      onChange={(e) => setDictationText(e.target.value)}
+                      placeholder='Speak or paste caller info (e.g. "Devon Clarke, 780-802-4918, 9620 144 Ave NW St. Albert, 3 bedrooms 2 bathrooms, Standard Cleaning, clean inside oven")...'
+                      className="w-full px-3 py-2 bg-white border border-pink-200 rounded-xl text-xs text-slate-900 placeholder-slate-400 focus:outline-none focus:border-pink-500"
+                    />
+                    {voiceFillStatus && (
+                      <p className="text-[11px] font-bold text-emerald-700">{voiceFillStatus}</p>
+                    )}
                   </div>
 
                   {errorMessage && (
@@ -633,7 +771,7 @@ export const CustomerPortalView: React.FC<CustomerPortalViewProps> = ({
                     </div>
 
                     <div>
-                      <label className="block text-[11px] font-semibold text-slate-700 mb-1">Bedrooms</label>
+                      <label className="block text-[11px] font-semibold text-slate-700 mb-1">How Many Bedrooms? *</label>
                       <select
                         value={bedrooms}
                         onChange={(e) => setBedrooms(e.target.value)}
@@ -648,14 +786,16 @@ export const CustomerPortalView: React.FC<CustomerPortalViewProps> = ({
                     </div>
 
                     <div className="col-span-2 sm:col-span-1">
-                      <label className="block text-[11px] font-semibold text-slate-700 mb-1">Bathrooms</label>
+                      <label className="block text-[11px] font-semibold text-slate-700 mb-1">How Many Bathrooms? *</label>
                       <select
                         value={bathrooms}
                         onChange={(e) => setBathrooms(e.target.value)}
                         className="w-full px-2.5 py-2 bg-slate-50 border border-slate-300 rounded-xl text-xs text-slate-800 focus:outline-none focus:border-pink-500"
                       >
                         <option value="1 Bathroom">1 Bathroom</option>
+                        <option value="1.5 Bathrooms">1.5 Bathrooms</option>
                         <option value="2 Bathrooms">2 Bathrooms</option>
+                        <option value="2.5 Bathrooms">2.5 Bathrooms</option>
                         <option value="3 Bathrooms">3 Bathrooms</option>
                         <option value="4+ Bathrooms">4+ Bathrooms</option>
                       </select>

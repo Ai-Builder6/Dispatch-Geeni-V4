@@ -16,7 +16,11 @@ import {
   Percent, 
   ArrowRight,
   Clock,
-  Users
+  Users,
+  Mic,
+  MicOff,
+  BedDouble,
+  Bath
 } from 'lucide-react';
 import { getCustomerIntelligence } from '../services/customerIntelligenceService';
 import { CustomerIntelligenceBadge } from './CustomerIntelligenceBadge';
@@ -64,15 +68,18 @@ export const QuickQuoteModal: React.FC<QuickQuoteModalProps> = ({
   const [applyTax, setApplyTax] = useState<boolean>(true);
   const [taxRate] = useState<number>(0.125); // 12.5% tax per Screenshot 2
 
-  // Customer Contact Fields for Fast Phone Quoting
+  // Customer Contact & Property Size Fields for Fast Phone Quoting + Booking System Sync
   const [customerName, setCustomerName] = useState<string>('');
   const [customerPhone, setCustomerPhone] = useState<string>('');
   const [customerEmail, setCustomerEmail] = useState<string>('');
   const [serviceAddress, setServiceAddress] = useState<string>('');
+  const [bedrooms, setBedrooms] = useState<string>('3 Bedrooms');
+  const [bathrooms, setBathrooms] = useState<string>('2 Bathrooms');
   const [serviceType, setServiceType] = useState<string>('Residential Standard Cleaning');
   const [scheduledDate, setScheduledDate] = useState<string>(new Date().toISOString().slice(0, 10));
   const [scheduledTime, setScheduledTime] = useState<string>('10:00');
-  const [assignedCleaner, setAssignedCleaner] = useState<string>('Cindy Guay');
+  const [assignedCleaner, setAssignedCleaner] = useState<string>('Melissa Clarke');
+  const [isRecordingVoice, setIsRecordingVoice] = useState<boolean>(false);
 
   const [copiedBreakdown, setCopiedBreakdown] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -128,16 +135,58 @@ export const QuickQuoteModal: React.FC<QuickQuoteModalProps> = ({
     setQuoteNote((prev) => `${prev ? prev + ' ' : ''}[Applied ${percent}% Repeat Client Loyalty Discount (-$${loyaltyDiscountVal})]`);
   };
 
+  const handleQuickVoiceDictation = () => {
+    const SpeechRec = (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
+    if (!SpeechRec) return;
+    if (isRecordingVoice) {
+      setIsRecordingVoice(false);
+      return;
+    }
+    try {
+      const rec = new SpeechRec();
+      rec.lang = 'en-CA';
+      rec.continuous = false;
+      rec.interimResults = false;
+      rec.onstart = () => setIsRecordingVoice(true);
+      rec.onresult = async (ev: any) => {
+        const transcript = ev.results?.[0]?.[0]?.transcript || '';
+        if (transcript) {
+          const res = await fetch('/api/dispatch/parse-voice-ticket', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ transcript }),
+          });
+          const data = await res.json();
+          if (data) {
+            if (data.customerName) setCustomerName(data.customerName);
+            if (data.phone) setCustomerPhone(data.phone);
+            if (data.address) setServiceAddress(data.address);
+            if (data.bedrooms) setBedrooms(data.bedrooms);
+            if (data.bathrooms) setBathrooms(data.bathrooms);
+            if (data.serviceCategory) setServiceType(data.serviceCategory);
+            if (data.specificInstructions) setQuoteNote(data.specificInstructions);
+          }
+        }
+      };
+      rec.onend = () => setIsRecordingVoice(false);
+      rec.start();
+    } catch {
+      setIsRecordingVoice(false);
+    }
+  };
+
   const handleCopyBreakdown = () => {
     const text = `TidyUps Cleaning Estimate for ${customerName || 'Customer'}:
 • Service: ${serviceType}
+• Property Size: ${bedrooms} • ${bathrooms}
+• Address: ${serviceAddress || 'Edmonton, AB'}
 • Time: ${hours} hours (${crewSelection === '1_CLEANER' ? '1 Cleaner @ $52.50/hr' : crewSelection === '2_CLEANERS' ? '2 Cleaners @ $105/hr' : `Custom @ $${hourlyRate}/hr`})
 • Labor: $${calculations.labor.toFixed(2)}
 • Fuel Surcharge: $${Number(fuelSurcharge).toFixed(2)}
 ${discountAmount > 0 ? `• Discount Applied: -$${Number(discountAmount).toFixed(2)}\n` : ''}• Subtotal: $${calculations.subtotal.toFixed(2)}
 • Tax (12.5%): $${calculations.tax.toFixed(2)}
 • TOTAL QUOTED: $${calculations.total.toFixed(2)} CAD
-${depositAmount > 0 ? `• Deposit Required: $${Number(depositAmount).toFixed(2)}\n` : ''}${quoteNote ? `• Notes: ${quoteNote}` : ''}`;
+${depositAmount > 0 ? `• Deposit Required: $${Number(depositAmount).toFixed(2)}\n` : ''}${quoteNote ? `• Specific Info / Notes: ${quoteNote}` : ''}`;
 
     navigator.clipboard.writeText(text);
     setCopiedBreakdown(true);
@@ -148,6 +197,26 @@ ${depositAmount > 0 ? `• Deposit Required: $${Number(depositAmount).toFixed(2)
     setIsSubmitting(true);
     setFeedbackNotice(null);
     try {
+      // 1. Send to Booking System (/api/public/book) with bedrooms, bathrooms & specific instructions
+      await fetch('/api/public/book', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          customerName: customerName || 'Phone Lead',
+          customerPhone: customerPhone || '(780) 555-0199',
+          customerEmail: customerEmail || '',
+          serviceType: `${serviceType} (${bedrooms}, ${bathrooms})`,
+          address: serviceAddress || 'Edmonton, AB',
+          city: 'Edmonton',
+          bedrooms,
+          bathrooms,
+          preferredDate: scheduledDate,
+          preferredTime: scheduledTime,
+          specialInstructions: `Property: ${bedrooms}, ${bathrooms}. ${quoteNote ? `Specific Info: ${quoteNote}` : ''} | Quoted: $${calculations.total.toFixed(2)}`,
+        }),
+      }).catch(() => {});
+
+      // 2. Also create Jobber scheduled visit
       const res = await fetch(`/api/quo/calls/convert-to-job?project=${projectId}`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json', 'x-project-id': projectId },
@@ -155,17 +224,17 @@ ${depositAmount > 0 ? `• Deposit Required: $${Number(depositAmount).toFixed(2)
           callerName: customerName || 'Phone Lead',
           callerPhone: customerPhone || '(780) 555-0199',
           serviceAddress: serviceAddress || 'Edmonton, AB',
-          serviceType: `${serviceType} (${hours} hrs)`,
+          serviceType: `${serviceType} (${bedrooms}, ${bathrooms} • ${hours} hrs)`,
           scheduledDate,
           scheduledTime,
           assignedCleaners: [assignedCleaner],
           totalAmount: calculations.total,
-          notes: `Quoted: ${hours} hrs @ $${hourlyRate}/hr + $${fuelSurcharge} fuel. Source: ${selectedSource}. ${quoteNote}`,
+          notes: `Property: ${bedrooms}, ${bathrooms}. Quoted: ${hours} hrs @ $${hourlyRate}/hr + $${fuelSurcharge} fuel. Source: ${selectedSource}. Specific Info: ${quoteNote}`,
         }),
       });
       const data = await res.json();
       if (data.success) {
-        setFeedbackNotice(`✓ Booking saved & dispatched: ${data.newVisit?.visitNumber || 'VISIT'}!`);
+        setFeedbackNotice(`✓ Sent to Booking System (${bedrooms}, ${bathrooms}) & Dispatched: ${data.newVisit?.visitNumber || 'VISIT'}!`);
         if (onSaveBooking && data.newVisit) {
           onSaveBooking(data.newVisit);
         }
@@ -188,7 +257,7 @@ ${depositAmount > 0 ? `• Deposit Required: $${Number(depositAmount).toFixed(2)
     try {
       const lineItems = [
         {
-          description: `${serviceType} (${hours} hrs @ $${hourlyRate.toFixed(2)}/hr)`,
+          description: `${serviceType} — ${bedrooms}, ${bathrooms} (${hours} hrs @ $${hourlyRate.toFixed(2)}/hr)`,
           quantity: hours,
           unitPrice: hourlyRate,
           total: calculations.labor,
@@ -217,16 +286,16 @@ ${depositAmount > 0 ? `• Deposit Required: $${Number(depositAmount).toFixed(2)
           clientPhone: customerPhone || '(780) 555-0199',
           clientEmail: customerEmail,
           serviceAddress: serviceAddress || 'Edmonton, AB',
-          service: `${serviceType} (${hours} hrs)`,
+          service: `${serviceType} (${bedrooms}, ${bathrooms} • ${hours} hrs)`,
           total: calculations.total,
           depositRequired: depositAmount,
           lineItems,
-          notes: `Fast Quote: ${hours} hrs @ $${hourlyRate}/hr + $${fuelSurcharge} fuel. Source: ${selectedSource}. ${quoteNote}`,
+          notes: `Property: ${bedrooms}, ${bathrooms}. Fast Quote: ${hours} hrs @ $${hourlyRate}/hr + $${fuelSurcharge} fuel. Source: ${selectedSource}. Specific Info: ${quoteNote}`,
         }),
       });
       const data = await res.json();
       if (data.success) {
-        setFeedbackNotice(`✓ Synced Client & Jobber Quote ${data.quote?.quoteNumber || 'QT'} + Google Sheets!`);
+        setFeedbackNotice(`✓ Synced Client & Jobber Quote ${data.quote?.quoteNumber || 'QT'} (${bedrooms}, ${bathrooms})!`);
         if (onCreateJobberQuote && data.quote) {
           onCreateJobberQuote(data.quote, data);
         }
@@ -501,11 +570,25 @@ ${depositAmount > 0 ? `• Deposit Required: $${Number(depositAmount).toFixed(2)
             Pick the hours and the crew to price this job. Fuel ($12.50), and 12.5% tax are added automatically.
           </p>
 
-          {/* 7. Caller / Client Details for Live Booking */}
+          {/* 7. Caller / Client & Property Details for Live Booking System Sync */}
           <div className="pt-2 border-t border-[#2b2536] space-y-3">
-            <span className="font-bold text-slate-200 uppercase tracking-wider text-[10px] block">
-              Customer &amp; Location (Pre-fills from Phone Call / Lead)
-            </span>
+            <div className="flex items-center justify-between">
+              <span className="font-bold text-slate-200 uppercase tracking-wider text-[10px] block">
+                Customer, Property Size &amp; Location (Sent to Booking System &amp; Jobber)
+              </span>
+              <button
+                type="button"
+                onClick={handleQuickVoiceDictation}
+                className={`px-2.5 py-1 rounded-lg text-[11px] font-bold flex items-center gap-1 cursor-pointer transition-all ${
+                  isRecordingVoice
+                    ? 'bg-rose-600 text-white animate-pulse'
+                    : 'bg-pink-600/20 text-pink-300 border border-pink-500/40 hover:bg-pink-600/30'
+                }`}
+              >
+                {isRecordingVoice ? <MicOff className="w-3 h-3" /> : <Mic className="w-3 h-3" />}
+                <span>{isRecordingVoice ? 'Listening...' : 'Voice Dictate'}</span>
+              </button>
+            </div>
 
             <div className="grid grid-cols-2 gap-2.5">
               <input
@@ -544,6 +627,46 @@ ${depositAmount > 0 ? `• Deposit Required: $${Number(depositAmount).toFixed(2)
               </select>
             </div>
 
+            {/* How Many Bedrooms & How Many Bathrooms */}
+            <div className="grid grid-cols-2 gap-2.5">
+              <div>
+                <label className="text-[11px] font-bold text-pink-300 flex items-center gap-1 mb-1">
+                  <BedDouble className="w-3.5 h-3.5 text-pink-400" />
+                  <span>How Many Bedrooms? *</span>
+                </label>
+                <select
+                  value={bedrooms}
+                  onChange={(e) => setBedrooms(e.target.value)}
+                  className="w-full px-3 py-2 bg-[#1b1723] border border-pink-500/40 rounded-xl text-white font-bold focus:outline-none focus:border-pink-500"
+                >
+                  <option value="1 Bedroom">1 Bedroom</option>
+                  <option value="2 Bedrooms">2 Bedrooms</option>
+                  <option value="3 Bedrooms">3 Bedrooms</option>
+                  <option value="4 Bedrooms">4 Bedrooms</option>
+                  <option value="5+ Bedrooms">5+ Bedrooms</option>
+                </select>
+              </div>
+
+              <div>
+                <label className="text-[11px] font-bold text-purple-300 flex items-center gap-1 mb-1">
+                  <Bath className="w-3.5 h-3.5 text-purple-400" />
+                  <span>How Many Bathrooms? *</span>
+                </label>
+                <select
+                  value={bathrooms}
+                  onChange={(e) => setBathrooms(e.target.value)}
+                  className="w-full px-3 py-2 bg-[#1b1723] border border-purple-500/40 rounded-xl text-white font-bold focus:outline-none focus:border-pink-500"
+                >
+                  <option value="1 Bathroom">1 Bathroom</option>
+                  <option value="1.5 Bathrooms">1.5 Bathrooms</option>
+                  <option value="2 Bathrooms">2 Bathrooms</option>
+                  <option value="2.5 Bathrooms">2.5 Bathrooms</option>
+                  <option value="3 Bathrooms">3 Bathrooms</option>
+                  <option value="4+ Bathrooms">4+ Bathrooms</option>
+                </select>
+              </div>
+            </div>
+
             <div className="grid grid-cols-3 gap-2">
               <input
                 type="date"
@@ -563,20 +686,22 @@ ${depositAmount > 0 ? `• Deposit Required: $${Number(depositAmount).toFixed(2)
                 onChange={(e) => setAssignedCleaner(e.target.value)}
                 className="w-full px-2 py-1.5 bg-[#1b1723] border border-[#2e273a] rounded-xl text-white text-xs focus:outline-none"
               >
+                <option value="Melissa Clarke">Melissa Clarke</option>
                 <option value="Cindy Guay">Cindy Guay</option>
-                <option value="Cindy Guay & Crew">Cindy & Crew</option>
                 <option value="Sarah Jenkins">Sarah Jenkins</option>
                 <option value="David Miller">David Miller</option>
               </select>
             </div>
           </div>
 
-          {/* 8. Note on the quote (Matches Screenshot 2) */}
+          {/* 8. Specific Information & Quote Notes */}
           <div className="space-y-1.5">
-            <label className="block text-slate-300 font-medium">Note on the quote (optional)</label>
+            <label className="block text-slate-300 font-bold">
+              Specific Information / Access Notes (Sent to Booking System &amp; Quote)
+            </label>
             <textarea
               rows={2}
-              placeholder="Shown to the customer on their estimate."
+              placeholder="e.g. Clean inside oven & fridge, lockbox code 4482, friendly dog in home..."
               value={quoteNote}
               onChange={(e) => setQuoteNote(e.target.value)}
               className="w-full p-3 bg-[#1b1723] border border-[#2e273a] rounded-2xl text-white placeholder-slate-500 focus:outline-none focus:border-pink-500"

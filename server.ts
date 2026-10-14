@@ -884,9 +884,12 @@ function parseVoiceTicketHeuristic(transcript: string) {
     urgency = "SAME_DAY";
   }
 
-  // Cleaning Service Type matching (Strictly 3 services)
+  // Cleaning Service Type matching
   let equipmentType = "Standard Cleaning";
-  let durationMinutes = 120;
+  let serviceCategory = "Residential Standard Cleaning";
+  let durationMinutes = 180;
+  let recommendedHours = 3;
+  let recommendedCleaners = 1;
 
   if (
     lower.includes("move out") ||
@@ -899,30 +902,88 @@ function parseVoiceTicketHeuristic(transcript: string) {
     lower.includes("empty house")
   ) {
     equipmentType = "Move-Out Cleaning";
-    durationMinutes = 210;
+    serviceCategory = "Move-Out / Turnover Vacate Cleaning";
+    durationMinutes = 240;
+    recommendedHours = 4;
+    recommendedCleaners = 2;
+  } else if (lower.includes("move in") || lower.includes("move-in")) {
+    equipmentType = "Move-Out Cleaning";
+    serviceCategory = "Move-In Detailed Sanitization";
+    durationMinutes = 240;
+    recommendedHours = 4;
+    recommendedCleaners = 2;
+  } else if (lower.includes("post-reno") || lower.includes("renovation") || lower.includes("construction")) {
+    equipmentType = "Deep Cleaning";
+    serviceCategory = "Post-Renovation HEPA Vacuum & Scrub";
+    durationMinutes = 300;
+    recommendedHours = 5;
+    recommendedCleaners = 2;
+  } else if (lower.includes("commercial") || lower.includes("office")) {
+    equipmentType = "Standard Cleaning";
+    serviceCategory = "Commercial Office Cleaning";
+    durationMinutes = 180;
+    recommendedHours = 3;
+    recommendedCleaners = 1;
   } else if (
     lower.includes("deep") ||
     lower.includes("intensive") ||
     lower.includes("baseboard") ||
     lower.includes("grout") ||
     lower.includes("spring clean") ||
-    lower.includes("detail clean") ||
-    lower.includes("post-reno")
+    lower.includes("detail clean")
   ) {
     equipmentType = "Deep Cleaning";
+    serviceCategory = "Deep Cleaning & Baseboards";
     durationMinutes = 240;
+    recommendedHours = 4;
+    recommendedCleaners = 1;
   } else {
     equipmentType = "Standard Cleaning";
-    durationMinutes = 120;
+    serviceCategory = "Residential Standard Cleaning";
+    durationMinutes = 180;
+    recommendedHours = 3;
+    recommendedCleaners = 1;
   }
 
-  // Home / Facility details (e.g. 3 bed, 2 bath)
-  let equipmentModel = "Residential Home";
-  const bedBathMatch = t.match(/([0-9]+)\s*(?:bed|bedroom|br)[\s,]+([0-9.]+)\s*(?:bath|bathroom|ba)/i);
-  if (bedBathMatch) {
-    equipmentModel = `${bedBathMatch[1]} Bed / ${bedBathMatch[2]} Bath Home`;
-  } else if (lower.includes("condo") || lower.includes("apartment")) {
-    equipmentModel = "Condo / Apartment";
+  // Bedrooms & Bathrooms extraction (e.g. "3 bedroom 2.5 bathroom", "4 bed 3 bath", "two bedrooms two bathrooms")
+  const wordToNum: Record<string, string> = {
+    one: "1", two: "2", three: "3", four: "4", five: "5", six: "6",
+  };
+  const normalizedWords = t.replace(/\b(one|two|three|four|five|six)\b/gi, (m) => wordToNum[m.toLowerCase()] || m);
+
+  let bedrooms = "3 Bedrooms";
+  const bedMatch = normalizedWords.match(/\b([1-6])\s*(?:\+)?\s*(?:bed|beds|bedroom|bedrooms|bdrm|br)\b/i);
+  if (bedMatch) {
+    const n = parseInt(bedMatch[1], 10);
+    bedrooms = n === 1 ? "1 Bedroom" : n >= 5 ? "5+ Bedrooms" : `${n} Bedrooms`;
+  }
+
+  let bathrooms = "2 Bathrooms";
+  const bathMatch = normalizedWords.match(/\b([1-5](?:\.5)?)\s*(?:\+)?\s*(?:bath|baths|bathroom|bathrooms|ba)\b/i);
+  if (bathMatch) {
+    const b = parseFloat(bathMatch[1]);
+    if (b === 1) bathrooms = "1 Bathroom";
+    else if (b === 1.5) bathrooms = "1.5 Bathrooms";
+    else if (b === 2) bathrooms = "2 Bathrooms";
+    else if (b === 2.5) bathrooms = "2.5 Bathrooms";
+    else if (b === 3) bathrooms = "3 Bathrooms";
+    else bathrooms = "4+ Bathrooms";
+  }
+
+  // Explicit hours or cleaners if dictated
+  const hoursMatch = normalizedWords.match(/\b([1-8](?:\.5)?)\s*(?:hour|hours|hr|hrs)\b/i);
+  if (hoursMatch) {
+    recommendedHours = parseFloat(hoursMatch[1]);
+    durationMinutes = Math.round(recommendedHours * 60);
+  }
+  const cleanersMatch = normalizedWords.match(/\b([1-3])\s*(?:cleaner|cleaners|person|people|techs|crew)\b/i);
+  if (cleanersMatch) {
+    recommendedCleaners = parseInt(cleanersMatch[1], 10) >= 2 ? 2 : 1;
+  }
+
+  let equipmentModel = `${bedrooms} / ${bathrooms} Home`;
+  if (lower.includes("condo") || lower.includes("apartment")) {
+    equipmentModel = `${bedrooms} / ${bathrooms} Condo`;
   } else if (lower.includes("office") || lower.includes("clinic") || lower.includes("commercial")) {
     equipmentModel = "Commercial Office";
   }
@@ -935,57 +996,107 @@ function parseVoiceTicketHeuristic(transcript: string) {
   else if (lower.includes("weekly")) faultCode = "RECURRING";
 
   // Phone number extraction
-  let phone = "(780) 555-0199";
+  let phone = "";
   const phoneMatch = t.match(/\b(?:\+?1[-.\s]?)?\(?([0-9]{3})\)?[-.\s]?([0-9]{3})[-.\s]?([0-9]{4})\b/);
   if (phoneMatch) {
     phone = `(${phoneMatch[1]}) ${phoneMatch[2]}-${phoneMatch[3]}`;
   }
 
-  // Location / Corridor preset matching for Greater Edmonton (YEG)
+  // Email extraction
+  let email = "";
+  const emailMatch = t.match(/\b[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}\b/);
+  if (emailMatch) {
+    email = emailMatch[0];
+  }
+
+  // City & Corridor extraction
+  let city = "Edmonton";
   let selectedPresetIdx = 0;
-  if (lower.includes("strathcona") || lower.includes("whyte") || lower.includes("112 st") || lower.includes("u of a")) {
-    selectedPresetIdx = 1; // Old Strathcona
-  } else if (lower.includes("west edmonton") || lower.includes("170 st") || lower.includes("callingwood") || lower.includes("wem")) {
-    selectedPresetIdx = 2; // West Edmonton
-  } else if (lower.includes("windermere") || lower.includes("terwillegar") || lower.includes("rabbit hill") || lower.includes("southwest")) {
-    selectedPresetIdx = 3; // Windermere (SW Edmonton)
+  if (lower.includes("st albert") || lower.includes("st. albert") || lower.includes("boudreau")) {
+    city = "St. Albert";
+    selectedPresetIdx = 5;
   } else if (lower.includes("sherwood park") || lower.includes("premier way") || lower.includes("strathcona county")) {
-    selectedPresetIdx = 4; // Sherwood Park
-  } else if (lower.includes("st albert") || lower.includes("st. albert") || lower.includes("boudreau")) {
-    selectedPresetIdx = 5; // St. Albert
-  } else {
-    selectedPresetIdx = 0; // Downtown Edmonton (Jasper Ave)
+    city = "Sherwood Park";
+    selectedPresetIdx = 4;
+  } else if (lower.includes("spruce grove")) {
+    city = "Spruce Grove";
+    selectedPresetIdx = 2;
+  } else if (lower.includes("leduc")) {
+    city = "Leduc";
+    selectedPresetIdx = 3;
+  } else if (lower.includes("strathcona") || lower.includes("whyte") || lower.includes("112 st") || lower.includes("u of a")) {
+    selectedPresetIdx = 1;
+  } else if (lower.includes("west edmonton") || lower.includes("170 st") || lower.includes("callingwood") || lower.includes("wem")) {
+    selectedPresetIdx = 2;
+  } else if (lower.includes("windermere") || lower.includes("terwillegar") || lower.includes("chappelle") || lower.includes("southwest")) {
+    selectedPresetIdx = 3;
+  }
+
+  // Street address extraction (e.g. "9620 144 Ave NW", "10405 Jasper Ave NW")
+  let address = "";
+  const addrMatch = t.match(/\b(\d{2,5}\s+[A-Za-z0-9.\s]{2,28}?\b(?:Ave|Avenue|St|Street|Rd|Road|Dr|Drive|Blvd|Boulevard|Way|Pl|Place|Cres|Crescent|Trail|Tr|Ct|Court|Close|Lane|Ln)\b(?:\s*(?:NW|NE|SW|SE))?)/i);
+  if (addrMatch && addrMatch[1]) {
+    address = `${addrMatch[1].trim()}, ${city}, AB`;
   }
 
   // Customer Name extraction
-  let customerName = "Residential Client";
-  const clientMatch = t.match(/(?:for|client|customer|at|contact)\s+([A-Z][a-z]+(?:\s+[A-Z][a-z]+)*)/);
+  let customerName = "";
+  const clientMatch =
+    t.match(/(?:name is|caller is|client is|customer is|for|client|customer)\s+([A-Z][a-z]+(?:\s+[A-Z][a-z]+){0,2})/) ||
+    t.match(/^([A-Z][a-z]+\s+[A-Z][a-z]+)\b/);
   if (clientMatch && clientMatch[1]) {
     customerName = clientMatch[1].trim();
   }
 
-  // Access notes (lockbox, keypad, alarm, gate, pets)
-  let accessNotes = "Key in lockbox on front porch.";
-  const accessMatch = t.match(/(?:lockbox|code|key|keypad|alarm|gate|fob|buzzer|pin|pet|dog|cat)[\s:-]+([^.]+)/i);
+  // Specific instructions / Access notes / Add-ons
+  const addonsDetected: string[] = [];
+  if (lower.includes("oven")) addonsDetected.push("Inside Oven");
+  if (lower.includes("fridge") || lower.includes("refrigerator")) addonsDetected.push("Inside Fridge");
+  if (lower.includes("baseboard")) addonsDetected.push("Baseboards");
+  if (lower.includes("window")) addonsDetected.push("Interior Windows");
+  if (lower.includes("cabinet") || lower.includes("cupboard") || lower.includes("drawer")) addonsDetected.push("Inside Cabinets");
+  if (lower.includes("basement")) addonsDetected.push("Basement Included");
+  if (lower.includes("pet") || lower.includes("dog") || lower.includes("cat")) addonsDetected.push("Pets in Home");
+  if (lower.includes("wall")) addonsDetected.push("Wall Spot Cleaning");
+  if (lower.includes("laundry")) addonsDetected.push("Laundry Service");
+
+  let accessNotes = "";
+  const accessMatch = t.match(/(?:lockbox|code|key|keypad|alarm|gate|fob|buzzer|pin|pet|dog|cat|oven|fridge|special|note|please)[\s:-]+([^.]+)/i);
   if (accessMatch) {
     accessNotes = accessMatch[0].trim();
   }
+  const specificInstructions = [
+    addonsDetected.length > 0 ? `Add-ons: ${addonsDetected.join(", ")}` : "",
+    accessNotes,
+    t,
+  ]
+    .filter(Boolean)
+    .join(" • ");
 
   return {
     customerName,
     phone,
+    email,
+    address,
+    city,
+    bedrooms,
+    bathrooms,
+    serviceCategory,
+    recommendedHours,
+    recommendedCleaners,
+    specificInstructions,
     urgency,
     equipmentType,
     equipmentModel,
     faultCode,
     issueDescription: t,
-    accessNotes,
+    accessNotes: accessNotes || specificInstructions,
     selectedPresetIdx,
     durationMinutes,
   };
 }
 
-// AI Voice-to-Ticket Parsing Endpoint using Gemini Flash tailored for Cleaning Services
+// AI Voice-to-Ticket & Quick Quote Intake Parsing Endpoint using Gemini Flash
 app.post("/api/dispatch/parse-voice-ticket", async (req, res) => {
   try {
     const transcript = (req.body.transcript || "").trim();
@@ -993,35 +1104,34 @@ app.post("/api/dispatch/parse-voice-ticket", async (req, res) => {
       return res.status(400).json({ error: "Transcript text is required" });
     }
 
+    const heuristic = parseVoiceTicketHeuristic(transcript);
     if (!ai) {
-      const fallback = parseVoiceTicketHeuristic(transcript);
-      return res.json(fallback);
+      return res.json(heuristic);
     }
 
-    const prompt = `You are an expert Cleaning Service dispatch intake assistant for an Edmonton (YEG) residential and commercial cleaning company. A dispatcher or client has dictated incoming cleaning job details:
+    const prompt = `You are an expert Cleaning Service phone intake & quick quote assistant for TidyUps Cleaning in Edmonton, AB (YEG). A dispatcher has dictated caller details over the phone:
 "${transcript}"
 
-Extract and structure the voice transcript into a JSON Cleaning Service booking ticket with the following fields:
-- customerName: The client's full name, family name, or business facility (e.g. "Sarah Miller", "Dr. Finch Clinic", "Jasper Tower Condo")
-- phone: Contact phone number formatted as (780) XXX-XXXX, default to "(780) 555-0199" if not mentioned
-- urgency: One of ["EMERGENCY", "HIGH", "SAME_DAY", "MEDIUM", "ROUTINE", "LOW"]. Choose "EMERGENCY" if needed in under 2 hours or same-day inspection. Choose "HIGH" if move-out or urgent turnover. Choose "MEDIUM" if standard weekly/bi-weekly clean. Choose "LOW" if scheduled maintenance.
-- equipmentType: Must STRICTLY be one of the 3 cleaning services:
-  ["Standard Cleaning", "Deep Cleaning", "Move-Out Cleaning"]
-  - If tenant moving out, end of lease, empty home, or deposit guarantee mentioned -> choose "Move-Out Cleaning"
-  - If intensive scrubbing, baseboards, grout, heavy detail, spring clean, or appliances -> choose "Deep Cleaning"
-  - If routine maintenance, dusting, vacuuming, mopping, bathroom sanitizing -> choose "Standard Cleaning"
-- equipmentModel: Property details, e.g. "3 Bed / 2 Bath Condo (1,400 sq ft)", "Executive 4-Bedroom Home", or "Commercial Office"
-- faultCode: Optional Jobber reference code (e.g. "JOBBER-101", "MOVE-OUT-SLA", "WEEKLY-CLEAN")
-- issueDescription: Professional summary of rooms, cleaning tasks, and special instructions
-- accessNotes: Any lockbox code, keypad PIN, alarm instruction, gate buzzer, or pet notes mentioned
-- selectedPresetIdx: Integer 0-5 corresponding to best matching Greater Edmonton corridor:
-  0 = Downtown Edmonton / Oliver (10405 Jasper Ave NW, Edmonton, AB T5J 3S2)
-  1 = Old Strathcona / Whyte Ave (10329 83 Ave NW, Edmonton, AB T6E 2C6)
-  2 = West Edmonton / Callingwood (16940 87 Ave NW, Edmonton, AB T5R 4H5)
-  3 = Windermere / Terwillegar SW (120 Windermere Dr NW, Edmonton, AB T6W 0V4)
-  4 = Sherwood Park (2000 Premier Way, Sherwood Park, AB T8H 2G4)
-  5 = St. Albert (375 St Albert Trail, St. Albert, AB T8N 3K9)
-- durationMinutes: Estimated service duration in minutes (Standard ~120, Deep ~240, Move-Out ~210)`;
+Extract and structure the voice transcript into JSON with these fields:
+- customerName: Client's full name (e.g. "Devon Clarke", "Sarah Jenkins") or empty string if not stated
+- phone: Phone number formatted as (780) XXX-XXXX or empty string if not stated
+- email: Email address if stated or empty string
+- address: Full street address if stated (e.g. "9620 144 Ave NW, St. Albert, AB") or empty string
+- city: One of ["Edmonton", "St. Albert", "Sherwood Park", "Leduc", "Spruce Grove"]
+- bedrooms: One of ["1 Bedroom", "2 Bedrooms", "3 Bedrooms", "4 Bedrooms", "5+ Bedrooms"]
+- bathrooms: One of ["1 Bathroom", "1.5 Bathrooms", "2 Bathrooms", "2.5 Bathrooms", "3 Bathrooms", "4+ Bathrooms"]
+- serviceCategory: One of ["Residential Standard Cleaning", "Deep Cleaning & Baseboards", "Move-Out / Turnover Vacate Cleaning", "Move-In Detailed Sanitization", "Post-Renovation HEPA Vacuum & Scrub", "Commercial Office Cleaning"]
+- recommendedHours: Number of hours (e.g. 3, 4, 5)
+- recommendedCleaners: Integer 1 or 2
+- specificInstructions: Specific requests, add-ons (inside oven, fridge, baseboards, windows, cabinets), pet info, lockbox/access notes, and any special instructions
+- urgency: One of ["EMERGENCY", "HIGH", "SAME_DAY", "MEDIUM", "ROUTINE", "LOW"]
+- equipmentType: One of ["Standard Cleaning", "Deep Cleaning", "Move-Out Cleaning"]
+- equipmentModel: Summary like "3 Bedrooms / 2.5 Bathrooms Home"
+- faultCode: Short tag like "MOVE-OUT", "DEEP-CLEAN", "STANDARD"
+- issueDescription: Clean summary of the request
+- accessNotes: Access/lockbox/pet notes
+- selectedPresetIdx: Integer 0-5 (0=Downtown, 1=Strathcona, 2=West Edm, 3=SW Windermere, 4=Sherwood Park, 5=St. Albert)
+- durationMinutes: Estimated minutes`;
 
     const response = await withTimeout(
       ai.models.generateContent({
@@ -1034,6 +1144,15 @@ Extract and structure the voice transcript into a JSON Cleaning Service booking 
             properties: {
               customerName: { type: Type.STRING },
               phone: { type: Type.STRING },
+              email: { type: Type.STRING },
+              address: { type: Type.STRING },
+              city: { type: Type.STRING },
+              bedrooms: { type: Type.STRING },
+              bathrooms: { type: Type.STRING },
+              serviceCategory: { type: Type.STRING },
+              recommendedHours: { type: Type.NUMBER },
+              recommendedCleaners: { type: Type.INTEGER },
+              specificInstructions: { type: Type.STRING },
               urgency: { type: Type.STRING },
               equipmentType: { type: Type.STRING },
               equipmentModel: { type: Type.STRING },
@@ -1043,15 +1162,38 @@ Extract and structure the voice transcript into a JSON Cleaning Service booking 
               selectedPresetIdx: { type: Type.INTEGER },
               durationMinutes: { type: Type.NUMBER },
             },
-            required: ["customerName", "phone", "urgency", "equipmentType", "issueDescription", "selectedPresetIdx", "durationMinutes"],
+            required: [
+              "customerName",
+              "phone",
+              "bedrooms",
+              "bathrooms",
+              "serviceCategory",
+              "recommendedHours",
+              "recommendedCleaners",
+              "specificInstructions",
+              "urgency",
+              "equipmentType",
+              "issueDescription",
+              "selectedPresetIdx",
+              "durationMinutes",
+            ],
           },
         },
       }),
-      8000
+      7000
     );
 
     const parsed = JSON.parse(response.text || "{}");
-    res.json(parsed);
+    res.json({
+      ...heuristic,
+      ...parsed,
+      customerName: parsed.customerName || heuristic.customerName,
+      phone: parsed.phone || heuristic.phone,
+      address: parsed.address || heuristic.address,
+      bedrooms: parsed.bedrooms || heuristic.bedrooms,
+      bathrooms: parsed.bathrooms || heuristic.bathrooms,
+      specificInstructions: parsed.specificInstructions || heuristic.specificInstructions,
+    });
   } catch (error: any) {
     console.warn("Voice cleaning ticket parsing note:", sanitizeLogMessage(error));
     const fallback = parseVoiceTicketHeuristic(req.body.transcript || "");

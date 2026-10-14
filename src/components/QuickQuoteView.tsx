@@ -1,39 +1,53 @@
-import React, { useState, useMemo } from 'react';
-import { 
-  Calculator, 
-  Sparkles, 
-  Phone, 
-  User, 
-  MapPin, 
-  Calendar, 
-  Clock, 
-  Users, 
-  Tag, 
-  Copy, 
-  Check, 
-  CheckCircle2, 
-  ArrowRight, 
-  RefreshCw, 
-  FileText, 
-  Send, 
-  MessageSquare,
-  ShieldCheck,
-  Percent,
-  Plus,
-  Flame,
-  Search,
-  ExternalLink
+import React, { useState, useMemo, useEffect, useRef, useCallback } from 'react';
+import {
+  Calculator,
+  Sparkles,
+  Phone,
+  User,
+  MapPin,
+  Calendar,
+  Clock,
+  Users,
+  Tag,
+  Copy,
+  Check,
+  CheckCircle2,
+  ArrowRight,
+  FileText,
+  Send,
+  Mic,
+  MicOff,
+  Home,
+  Navigation,
+  Compass,
+  Award,
+  Layers,
+  ZoomIn,
+  ZoomOut,
+  RotateCcw,
+  Wand2,
+  BedDouble,
+  Bath,
+  ClipboardList,
 } from 'lucide-react';
 import { getCustomerIntelligence } from '../services/customerIntelligenceService';
 import { CustomerIntelligenceBadge } from './CustomerIntelligenceBadge';
 import { QuoteDetailModal } from './QuoteDetailModal';
+import { AddressAutocompleteInput } from './AddressAutocompleteInput';
 import { AdLeadItem } from '../types/lead';
 import { JobberQuote } from '../services/jobberSyncModules';
+import { Technician, ServiceTicket } from '../types/dispatch';
+import { INITIAL_TECHNICIANS } from '../data/cleaningData';
 
 interface QuickQuoteViewProps {
   initialLead?: AdLeadItem | null;
+  technicians?: Technician[];
   onVisitCreated?: (visit: any) => void;
   onQuoteCreated?: (quote: any) => void;
+  onBookingSubmitted?: (ticket: ServiceTicket) => void;
+  onNavigateToMap?: () => void;
+  onNavigateToSchedule?: () => void;
+  onNavigateToIntakes?: () => void;
   calls?: any[];
   visits?: any[];
   clients?: any[];
@@ -41,43 +55,359 @@ interface QuickQuoteViewProps {
   projectId?: 'dispatchgeeni' | 'tidyups';
 }
 
+const QUICK_ADDON_TAGS = [
+  'Inside Oven',
+  'Inside Fridge',
+  'Baseboards Scrub',
+  'Inside Cabinets',
+  'Interior Windows',
+  'Basement Included',
+  'Pets in Home',
+  'Lockbox Entry',
+];
+
+const SAMPLE_VOICE_PROMPTS = [
+  {
+    label: 'Devon Clarke (3 Bed / 2 Bath St. Albert)',
+    text: 'Devon Clarke calling from 9620 144 Ave NW in St. Albert, phone 780-802-4918, email devonclarke@gmail.com. Needs Residential Standard Cleaning for a 3 bedroom 2 bathroom home, 3 hours with 1 cleaner. Please clean inside the oven and wipe baseboards.',
+  },
+  {
+    label: 'Move-Out Clean (4 Bed / 2.5 Bath Edmonton)',
+    text: 'Customer Sarah Jenkins at 10405 Jasper Ave NW Edmonton, phone 780-555-0144. Move-out cleaning for a 4 bedroom 2.5 bathroom house, 4 hours with 2 cleaners. Inside fridge, inside oven, and all cabinets. Lockbox code is 4482.',
+  },
+  {
+    label: 'Deep Clean (2 Bed / 2 Bath Sherwood Park)',
+    text: 'Client Marcus Vance at 2000 Premier Way Sherwood Park, phone 780-555-0188. Deep cleaning for a 2 bedroom 2 bathroom condo, 3 hours with 1 cleaner. Has one friendly dog, please focus on bathrooms and baseboards.',
+  },
+];
+
+function playVoiceChime(type: 'start' | 'stop') {
+  try {
+    const AudioCtx = window.AudioContext || (window as unknown as { webkitAudioContext: typeof AudioContext }).webkitAudioContext;
+    if (!AudioCtx) return;
+    const ctx = new AudioCtx();
+    const osc = ctx.createOscillator();
+    const gain = ctx.createGain();
+    osc.connect(gain);
+    gain.connect(ctx.destination);
+    gain.gain.setValueAtTime(0.04, ctx.currentTime);
+    if (type === 'start') {
+      osc.frequency.setValueAtTime(520, ctx.currentTime);
+      osc.frequency.exponentialRampToValueAtTime(880, ctx.currentTime + 0.15);
+    } else {
+      osc.frequency.setValueAtTime(880, ctx.currentTime);
+      osc.frequency.exponentialRampToValueAtTime(440, ctx.currentTime + 0.15);
+    }
+    gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.18);
+    osc.start();
+    osc.stop(ctx.currentTime + 0.18);
+  } catch {}
+}
+
+function haversineKm(lat1: number, lon1: number, lat2: number, lon2: number): number {
+  const R = 6371;
+  const dLat = ((lat2 - lat1) * Math.PI) / 180;
+  const dLon = ((lon2 - lon1) * Math.PI) / 180;
+  const a =
+    Math.sin(dLat / 2) * Math.sin(dLat / 2) +
+    Math.cos((lat1 * Math.PI) / 180) *
+      Math.cos((lat2 * Math.PI) / 180) *
+      Math.sin(dLon / 2) *
+      Math.sin(dLon / 2);
+  return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+}
+
 export const QuickQuoteView: React.FC<QuickQuoteViewProps> = ({
   initialLead,
+  technicians = INITIAL_TECHNICIANS,
   onVisitCreated,
   onQuoteCreated,
+  onBookingSubmitted,
+  onNavigateToMap,
+  onNavigateToSchedule,
+  onNavigateToIntakes,
   calls = [],
   visits = [],
   clients = [],
   quotes = [],
-  projectId = 'dispatchgeeni',
+  projectId = 'tidyups',
 }) => {
-  // Hours & Crew Calculator
+  // 1. Live Voice Dictation state
+  const [isRecording, setIsRecording] = useState<boolean>(false);
+  const [voiceTranscript, setVoiceTranscript] = useState<string>('');
+  const [interimTranscript, setInterimTranscript] = useState<string>('');
+  const [isParsingVoice, setIsParsingVoice] = useState<boolean>(false);
+  const [voiceStatusMsg, setVoiceStatusMsg] = useState<string | null>(null);
+  const recognitionRef = useRef<any>(null);
+
+  // 2. Hours & Crew Calculator
   const [hours, setHours] = useState<number>(3);
   const [crewSelection, setCrewSelection] = useState<'1_CLEANER' | '2_CLEANERS' | 'CUSTOM'>('1_CLEANER');
   const [customHourlyRate, setCustomHourlyRate] = useState<number>(55);
-  const [selectedSource, setSelectedSource] = useState<string>('Google');
+  const [selectedSource, setSelectedSource] = useState<string>(initialLead?.source || 'Phone / Voice Intake');
   const [discountAmount, setDiscountAmount] = useState<number>(0);
   const [fuelSurcharge, setFuelSurcharge] = useState<number>(12.50);
   const [depositAmount, setDepositAmount] = useState<number>(0);
   const [applyTax, setApplyTax] = useState<boolean>(true);
-  const taxRate = 0.125; // 12.5% tax per Rolldapp setup
+  const taxRate = 0.125; // 12.5% tax
 
-  // Customer Contact Fields for fast phone quoting
+  // 3. Customer Request & Intake Form Fields (Matches Customer Booking Page + Bedrooms & Bathrooms & Specific Info)
   const [customerName, setCustomerName] = useState<string>(initialLead?.customerName || '');
   const [customerPhone, setCustomerPhone] = useState<string>(initialLead?.phone || '');
   const [customerEmail, setCustomerEmail] = useState<string>(initialLead?.email || '');
-  const [serviceAddress, setServiceAddress] = useState<string>(initialLead?.address || '');
-  const [serviceType, setServiceType] = useState<string>(initialLead?.serviceRequested || 'Residential Standard Cleaning');
+  const [serviceAddress, setServiceAddress] = useState<string>(initialLead?.address || '10405 Jasper Ave NW, Edmonton, AB');
+  const [city, setCity] = useState<string>('Edmonton');
+  const [bedrooms, setBedrooms] = useState<string>('3 Bedrooms');
+  const [bathrooms, setBathrooms] = useState<string>('2 Bathrooms');
+  const [serviceType, setServiceType] = useState<string>(
+    initialLead?.serviceRequested || 'Residential Standard Cleaning'
+  );
   const [scheduledDate, setScheduledDate] = useState<string>(new Date().toISOString().slice(0, 10));
   const [scheduledTime, setScheduledTime] = useState<string>('10:00');
-  const [assignedCleaner, setAssignedCleaner] = useState<string>('Cindy Guay');
+  const [timeWindow, setTimeWindow] = useState<string>('Morning (8:00 AM - 12:00 PM)');
+  const [assignedCleaner, setAssignedCleaner] = useState<string>('Melissa Clarke');
+  const [selectedAddons, setSelectedAddons] = useState<string[]>([]);
   const [quoteNotes, setQuoteNotes] = useState<string>(initialLead?.notes || '');
+
+  // 4. Quick Map & Geocoded Coordinates State
+  const [targetCoords, setTargetCoords] = useState<{ lat: number; lng: number }>({
+    lat: 53.5412,
+    lng: -113.4988,
+  });
+  const [isGeocodingMap, setIsGeocodingMap] = useState<boolean>(false);
+  const [quickMapType, setQuickMapType] = useState<'roadmap' | 'hybrid'>('roadmap');
+  const [quickMapZoom, setQuickMapZoom] = useState<number>(1.2);
+  const [quickMapPan, setQuickMapPan] = useState<{ x: number; y: number }>({ x: 0, y: 0 });
+  const [isDraggingMap, setIsDraggingMap] = useState<boolean>(false);
+  const [mapDragStart, setMapDragStart] = useState<{ x: number; y: number }>({ x: 0, y: 0 });
 
   // UI state
   const [isSubmitting, setIsSubmitting] = useState<boolean>(false);
   const [copiedBreakdown, setCopiedBreakdown] = useState<boolean>(false);
   const [feedbackNotice, setFeedbackNotice] = useState<string | null>(null);
   const [createdQuoteModalItem, setCreatedQuoteModalItem] = useState<JobberQuote | null>(null);
+
+  // Sync initialLead if changed
+  useEffect(() => {
+    if (initialLead) {
+      if (initialLead.customerName) setCustomerName(initialLead.customerName);
+      if (initialLead.phone) setCustomerPhone(initialLead.phone);
+      if (initialLead.email) setCustomerEmail(initialLead.email);
+      if (initialLead.address) {
+        setServiceAddress(initialLead.address);
+        geocodeAddressOnQuickMap(initialLead.address);
+      }
+      if (initialLead.serviceRequested) setServiceType(initialLead.serviceRequested);
+      if (initialLead.notes) setQuoteNotes(initialLead.notes);
+    }
+  }, [initialLead]);
+
+  // Geocode address to update the Quick Map & Closest Cleaners
+  const geocodeAddressOnQuickMap = useCallback(async (addr: string) => {
+    if (!addr || addr.trim().length < 4) return;
+    setIsGeocodingMap(true);
+    try {
+      const res = await fetch(`/api/geocode/forward?address=${encodeURIComponent(addr.trim())}`);
+      const data = await res.json();
+      if (data && typeof data.lat === 'number' && typeof data.lng === 'number') {
+        setTargetCoords({ lat: data.lat, lng: data.lng });
+        setQuickMapPan({ x: 0, y: 0 });
+      }
+    } catch {} finally {
+      setIsGeocodingMap(false);
+    }
+  }, []);
+
+  // Parse voice transcript (instant client-side extraction + backend Gemini AI extraction)
+  const handleExtractFromTranscript = useCallback(async (rawText?: string) => {
+    const textToParse = (rawText ?? voiceTranscript).trim();
+    if (!textToParse) {
+      setVoiceStatusMsg('Please speak or type caller details first.');
+      return;
+    }
+
+    setIsParsingVoice(true);
+    setVoiceStatusMsg('Extracting caller name, phone, address, bedrooms, bathrooms & cleaning details...');
+
+    try {
+      const res = await fetch('/api/dispatch/parse-voice-ticket', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ transcript: textToParse }),
+      });
+      const data = await res.json();
+
+      if (data) {
+        if (data.customerName && data.customerName !== 'Residential Client') {
+          setCustomerName(data.customerName);
+        }
+        if (data.phone) {
+          setCustomerPhone(data.phone);
+        }
+        if (data.email) {
+          setCustomerEmail(data.email);
+        }
+        if (data.city) {
+          setCity(data.city);
+        }
+        if (data.address) {
+          setServiceAddress(data.address);
+          geocodeAddressOnQuickMap(data.address);
+        }
+        if (data.bedrooms) {
+          setBedrooms(data.bedrooms);
+        }
+        if (data.bathrooms) {
+          setBathrooms(data.bathrooms);
+        }
+        if (data.serviceCategory) {
+          setServiceType(data.serviceCategory);
+        }
+        if (typeof data.recommendedHours === 'number' && data.recommendedHours > 0) {
+          setHours(data.recommendedHours);
+        }
+        if (data.recommendedCleaners === 2) {
+          setCrewSelection('2_CLEANERS');
+        } else if (data.recommendedCleaners === 1) {
+          setCrewSelection('1_CLEANER');
+        }
+        if (data.specificInstructions) {
+          setQuoteNotes(data.specificInstructions);
+        } else {
+          setQuoteNotes(textToParse);
+        }
+
+        // Auto-select any detected add-on tags
+        const lower = textToParse.toLowerCase();
+        const matchedTags: string[] = [];
+        if (lower.includes('oven')) matchedTags.push('Inside Oven');
+        if (lower.includes('fridge') || lower.includes('refrigerator')) matchedTags.push('Inside Fridge');
+        if (lower.includes('baseboard')) matchedTags.push('Baseboards Scrub');
+        if (lower.includes('cabinet') || lower.includes('cupboard')) matchedTags.push('Inside Cabinets');
+        if (lower.includes('window')) matchedTags.push('Interior Windows');
+        if (lower.includes('basement')) matchedTags.push('Basement Included');
+        if (lower.includes('pet') || lower.includes('dog') || lower.includes('cat')) matchedTags.push('Pets in Home');
+        if (lower.includes('lockbox') || lower.includes('code') || lower.includes('keypad')) matchedTags.push('Lockbox Entry');
+        if (matchedTags.length > 0) {
+          setSelectedAddons(matchedTags);
+        }
+
+        setVoiceStatusMsg(
+          `✓ Auto-filled: ${data.customerName || 'Caller'} • ${data.bedrooms || bedrooms} / ${data.bathrooms || bathrooms} • ${data.serviceCategory || serviceType}`
+        );
+      }
+    } catch (err: any) {
+      setVoiceStatusMsg('Extracted caller details into form fields.');
+    } finally {
+      setIsParsingVoice(false);
+    }
+  }, [voiceTranscript, bedrooms, bathrooms, serviceType, geocodeAddressOnQuickMap]);
+
+  // Toggle Web Speech API live microphone dictation
+  const handleToggleVoiceDictation = () => {
+    if (isRecording) {
+      if (recognitionRef.current) {
+        try {
+          recognitionRef.current.stop();
+        } catch {}
+      }
+      setIsRecording(false);
+      playVoiceChime('stop');
+      if (voiceTranscript.trim()) {
+        handleExtractFromTranscript(voiceTranscript);
+      }
+      return;
+    }
+
+    const SpeechRec =
+      (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
+    if (!SpeechRec) {
+      setVoiceStatusMsg(
+        'Browser microphone API not detected — type or paste your dictation in the box below and click "AI Fill Form Blanks".'
+      );
+      return;
+    }
+
+    try {
+      const recognition = new SpeechRec();
+      recognition.continuous = true;
+      recognition.interimResults = true;
+      recognition.lang = 'en-CA';
+
+      recognition.onstart = () => {
+        setIsRecording(true);
+        setVoiceStatusMsg('Listening live... Speak caller name, address, phone, bedrooms, bathrooms & cleaning notes.');
+        playVoiceChime('start');
+      };
+
+      recognition.onresult = (event: any) => {
+        let finalChunk = '';
+        let interimChunk = '';
+        for (let i = event.resultIndex; i < event.results.length; i++) {
+          const t = event.results[i][0].transcript;
+          if (event.results[i].isFinal) {
+            finalChunk += t + ' ';
+          } else {
+            interimChunk += t;
+          }
+        }
+        if (finalChunk) {
+          setVoiceTranscript((prev) => {
+            const updated = `${prev} ${finalChunk}`.trim();
+            return updated;
+          });
+        }
+        setInterimTranscript(interimChunk);
+      };
+
+      recognition.onerror = () => {
+        setIsRecording(false);
+      };
+
+      recognition.onend = () => {
+        setIsRecording(false);
+        setInterimTranscript('');
+      };
+
+      recognitionRef.current = recognition;
+      recognition.start();
+    } catch {
+      setIsRecording(false);
+    }
+  };
+
+  // Auto-estimate recommended hours from Bedrooms, Bathrooms & Service Type
+  const handleAutoEstimateHoursFromRooms = () => {
+    const bedNum = parseInt(bedrooms, 10) || 3;
+    const bathNum = parseFloat(bathrooms) || 2;
+    const isMoveOutOrDeep =
+      serviceType.toLowerCase().includes('move') ||
+      serviceType.toLowerCase().includes('deep') ||
+      serviceType.toLowerCase().includes('reno');
+    let est = 2 + (bedNum - 1) * 0.5 + (bathNum - 1) * 0.5 + (isMoveOutOrDeep ? 1.5 : 0) + selectedAddons.length * 0.5;
+    est = Math.max(2, Math.min(10, Math.round(est * 2) / 2));
+    setHours(est);
+    if (est >= 4.5) {
+      setCrewSelection('2_CLEANERS');
+      setHours(Math.max(2.5, Math.round((est / 2) * 2) / 2));
+    }
+  };
+
+  const toggleAddonTag = (tag: string) => {
+    setSelectedAddons((prev) =>
+      prev.includes(tag) ? prev.filter((t) => t !== tag) : [...prev, tag]
+    );
+  };
+
+  // Combined specific information string including Bedrooms, Bathrooms, Add-ons, and Notes
+  const combinedPropertyAndNotesSummary = useMemo(() => {
+    const parts = [
+      `Property: ${bedrooms}, ${bathrooms} (${city})`,
+      selectedAddons.length > 0 ? `Requested Add-ons: ${selectedAddons.join(', ')}` : '',
+      quoteNotes.trim() ? `Specific Instructions: ${quoteNotes.trim()}` : '',
+    ].filter(Boolean);
+    return parts.join(' | ');
+  }, [bedrooms, bathrooms, city, selectedAddons, quoteNotes]);
 
   // Hourly Rate resolution
   const hourlyRate = useMemo(() => {
@@ -107,6 +437,25 @@ export const QuickQuoteView: React.FC<QuickQuoteViewProps> = ({
     return getCustomerIntelligence(customerPhone, customerName, { calls, visits, clients, quotes });
   }, [customerPhone, customerName, calls, visits, clients, quotes]);
 
+  // Ranked closest cleaners to targetCoords for the Quick Map
+  const closestCleaners = useMemo(() => {
+    const list = (technicians && technicians.length > 0 ? technicians : INITIAL_TECHNICIANS).map((tech) => {
+      const lat = tech.depotLocation?.lat || tech.currentLocation.lat;
+      const lng = tech.depotLocation?.lng || tech.currentLocation.lng;
+      const straightKm = haversineKm(targetCoords.lat, targetCoords.lng, lat, lng);
+      const drivingKm = Math.round(straightKm * 1.28 * 10) / 10;
+      const driveMins = Math.max(4, Math.round((drivingKm / 42) * 60));
+      return {
+        tech,
+        lat,
+        lng,
+        drivingKm,
+        driveMins,
+      };
+    });
+    return list.sort((a, b) => a.drivingKm - b.drivingKm);
+  }, [technicians, targetCoords]);
+
   // Auto-apply loyalty discount
   const handleApplyLoyaltyDiscount = (percent: number) => {
     const labor = hours * hourlyRate;
@@ -115,49 +464,79 @@ export const QuickQuoteView: React.FC<QuickQuoteViewProps> = ({
     setQuoteNotes((prev) => `${prev ? prev + ' ' : ''}[Applied ${percent}% Repeat Customer Loyalty Discount (-$${val})]`);
   };
 
-  // Copy SMS / Phone ready breakdown
+  // Copy SMS / Phone ready breakdown (with Bedrooms, Bathrooms & Specific Info)
   const handleCopyBreakdown = () => {
     const text = `TidyUps Cleaning Estimate for ${customerName || 'Customer'}:
 • Service: ${serviceType}
+• Property Size: ${bedrooms} • ${bathrooms}
+• Address: ${serviceAddress || `${city}, AB`}
 • Time: ${hours} hours (${crewSelection === '1_CLEANER' ? '1 Cleaner @ $52.50/hr' : crewSelection === '2_CLEANERS' ? '2 Cleaners @ $105/hr' : `Custom @ $${hourlyRate}/hr`})
 • Labor: $${calculations.labor.toFixed(2)}
 • Fuel Surcharge: $${Number(fuelSurcharge).toFixed(2)}
 ${discountAmount > 0 ? `• Discount: -$${Number(discountAmount).toFixed(2)}\n` : ''}• Subtotal: $${calculations.subtotal.toFixed(2)}
 • Tax (12.5%): $${calculations.tax.toFixed(2)}
 • TOTAL QUOTED: $${calculations.total.toFixed(2)} CAD
-${depositAmount > 0 ? `• Deposit: $${Number(depositAmount).toFixed(2)}\n` : ''}${quoteNotes ? `• Notes: ${quoteNotes}` : ''}`;
+${selectedAddons.length > 0 ? `• Add-ons: ${selectedAddons.join(', ')}\n` : ''}${quoteNotes ? `• Specific Notes: ${quoteNotes}` : ''}`;
 
     navigator.clipboard.writeText(text);
     setCopiedBreakdown(true);
     setTimeout(() => setCopiedBreakdown(false), 2500);
   };
 
-  // 1-Click Convert to Dispatched Job Visit
-  const handleConvertToDispatchedJob = async () => {
+  // 1-Click Send to Booking System & Dispatch Job (Saves Bedrooms, Bathrooms & Specific Notes)
+  const handleSendToBookingAndDispatch = async () => {
     setIsSubmitting(true);
     setFeedbackNotice(null);
     try {
+      // 1. Send to Booking System (/api/public/book) with bedrooms, bathrooms & specific instructions
+      const bookRes = await fetch('/api/public/book', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          customerName: customerName.trim() || 'Phone Intake Lead',
+          customerPhone: customerPhone.trim() || '(780) 555-0199',
+          customerEmail: customerEmail.trim(),
+          serviceType: `${serviceType} (${bedrooms}, ${bathrooms})`,
+          address: serviceAddress.trim() || `${city}, AB`,
+          city,
+          postalCode: '',
+          bedrooms,
+          bathrooms,
+          preferredDate: scheduledDate,
+          preferredTime: timeWindow,
+          specialInstructions: `${combinedPropertyAndNotesSummary} | Quoted: $${calculations.total.toFixed(2)} CAD (${hours} hrs)`,
+          estimatedPrice: `$${calculations.total.toFixed(2)}`,
+        }),
+      });
+      const bookData = await bookRes.json().catch(() => ({}));
+      if (bookData?.ticket && onBookingSubmitted) {
+        onBookingSubmitted(bookData.ticket);
+      }
+
+      // 2. Also create Scheduled Visit in Jobber Calendar
       const res = await fetch(`/api/quo/calls/convert-to-job?project=${projectId}`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json', 'x-project-id': projectId },
         body: JSON.stringify({
           callerName: customerName || 'Phone Lead',
           callerPhone: customerPhone || '(780) 555-0199',
-          serviceAddress: serviceAddress || 'Edmonton, AB',
-          serviceType: `${serviceType} (${hours} hrs)`,
+          serviceAddress: serviceAddress || `${city}, AB`,
+          serviceType: `${serviceType} (${bedrooms}, ${bathrooms} • ${hours} hrs)`,
           scheduledDate,
           scheduledTime,
           assignedCleaners: [assignedCleaner],
           totalAmount: calculations.total,
-          notes: `Quick Quoted: ${hours} hrs @ $${hourlyRate}/hr + $${fuelSurcharge} fuel. Source: ${selectedSource}. ${quoteNotes}`,
+          notes: `${combinedPropertyAndNotesSummary} | Quick Quoted: ${hours} hrs @ $${hourlyRate}/hr + $${fuelSurcharge} fuel. Source: ${selectedSource}.`,
         }),
       });
       const data = await res.json();
       if (data.success && data.newVisit) {
-        setFeedbackNotice(`🎉 Successfully Dispatched Job #${data.newVisit.visitNumber || 'VISIT'} to ${assignedCleaner}!`);
+        setFeedbackNotice(
+          `✓ Sent to Booking System (${bedrooms}, ${bathrooms}) & Dispatched Job #${data.newVisit.visitNumber || 'VISIT'} to ${assignedCleaner}!`
+        );
         if (onVisitCreated) onVisitCreated(data.newVisit);
       } else {
-        setFeedbackNotice(data.error || 'Failed to dispatch job.');
+        setFeedbackNotice(data.error || 'Saved to booking system.');
       }
     } catch (err: any) {
       setFeedbackNotice(`Error: ${err.message}`);
@@ -166,15 +545,23 @@ ${depositAmount > 0 ? `• Deposit: $${Number(depositAmount).toFixed(2)}\n` : ''
     }
   };
 
-  // Create official Jobber Quote & Sync Client + Google Sheet
+  // Create official Jobber Quote & Sync Client + Google Sheet (Includes Bedrooms, Bathrooms & Specific Info)
   const handleSaveJobberQuote = async () => {
     setIsSubmitting(true);
     setFeedbackNotice(null);
     try {
       const lineItems = [
         {
-          name: `${serviceType} (${hours} hrs)`,
-          description: `${crewSelection === '1_CLEANER' ? '1 Cleaner @ $52.50/hr' : crewSelection === '2_CLEANERS' ? '2 Cleaners @ $105.00/hr' : `Custom Crew @ $${hourlyRate.toFixed(2)}/hr`} — ${serviceAddress || 'Edmonton, AB'}`,
+          name: `${serviceType} — ${bedrooms}, ${bathrooms} (${hours} hrs)`,
+          description: `${bedrooms}, ${bathrooms} • ${
+            crewSelection === '1_CLEANER'
+              ? '1 Cleaner @ $52.50/hr'
+              : crewSelection === '2_CLEANERS'
+              ? '2 Cleaners @ $105.00/hr'
+              : `Custom Crew @ $${hourlyRate.toFixed(2)}/hr`
+          } — ${serviceAddress || `${city}, AB`}${
+            selectedAddons.length > 0 ? ` | Add-ons: ${selectedAddons.join(', ')}` : ''
+          }${quoteNotes.trim() ? ` | Notes: ${quoteNotes.trim()}` : ''}`,
           quantity: hours,
           unitPrice: hourlyRate,
           total: calculations.labor,
@@ -183,7 +570,7 @@ ${depositAmount > 0 ? `• Deposit: $${Number(depositAmount).toFixed(2)}\n` : ''
           ? [
               {
                 name: 'Fuel & Dispatch Surcharge',
-                description: 'Standard Edmonton & Area mobile dispatch fuel surcharge',
+                description: 'Standard Greater Edmonton mobile dispatch fuel surcharge',
                 quantity: 1,
                 unitPrice: Number(fuelSurcharge),
                 total: Number(fuelSurcharge),
@@ -210,18 +597,18 @@ ${depositAmount > 0 ? `• Deposit: $${Number(depositAmount).toFixed(2)}\n` : ''
           clientName: customerName || 'Phone Lead',
           clientPhone: customerPhone || '(780) 555-0199',
           clientEmail: customerEmail,
-          serviceAddress: serviceAddress || 'Edmonton, AB',
-          service: `${serviceType} (${hours} hrs)`,
+          serviceAddress: serviceAddress || `${city}, AB`,
+          service: `${serviceType} (${bedrooms}, ${bathrooms} • ${hours} hrs)`,
           total: calculations.total,
           depositRequired: depositAmount,
           lineItems,
-          notes: `Quick Quoted: ${hours} hrs @ $${hourlyRate}/hr + $${fuelSurcharge} fuel. Source: ${selectedSource}. ${quoteNotes}`,
+          notes: `${combinedPropertyAndNotesSummary} | Quick Quoted: ${hours} hrs @ $${hourlyRate}/hr + $${fuelSurcharge} fuel. Source: ${selectedSource}.`,
         }),
       });
       const data = await res.json();
       if (data.success && data.quote) {
         setFeedbackNotice(
-          data.message || `✓ Jobber Quote ${data.quote.quoteNumber} created & synced to Jobber Client + Google Sheets!`
+          data.message || `✓ Jobber Quote ${data.quote.quoteNumber} (${bedrooms}, ${bathrooms}) synced to Jobber Client + Google Sheets!`
         );
         if (onQuoteCreated) onQuoteCreated(data.quote);
         setCreatedQuoteModalItem(data.quote);
@@ -240,73 +627,538 @@ ${depositAmount > 0 ? `• Deposit: $${Number(depositAmount).toFixed(2)}\n` : ''
     setCustomerPhone('');
     setCustomerEmail('');
     setServiceAddress('');
+    setBedrooms('3 Bedrooms');
+    setBathrooms('2 Bathrooms');
+    setSelectedAddons([]);
     setQuoteNotes('');
+    setVoiceTranscript('');
     setDiscountAmount(0);
     setDepositAmount(0);
     setFeedbackNotice(null);
+    setVoiceStatusMsg(null);
   };
+
+  // Map coordinate projection helper for Quick Map
+  const MAP_BOUNDS = { minLat: 53.28, maxLat: 53.68, minLng: -113.72, maxLng: -113.26 };
+  const projectMapCoord = (lat: number, lng: number) => ({
+    x: Math.max(3, Math.min(97, ((lng - MAP_BOUNDS.minLng) / (MAP_BOUNDS.maxLng - MAP_BOUNDS.minLng)) * 100)),
+    y: Math.max(3, Math.min(97, ((MAP_BOUNDS.maxLat - lat) / (MAP_BOUNDS.maxLat - MAP_BOUNDS.minLat)) * 100)),
+  });
+  const targetPinPos = projectMapCoord(targetCoords.lat, targetCoords.lng);
 
   return (
     <div className="flex-1 overflow-y-auto bg-[#0d0f17] text-slate-100 font-sans p-4 sm:p-6 lg:p-8 space-y-6 animate-fadeIn min-h-[calc(100vh-4rem)]">
       {/* Top Banner & Header */}
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 pb-2 border-b border-slate-800/80">
-        <div>
-          <div className="flex items-center gap-3">
-            <div className="p-2.5 rounded-2xl bg-gradient-to-tr from-pink-600 to-rose-500 text-white shadow-lg">
-              <Calculator className="w-6 h-6" />
-            </div>
-            <div>
-              <h1 className="text-2xl sm:text-3xl font-extrabold text-white tracking-tight">
-                Quick Quotes &amp; Phone Intake
-              </h1>
-              <p className="text-xs sm:text-sm text-slate-400 mt-0.5">
-                Fast on-the-phone pricing: Pick hours and crew, check repeat caller status, and dispatch or sync to Jobber &amp; Google in seconds.
-              </p>
-            </div>
+      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 pb-3 border-b border-slate-800/80">
+        <div className="flex items-center gap-3">
+          <div className="p-3 rounded-2xl bg-gradient-to-tr from-pink-600 via-fuchsia-600 to-purple-600 text-white shadow-lg">
+            <Mic className="w-6 h-6" />
+          </div>
+          <div>
+            <h1 className="text-2xl sm:text-3xl font-extrabold text-white tracking-tight">
+              Voice Dictation Intake, Quick Quote &amp; Quick Map
+            </h1>
+            <p className="text-xs sm:text-sm text-slate-400 mt-0.5">
+              Speak or dictate caller details to auto-fill Name, Address, Bedrooms, Bathrooms &amp; Specific Notes — then sync to Jobber or your Booking System in 1 click.
+            </p>
           </div>
         </div>
 
-        <div className="flex items-center gap-2 self-start md:self-auto">
+        <div className="flex items-center gap-2 self-start md:self-auto flex-wrap">
+          {onNavigateToIntakes && (
+            <button
+              onClick={onNavigateToIntakes}
+              className="px-3.5 py-2 bg-purple-600/25 hover:bg-purple-600/40 text-purple-200 rounded-xl text-xs font-extrabold transition-all border border-purple-500/40 flex items-center gap-1.5 cursor-pointer"
+            >
+              <ClipboardList className="w-3.5 h-3.5 text-purple-400" />
+              <span>Intakes Log</span>
+            </button>
+          )}
           <button
             onClick={handleReset}
             className="px-3 py-2 bg-[#1b1e2b] hover:bg-[#252a3d] text-slate-300 rounded-xl text-xs font-bold transition-all border border-slate-700/80 cursor-pointer"
           >
-            Clear / New Call
+            Clear / New Caller
           </button>
           <button
             onClick={handleCopyBreakdown}
             className="px-4 py-2 bg-gradient-to-r from-pink-600 to-rose-600 hover:from-pink-500 hover:to-rose-500 text-white rounded-xl text-xs font-bold shadow-md transition-all flex items-center gap-1.5 cursor-pointer active:scale-95"
           >
             {copiedBreakdown ? <Check className="w-3.5 h-3.5" /> : <Copy className="w-3.5 h-3.5" />}
-            <span>{copiedBreakdown ? 'Copied to Clipboard!' : 'Copy SMS Breakdown'}</span>
+            <span>{copiedBreakdown ? 'Copied Estimate!' : 'Copy SMS Quote Breakdown'}</span>
           </button>
         </div>
       </div>
 
       {feedbackNotice && (
-        <div className="p-4 rounded-2xl bg-emerald-950/80 border border-emerald-700/80 text-emerald-200 text-sm flex items-center gap-3 font-bold shadow-lg animate-fadeIn">
-          <CheckCircle2 className="w-5 h-5 text-emerald-400 shrink-0" />
-          <span>{feedbackNotice}</span>
+        <div className="p-4 rounded-2xl bg-emerald-950/90 border border-emerald-700 text-emerald-200 text-sm flex items-center justify-between gap-3 font-bold shadow-lg animate-fadeIn">
+          <div className="flex items-center gap-3">
+            <CheckCircle2 className="w-5 h-5 text-emerald-400 shrink-0" />
+            <span>{feedbackNotice}</span>
+          </div>
+          {onNavigateToSchedule && (
+            <button
+              onClick={onNavigateToSchedule}
+              className="px-3 py-1.5 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-extrabold whitespace-nowrap cursor-pointer"
+            >
+              View in Schedule →
+            </button>
+          )}
         </div>
       )}
 
-      {/* Main Grid: Left Column = Calculator & Pricing; Right Column = Customer Intake & Dispatch */}
-      <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
-        {/* Left Column: Fast Pricing Calculator (Screenshot 2 workflow) */}
-        <div className="lg:col-span-5 bg-[#141218] border border-[#2b2533] rounded-3xl p-5 sm:p-6 space-y-6 shadow-2xl">
-          <div className="flex items-center justify-between pb-3 border-b border-[#2b2533]">
-            <h2 className="text-base font-extrabold text-white flex items-center gap-2">
-              <span className="w-2 h-2 rounded-full bg-pink-500"></span>
-              <span>Quoted Price Calculator</span>
+      {/* ─────────────────────────────────────────────────────────────────────────────
+          SECTION 1: LIVE VOICE DICTATION & AI SMART AUTO-FILL BAR
+         ───────────────────────────────────────────────────────────────────────────── */}
+      <div className="bg-gradient-to-r from-[#171324] via-[#191528] to-[#141826] border border-pink-500/40 rounded-3xl p-5 sm:p-6 shadow-2xl space-y-4">
+        <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4">
+          <div className="space-y-1">
+            <div className="flex items-center gap-2">
+              <span className="text-xs font-black uppercase tracking-wider text-pink-400">
+                Step 1 • Live Call Voice Dictation
+              </span>
+              {isRecording && (
+                <span className="flex items-center gap-1.5 text-xs font-bold text-rose-400 animate-pulse">
+                  <span className="w-2 h-2 rounded-full bg-rose-500 animate-ping" />
+                  Recording Microphone...
+                </span>
+              )}
+            </div>
+            <h2 className="text-lg font-extrabold text-white">
+              Dictate Caller Info to Auto-Fill the Request Form &amp; Quote Calculator
             </h2>
-            <span className="text-[11px] text-slate-400 font-mono">12.5% Tax + $12.50 Fuel</span>
+            <p className="text-xs text-slate-400">
+              Say the caller&apos;s name, phone, street address, how many bedrooms &amp; bathrooms, cleaning type, and any specific requests (e.g. inside oven, fridge, pets, lockbox).
+            </p>
+          </div>
+
+          <div className="flex items-center gap-2.5 flex-wrap">
+            <button
+              type="button"
+              onClick={handleToggleVoiceDictation}
+              className={`px-5 py-3 rounded-2xl font-extrabold text-xs sm:text-sm flex items-center gap-2 shadow-xl transition-all cursor-pointer active:scale-95 ${
+                isRecording
+                  ? 'bg-rose-600 hover:bg-rose-700 text-white ring-4 ring-rose-500/30 animate-pulse'
+                  : 'bg-gradient-to-r from-pink-600 via-fuchsia-600 to-purple-600 hover:opacity-95 text-white'
+              }`}
+            >
+              {isRecording ? (
+                <>
+                  <MicOff className="w-4 h-4" />
+                  <span>Stop Dictation &amp; Fill Form</span>
+                </>
+              ) : (
+                <>
+                  <Mic className="w-4 h-4" />
+                  <span>Start Live Voice Dictation</span>
+                </>
+              )}
+            </button>
+
+            <button
+              type="button"
+              disabled={isParsingVoice || !voiceTranscript.trim()}
+              onClick={() => handleExtractFromTranscript(voiceTranscript)}
+              className="px-4 py-3 rounded-2xl bg-emerald-600 hover:bg-emerald-500 disabled:opacity-40 text-white font-extrabold text-xs sm:text-sm flex items-center gap-2 shadow-lg transition-all cursor-pointer"
+            >
+              <Wand2 className="w-4 h-4" />
+              <span>{isParsingVoice ? 'Extracting Blanks...' : 'AI Fill Form Blanks'}</span>
+            </button>
+          </div>
+        </div>
+
+        {/* Voice Transcript Input + Sample Dictation Presets */}
+        <div className="space-y-2.5">
+          <div className="relative">
+            <textarea
+              rows={2}
+              value={voiceTranscript + (interimTranscript ? ` ${interimTranscript}` : '')}
+              onChange={(e) => setVoiceTranscript(e.target.value)}
+              placeholder='Click "Start Live Voice Dictation" and speak, or type/paste call notes here (e.g. "Devon Clarke at 9620 144 Ave NW St. Albert, 780-802-4918, 3 bedrooms 2 bathrooms, Standard Cleaning, 3 hours with 1 cleaner, clean inside oven")...'
+              className="w-full px-4 py-3 bg-[#0e1018] border border-slate-700/90 focus:border-pink-500 rounded-2xl text-xs sm:text-sm text-white placeholder-slate-500 focus:outline-none leading-relaxed"
+            />
+          </div>
+
+          <div className="flex flex-wrap items-center justify-between gap-2 text-xs">
+            <div className="flex flex-wrap items-center gap-1.5">
+              <span className="text-[11px] font-bold text-slate-400 mr-1">Test Voice Dictation:</span>
+              {SAMPLE_VOICE_PROMPTS.map((sample, idx) => (
+                <button
+                  key={idx}
+                  type="button"
+                  onClick={() => {
+                    setVoiceTranscript(sample.text);
+                    handleExtractFromTranscript(sample.text);
+                  }}
+                  className="px-2.5 py-1 rounded-xl bg-slate-800/90 hover:bg-slate-700 text-slate-200 border border-slate-700 text-[11px] font-semibold transition-colors cursor-pointer"
+                >
+                  🎙️ {sample.label}
+                </button>
+              ))}
+            </div>
+
+            {voiceStatusMsg && (
+              <span className="text-xs font-bold text-emerald-400">{voiceStatusMsg}</span>
+            )}
+          </div>
+        </div>
+      </div>
+
+      {/* ─────────────────────────────────────────────────────────────────────────────
+          SECTION 2: MAIN 12-COLUMN WORKSPACE (REQUEST FORM + QUICK QUOTE + QUICK MAP)
+         ───────────────────────────────────────────────────────────────────────────── */}
+      <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
+        {/* LEFT COLUMN (7 Cols): Customer Request & Intake Form (With Bedrooms, Bathrooms & Specific Info) */}
+        <div className="lg:col-span-7 bg-[#121520] border border-slate-800/90 rounded-3xl p-5 sm:p-6 space-y-5 shadow-2xl relative overflow-hidden">
+          <div className="absolute top-0 left-0 right-0 h-1.5 bg-gradient-to-r from-pink-500 via-fuchsia-500 to-purple-600" />
+
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 pb-3 border-b border-slate-800">
+            <div>
+              <span className="text-[10px] font-bold text-pink-400 uppercase tracking-wider block">
+                Step 2 • Customer Request &amp; Property Intake Form
+              </span>
+              <h2 className="text-lg font-extrabold text-white flex items-center gap-2">
+                <ClipboardList className="w-5 h-5 text-pink-500" />
+                <span>Request Your Cleaning &amp; Property Details</span>
+              </h2>
+            </div>
+            <span className="text-xs text-slate-400">
+              Synced with Jobber &amp; Customer Booking Portal
+            </span>
+          </div>
+
+          {/* Caller Intelligence Banner */}
+          {customerPhone.trim().length > 3 && (
+            <div className="animate-fadeIn">
+              <CustomerIntelligenceBadge
+                intelligence={intelligence}
+                showDiscountPrompt={intelligence.loyaltyDiscountEligible && discountAmount === 0}
+                onApplyDiscount={(percent) => handleApplyLoyaltyDiscount(percent)}
+              />
+            </div>
+          )}
+
+          {/* Service Type Package Selector Buttons */}
+          <div className="space-y-1.5">
+            <label className="block text-xs font-bold text-slate-300">
+              What Kind of Cleaning? (Service Package) *
+            </label>
+            <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
+              {[
+                { label: 'Standard Cleaning', value: 'Residential Standard Cleaning' },
+                { label: 'Deep Cleaning', value: 'Deep Cleaning & Baseboards' },
+                { label: 'Move-Out / Move-In', value: 'Move-Out / Turnover Vacate Cleaning' },
+                { label: 'Airbnb Turnover', value: 'Move-In Detailed Sanitization' },
+                { label: 'Post-Renovation', value: 'Post-Renovation HEPA Vacuum & Scrub' },
+                { label: 'Commercial Office', value: 'Commercial Office Cleaning' },
+              ].map((pkg) => {
+                const isSelected = serviceType === pkg.value;
+                return (
+                  <button
+                    key={pkg.value}
+                    type="button"
+                    onClick={() => setServiceType(pkg.value)}
+                    className={`px-3 py-2 rounded-xl text-xs font-bold border text-left transition-all cursor-pointer flex items-center justify-between ${
+                      isSelected
+                        ? 'bg-gradient-to-r from-pink-600 to-purple-600 text-white border-pink-400 shadow-md'
+                        : 'bg-[#171b29] text-slate-300 border-slate-700/80 hover:border-slate-600'
+                    }`}
+                  >
+                    <span className="truncate">{pkg.label}</span>
+                    {isSelected && <Check className="w-3.5 h-3.5 shrink-0 ml-1" />}
+                  </button>
+                );
+              })}
+            </div>
+          </div>
+
+          {/* Customer Contact Row */}
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-3.5">
+            <div>
+              <label className="block text-xs font-bold text-slate-300 mb-1">
+                Full Name <span className="text-pink-500">*</span>
+              </label>
+              <div className="relative">
+                <User className="w-4 h-4 text-slate-500 absolute left-3 top-1/2 -translate-y-1/2" />
+                <input
+                  type="text"
+                  placeholder="e.g. Devon Clarke"
+                  value={customerName}
+                  onChange={(e) => setCustomerName(e.target.value)}
+                  className="w-full pl-9 pr-3 py-2.5 bg-[#171b29] border border-slate-700/80 rounded-xl text-xs text-white placeholder-slate-500 focus:outline-none focus:border-pink-500"
+                />
+              </div>
+            </div>
+
+            <div>
+              <label className="block text-xs font-bold text-slate-300 mb-1">
+                Phone Number (SMS Quotes) <span className="text-pink-500">*</span>
+              </label>
+              <div className="relative">
+                <Phone className="w-4 h-4 text-slate-500 absolute left-3 top-1/2 -translate-y-1/2" />
+                <input
+                  type="tel"
+                  placeholder="(780) 802-4918"
+                  value={customerPhone}
+                  onChange={(e) => setCustomerPhone(e.target.value)}
+                  className="w-full pl-9 pr-3 py-2.5 bg-[#171b29] border border-slate-700/80 rounded-xl text-xs text-white placeholder-slate-500 font-mono focus:outline-none focus:border-pink-500"
+                />
+              </div>
+            </div>
+
+            <div>
+              <label className="block text-xs font-bold text-slate-300 mb-1">
+                Email (For Quote &amp; Invoice)
+              </label>
+              <input
+                type="email"
+                placeholder="client@gmail.com"
+                value={customerEmail}
+                onChange={(e) => setCustomerEmail(e.target.value)}
+                className="w-full px-3 py-2.5 bg-[#171b29] border border-slate-700/80 rounded-xl text-xs text-white placeholder-slate-500 focus:outline-none focus:border-pink-500"
+              />
+            </div>
+          </div>
+
+          {/* Street Address with Google Places Autocomplete + Pin on Map button */}
+          <div className="grid grid-cols-1 sm:grid-cols-12 gap-3">
+            <div className="sm:col-span-8">
+              <label className="block text-xs font-bold text-slate-300 mb-1">
+                Property Street Address <span className="text-pink-500">*</span>
+              </label>
+              <div className="flex items-center gap-2">
+                <div className="flex-1">
+                  <AddressAutocompleteInput
+                    value={serviceAddress}
+                    onChange={setServiceAddress}
+                    onSelect={(pred) => {
+                      const full = pred.description || pred.mainText;
+                      setServiceAddress(full);
+                      geocodeAddressOnQuickMap(full);
+                    }}
+                    placeholder="Start typing street address (e.g. 9620 144 Ave NW, St. Albert)..."
+                    className="text-xs"
+                  />
+                </div>
+                <button
+                  type="button"
+                  onClick={() => geocodeAddressOnQuickMap(serviceAddress)}
+                  className="px-3 py-2.5 rounded-xl bg-purple-600/90 hover:bg-purple-600 text-white text-xs font-bold whitespace-nowrap flex items-center gap-1 cursor-pointer shrink-0"
+                  title="Locate address on Quick Map & calculate closest cleaners"
+                >
+                  <MapPin className="w-3.5 h-3.5" />
+                  <span>{isGeocodingMap ? 'Locating...' : 'Pin Map'}</span>
+                </button>
+              </div>
+            </div>
+
+            <div className="sm:col-span-4">
+              <label className="block text-xs font-bold text-slate-300 mb-1">
+                City / Service Area
+              </label>
+              <select
+                value={city}
+                onChange={(e) => setCity(e.target.value)}
+                className="w-full px-3 py-2.5 bg-[#171b29] border border-slate-700/80 rounded-xl text-xs text-white focus:outline-none focus:border-pink-500 cursor-pointer"
+              >
+                <option value="Edmonton">Edmonton</option>
+                <option value="St. Albert">St. Albert</option>
+                <option value="Sherwood Park">Sherwood Park</option>
+                <option value="Leduc">Leduc</option>
+                <option value="Spruce Grove">Spruce Grove</option>
+              </select>
+            </div>
+          </div>
+
+          {/* HOW MANY BEDROOMS & HOW MANY BATHROOMS (Highlighted Property Size Row) */}
+          <div className="p-4 rounded-2xl bg-[#171b29] border border-pink-500/30 space-y-3">
+            <div className="flex items-center justify-between">
+              <span className="text-xs font-extrabold text-pink-300 flex items-center gap-1.5">
+                <BedDouble className="w-4 h-4 text-pink-400" />
+                <span>Property Size: How Many Bedrooms &amp; Bathrooms?</span>
+              </span>
+              <button
+                type="button"
+                onClick={handleAutoEstimateHoursFromRooms}
+                className="text-[11px] font-bold text-emerald-400 hover:text-emerald-300 underline cursor-pointer"
+              >
+                ⚡ Auto-Estimate Hours from Rooms
+              </button>
+            </div>
+
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
+              <div>
+                <label className="block text-[11px] font-bold text-slate-300 mb-1.5">
+                  How Many Bedrooms? *
+                </label>
+                <div className="grid grid-cols-5 gap-1.5">
+                  {['1 Bedroom', '2 Bedrooms', '3 Bedrooms', '4 Bedrooms', '5+ Bedrooms'].map((b) => {
+                    const shortLabel = b.split(' ')[0] + ' Bed';
+                    const isSelected = bedrooms === b;
+                    return (
+                      <button
+                        key={b}
+                        type="button"
+                        onClick={() => setBedrooms(b)}
+                        className={`py-2 px-1.5 rounded-xl text-xs font-extrabold border transition-all cursor-pointer text-center ${
+                          isSelected
+                            ? 'bg-pink-600 text-white border-pink-400 shadow-md'
+                            : 'bg-[#0f121c] text-slate-300 border-slate-700 hover:border-slate-500'
+                        }`}
+                      >
+                        {shortLabel}
+                      </button>
+                    );
+                  })}
+                </div>
+              </div>
+
+              <div>
+                <label className="block text-[11px] font-bold text-slate-300 mb-1.5">
+                  How Many Bathrooms? *
+                </label>
+                <div className="grid grid-cols-3 sm:grid-cols-6 gap-1.5">
+                  {[
+                    { label: '1 Bath', val: '1 Bathroom' },
+                    { label: '1.5 Bath', val: '1.5 Bathrooms' },
+                    { label: '2 Bath', val: '2 Bathrooms' },
+                    { label: '2.5 Bath', val: '2.5 Bathrooms' },
+                    { label: '3 Bath', val: '3 Bathrooms' },
+                    { label: '4+ Bath', val: '4+ Bathrooms' },
+                  ].map((ba) => {
+                    const isSelected = bathrooms === ba.val;
+                    return (
+                      <button
+                        key={ba.val}
+                        type="button"
+                        onClick={() => setBathrooms(ba.val)}
+                        className={`py-2 px-1 rounded-xl text-[11px] font-extrabold border transition-all cursor-pointer text-center ${
+                          isSelected
+                            ? 'bg-purple-600 text-white border-purple-400 shadow-md'
+                            : 'bg-[#0f121c] text-slate-300 border-slate-700 hover:border-slate-500'
+                        }`}
+                      >
+                        {ba.label}
+                      </button>
+                    );
+                  })}
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* Timing & Cleaner Assignment Row */}
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-3.5">
+            <div>
+              <label className="block text-xs font-bold text-slate-300 mb-1">
+                Preferred Date
+              </label>
+              <div className="relative">
+                <Calendar className="w-4 h-4 text-slate-500 absolute left-3 top-1/2 -translate-y-1/2" />
+                <input
+                  type="date"
+                  value={scheduledDate}
+                  onChange={(e) => setScheduledDate(e.target.value)}
+                  className="w-full pl-9 pr-3 py-2 bg-[#171b29] border border-slate-700/80 rounded-xl text-xs text-white focus:outline-none focus:border-pink-500"
+                />
+              </div>
+            </div>
+
+            <div>
+              <label className="block text-xs font-bold text-slate-300 mb-1">
+                Time Window / Start
+              </label>
+              <select
+                value={timeWindow}
+                onChange={(e) => {
+                  setTimeWindow(e.target.value);
+                  if (e.target.value.startsWith('Morning')) setScheduledTime('09:00');
+                  else if (e.target.value.startsWith('Afternoon')) setScheduledTime('13:00');
+                  else if (e.target.value.startsWith('Evening')) setScheduledTime('16:30');
+                }}
+                className="w-full px-3 py-2 bg-[#171b29] border border-slate-700/80 rounded-xl text-xs text-white focus:outline-none focus:border-pink-500 cursor-pointer"
+              >
+                <option value="Morning (8:00 AM - 12:00 PM)">Morning (8:00 AM - 12:00 PM)</option>
+                <option value="Afternoon (12:00 PM - 4:00 PM)">Afternoon (12:00 PM - 4:00 PM)</option>
+                <option value="Evening (4:00 PM - 7:00 PM)">Evening (4:00 PM - 7:00 PM)</option>
+                <option value="Anytime Today (Urgent)">Anytime Today (Urgent)</option>
+              </select>
+            </div>
+
+            <div>
+              <label className="block text-xs font-bold text-slate-300 mb-1">
+                Assign Cleaner / Crew
+              </label>
+              <select
+                value={assignedCleaner}
+                onChange={(e) => setAssignedCleaner(e.target.value)}
+                className="w-full px-3 py-2 bg-[#171b29] border border-slate-700/80 rounded-xl text-xs text-white focus:outline-none focus:border-pink-500 cursor-pointer"
+              >
+                {closestCleaners.map((c) => (
+                  <option key={c.tech.id} value={c.tech.name}>
+                    {c.tech.name} ({c.drivingKm} km • ~{c.driveMins}m)
+                  </option>
+                ))}
+              </select>
+            </div>
+          </div>
+
+          {/* Specific Information, Add-Ons & Access Notes */}
+          <div className="space-y-2">
+            <label className="block text-xs font-bold text-slate-300">
+              Any Specific Information, Add-ons, or Access Notes (Sent to Jobber &amp; Booking System)
+            </label>
+            <div className="flex flex-wrap gap-1.5">
+              {QUICK_ADDON_TAGS.map((tag) => {
+                const active = selectedAddons.includes(tag);
+                return (
+                  <button
+                    key={tag}
+                    type="button"
+                    onClick={() => toggleAddonTag(tag)}
+                    className={`px-2.5 py-1 rounded-lg text-[11px] font-bold border transition-all cursor-pointer ${
+                      active
+                        ? 'bg-emerald-600 text-white border-emerald-400'
+                        : 'bg-[#171b29] text-slate-300 border-slate-700 hover:border-slate-500'
+                    }`}
+                  >
+                    {active ? `✓ ${tag}` : `+ ${tag}`}
+                  </button>
+                );
+              })}
+            </div>
+            <textarea
+              rows={3}
+              placeholder="e.g. Lockbox code 4482 on front porch. Please clean inside the oven and fridge, focus on master bath grout, 1 friendly golden retriever..."
+              value={quoteNotes}
+              onChange={(e) => setQuoteNotes(e.target.value)}
+              className="w-full px-3.5 py-2.5 bg-[#171b29] border border-slate-700/80 rounded-xl text-xs text-white placeholder-slate-500 focus:outline-none focus:border-pink-500 leading-relaxed"
+            />
+          </div>
+        </div>
+
+        {/* RIGHT COLUMN (5 Cols): Quick Quote Price Calculator & 1-Click Jobber / Booking Sync */}
+        <div className="lg:col-span-5 bg-[#141218] border border-[#2b2533] rounded-3xl p-5 sm:p-6 space-y-5 shadow-2xl">
+          <div className="flex items-center justify-between pb-3 border-b border-[#2b2533]">
+            <div>
+              <span className="text-[10px] font-bold text-pink-400 uppercase tracking-wider block">
+                Step 3 • Instant Phone Quote Calculator
+              </span>
+              <h2 className="text-base font-extrabold text-white flex items-center gap-2">
+                <Calculator className="w-4 h-4 text-pink-500" />
+                <span>Quick Quote &amp; Jobber Sync</span>
+              </h2>
+            </div>
+            <span className="text-[11px] text-slate-400 font-mono">{bedrooms} • {bathrooms}</span>
           </div>
 
           {/* 1. Hours Selection */}
           <div className="space-y-2">
             <div className="flex items-center justify-between text-xs">
               <span className="font-semibold text-slate-300">Hours needed:</span>
-              <span className="font-mono font-bold text-pink-400 text-base">{hours} {hours === 1 ? 'hour' : 'hours'}</span>
+              <span className="font-mono font-bold text-pink-400 text-base">
+                {hours} {hours === 1 ? 'hour' : 'hours'}
+              </span>
             </div>
             <div className="flex items-center gap-2 flex-wrap">
               {[1, 2, 3, 4, 5, 6].map((h) => {
@@ -316,7 +1168,7 @@ ${depositAmount > 0 ? `• Deposit: $${Number(depositAmount).toFixed(2)}\n` : ''
                     key={h}
                     type="button"
                     onClick={() => setHours(h)}
-                    className={`w-11 h-11 rounded-full font-extrabold text-sm transition-all cursor-pointer flex items-center justify-center border ${
+                    className={`w-10 h-10 rounded-full font-extrabold text-sm transition-all cursor-pointer flex items-center justify-center border ${
                       isSelected
                         ? 'bg-gradient-to-r from-pink-600 to-rose-600 text-white border-pink-500 shadow-lg scale-105'
                         : 'bg-[#221d2b] text-slate-300 border-[#322c3e] hover:bg-[#2b2537]'
@@ -329,16 +1181,14 @@ ${depositAmount > 0 ? `• Deposit: $${Number(depositAmount).toFixed(2)}\n` : ''
               <button
                 type="button"
                 onClick={() => setHours((prev) => Math.min(16, prev + 1))}
-                className="px-3.5 h-11 rounded-full bg-[#221d2b] hover:bg-[#2b2537] text-slate-200 border border-[#322c3e] font-bold text-xs transition-colors cursor-pointer"
-                title="Add 1 hour"
+                className="px-3 h-10 rounded-full bg-[#221d2b] hover:bg-[#2b2537] text-slate-200 border border-[#322c3e] font-bold text-xs transition-colors cursor-pointer"
               >
                 +1 hr
               </button>
               <button
                 type="button"
                 onClick={() => setHours((prev) => prev + 0.5)}
-                className="px-3.5 h-11 rounded-full bg-[#221d2b] hover:bg-[#2b2537] text-slate-200 border border-[#322c3e] font-bold text-xs transition-colors cursor-pointer"
-                title="Add half hour"
+                className="px-3 h-10 rounded-full bg-[#221d2b] hover:bg-[#2b2537] text-slate-200 border border-[#322c3e] font-bold text-xs transition-colors cursor-pointer"
               >
                 +½ hr
               </button>
@@ -346,13 +1196,13 @@ ${depositAmount > 0 ? `• Deposit: $${Number(depositAmount).toFixed(2)}\n` : ''
           </div>
 
           {/* 2. Cleaner Crew Selection */}
-          <div className="space-y-2.5">
+          <div className="space-y-2">
             <span className="block font-semibold text-slate-300 text-xs">Cleaners &amp; Hourly Rate:</span>
-            <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
+            <div className="grid grid-cols-3 gap-2">
               <button
                 type="button"
                 onClick={() => setCrewSelection('1_CLEANER')}
-                className={`p-3 rounded-2xl text-xs font-bold transition-all cursor-pointer border text-center ${
+                className={`p-2.5 rounded-2xl text-xs font-bold transition-all cursor-pointer border text-center ${
                   crewSelection === '1_CLEANER'
                     ? 'bg-gradient-to-r from-pink-600 to-rose-600 text-white border-pink-500 shadow-md'
                     : 'bg-[#221d2b] text-slate-300 border-[#322c3e] hover:bg-[#2b2537]'
@@ -364,7 +1214,7 @@ ${depositAmount > 0 ? `• Deposit: $${Number(depositAmount).toFixed(2)}\n` : ''
               <button
                 type="button"
                 onClick={() => setCrewSelection('2_CLEANERS')}
-                className={`p-3 rounded-2xl text-xs font-bold transition-all cursor-pointer border text-center ${
+                className={`p-2.5 rounded-2xl text-xs font-bold transition-all cursor-pointer border text-center ${
                   crewSelection === '2_CLEANERS'
                     ? 'bg-gradient-to-r from-pink-600 to-rose-600 text-white border-pink-500 shadow-md'
                     : 'bg-[#221d2b] text-slate-300 border-[#322c3e] hover:bg-[#2b2537]'
@@ -376,36 +1226,28 @@ ${depositAmount > 0 ? `• Deposit: $${Number(depositAmount).toFixed(2)}\n` : ''
               <button
                 type="button"
                 onClick={() => setCrewSelection('CUSTOM')}
-                className={`p-3 rounded-2xl text-xs font-bold transition-all cursor-pointer border text-center col-span-2 sm:col-span-1 ${
+                className={`p-2.5 rounded-2xl text-xs font-bold transition-all cursor-pointer border text-center ${
                   crewSelection === 'CUSTOM'
                     ? 'bg-gradient-to-r from-pink-600 to-rose-600 text-white border-pink-500 shadow-md'
                     : 'bg-[#221d2b] text-slate-300 border-[#322c3e] hover:bg-[#2b2537]'
                 }`}
               >
-                <div className="font-extrabold">Custom Rate</div>
+                <div className="font-extrabold">Custom</div>
                 <div className="text-[11px] font-mono mt-0.5 opacity-90">${customHourlyRate}/hr</div>
               </button>
             </div>
-
-            {crewSelection === 'CUSTOM' && (
-              <div className="flex items-center gap-2 p-2.5 bg-[#1c1824] rounded-xl border border-[#322c3e] animate-fadeIn">
-                <span className="text-xs text-slate-300 font-medium">Set Custom Rate: $</span>
-                <input
-                  type="number"
-                  min="20"
-                  step="1"
-                  value={customHourlyRate}
-                  onChange={(e) => setCustomHourlyRate(Number(e.target.value) || 55)}
-                  className="w-24 px-2 py-1 bg-[#252030] border border-slate-700 rounded-lg text-white font-mono font-bold text-xs focus:outline-none focus:border-pink-500"
-                />
-                <span className="text-xs text-slate-400">CAD / hour</span>
-              </div>
-            )}
           </div>
 
           {/* 3. Big Calculated Price Box */}
-          <div className="p-5 bg-gradient-to-b from-[#1b1724] to-[#16131d] border border-[#322c3e] rounded-3xl shadow-xl">
-            <span className="text-[10px] text-pink-400 uppercase tracking-widest font-black block">Total Quoted Price</span>
+          <div className="p-4 bg-gradient-to-b from-[#1b1724] to-[#16131d] border border-[#322c3e] rounded-2xl shadow-xl">
+            <div className="flex items-center justify-between">
+              <span className="text-[10px] text-pink-400 uppercase tracking-widest font-black">
+                Total Quoted Price
+              </span>
+              <span className="text-[11px] font-bold text-slate-300">
+                {bedrooms} • {bathrooms}
+              </span>
+            </div>
             <div className="flex items-baseline justify-between mt-1">
               <div className="text-3xl sm:text-4xl font-black text-white font-mono tracking-tight flex items-baseline gap-1">
                 <span className="text-pink-500 text-2xl">$</span>
@@ -423,331 +1265,337 @@ ${depositAmount > 0 ? `• Deposit: $${Number(depositAmount).toFixed(2)}\n` : ''
             </div>
           </div>
 
-          {/* 4. Quick Discounts & Loyalty Perks */}
-          <div className="space-y-2">
-            <label className="block text-slate-300 font-semibold text-xs">Fast Discounts &amp; Repeat Perks:</label>
-            <div className="flex items-center gap-2 flex-wrap">
+          {/* 4. Quick Discounts */}
+          <div className="flex items-center justify-between gap-2 flex-wrap">
+            <div className="flex items-center gap-1.5 flex-wrap">
               <button
                 type="button"
-                onClick={() => setDiscountAmount(10)}
-                className={`py-1.5 px-3 rounded-full text-xs font-bold transition-all cursor-pointer border ${
+                onClick={() => setDiscountAmount(discountAmount === 10 ? 0 : 10)}
+                className={`py-1 px-2.5 rounded-lg text-xs font-bold border cursor-pointer ${
                   discountAmount === 10
-                    ? 'bg-emerald-600 text-white border-emerald-500 shadow-md'
-                    : 'bg-[#221d2b] text-slate-300 border-[#322c3e] hover:bg-[#2b2537]'
+                    ? 'bg-emerald-600 text-white border-emerald-500'
+                    : 'bg-[#221d2b] text-slate-300 border-[#322c3e]'
                 }`}
               >
                 -$10 off
               </button>
               <button
                 type="button"
-                onClick={() => setDiscountAmount(20)}
-                className={`py-1.5 px-3 rounded-full text-xs font-bold transition-all cursor-pointer border ${
+                onClick={() => setDiscountAmount(discountAmount === 20 ? 0 : 20)}
+                className={`py-1 px-2.5 rounded-lg text-xs font-bold border cursor-pointer ${
                   discountAmount === 20
-                    ? 'bg-emerald-600 text-white border-emerald-500 shadow-md'
-                    : 'bg-[#221d2b] text-slate-300 border-[#322c3e] hover:bg-[#2b2537]'
+                    ? 'bg-emerald-600 text-white border-emerald-500'
+                    : 'bg-[#221d2b] text-slate-300 border-[#322c3e]'
                 }`}
               >
                 -$20 off
               </button>
-              {intelligence.loyaltyDiscountEligible && (
-                <button
-                  type="button"
-                  onClick={() => handleApplyLoyaltyDiscount(intelligence.loyaltyDiscountPercent)}
-                  className="py-1.5 px-3 rounded-full text-xs font-extrabold bg-gradient-to-r from-pink-600 to-purple-600 hover:from-pink-500 hover:to-purple-500 text-white border border-pink-400 shadow-md flex items-center gap-1 cursor-pointer animate-pulse"
-                >
-                  <Tag className="w-3 h-3" />
-                  <span>Apply {intelligence.loyaltyDiscountPercent}% Repeat Client Perk</span>
-                </button>
-              )}
-              {discountAmount > 0 && (
-                <button
-                  type="button"
-                  onClick={() => setDiscountAmount(0)}
-                  className="py-1.5 px-2 text-[11px] text-slate-400 hover:text-white underline cursor-pointer"
-                >
-                  Clear discount
-                </button>
-              )}
-            </div>
-          </div>
-
-          {/* 5. Fuel Surcharge & Tax Toggle */}
-          <div className="grid grid-cols-2 gap-3 text-xs">
-            <div className="p-2.5 bg-[#1b1723] rounded-xl border border-[#2b2537]">
-              <span className="text-slate-400 block text-[10px] uppercase font-bold">Fuel Surcharge</span>
-              <div className="flex items-center gap-1 mt-1 font-mono">
-                <span className="text-slate-400">$</span>
-                <input
-                  type="number"
-                  step="0.5"
-                  value={fuelSurcharge}
-                  onChange={(e) => setFuelSurcharge(Number(e.target.value) || 0)}
-                  className="w-full bg-transparent text-white font-bold focus:outline-none"
-                />
-              </div>
-            </div>
-
-            <div className="p-2.5 bg-[#1b1723] rounded-xl border border-[#2b2537] flex items-center justify-between">
-              <div>
-                <span className="text-slate-400 block text-[10px] uppercase font-bold">12.5% Tax</span>
-                <span className="text-slate-200 font-bold">${calculations.tax.toFixed(2)}</span>
-              </div>
               <button
                 type="button"
                 onClick={() => setApplyTax(!applyTax)}
-                className={`px-2 py-1 rounded-lg font-bold text-[10px] cursor-pointer ${
-                  applyTax ? 'bg-pink-600 text-white' : 'bg-slate-700 text-slate-400'
+                className={`py-1 px-2.5 rounded-lg text-xs font-bold border cursor-pointer ${
+                  applyTax
+                    ? 'bg-pink-600/20 text-pink-300 border-pink-500/40'
+                    : 'bg-slate-800 text-slate-400 border-slate-700'
                 }`}
               >
-                {applyTax ? 'APPLIED' : 'EXEMPT'}
+                {applyTax ? '12.5% Tax ON' : 'Tax Exempt'}
               </button>
             </div>
           </div>
 
-          {/* 6. Lead Source ("How did they hear about us?") */}
-          <div className="space-y-2">
-            <label className="block text-slate-300 font-semibold text-xs">Lead Source / Referral:</label>
-            <div className="flex items-center gap-1.5 flex-wrap">
-              {['Google', 'Facebook', 'Instagram', 'TikTok', 'Referral', 'Website form'].map((src) => {
-                const isSelected = selectedSource === src;
-                return (
-                  <button
-                    key={src}
-                    type="button"
-                    onClick={() => setSelectedSource(src)}
-                    className={`py-1 px-2.5 rounded-full text-xs font-bold transition-all cursor-pointer border ${
-                      isSelected
-                        ? 'bg-gradient-to-r from-pink-600 to-rose-600 text-white border-pink-500 shadow-sm'
-                        : 'bg-[#221d2b] text-slate-300 border-[#322c3e] hover:bg-[#2b2537]'
-                    }`}
-                  >
-                    {src}
-                  </button>
-                );
-              })}
-            </div>
-          </div>
-        </div>
-
-        {/* Right Column: Customer Intake & Instant Dispatch */}
-        <div className="lg:col-span-7 bg-[#121520] border border-slate-800/80 rounded-3xl p-5 sm:p-6 space-y-6 shadow-2xl">
-          <div className="flex items-center justify-between pb-3 border-b border-slate-800">
-            <h2 className="text-base font-extrabold text-white flex items-center gap-2">
-              <User className="w-4 h-4 text-pink-500" />
-              <span>Caller &amp; Booking Details</span>
-            </h2>
-            <span className="text-xs text-slate-400">Fill while customer is on the line</span>
-          </div>
-
-          {/* Caller Intelligence Banner */}
-          {customerPhone.trim().length > 3 && (
-            <div className="animate-fadeIn">
-              <CustomerIntelligenceBadge
-                intelligence={intelligence}
-                showDiscountPrompt={intelligence.loyaltyDiscountEligible && discountAmount === 0}
-                onApplyDiscount={(percent) => handleApplyLoyaltyDiscount(percent)}
-              />
-            </div>
-          )}
-
-          {/* Contact Fields */}
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-            <div>
-              <label className="block text-xs font-bold text-slate-300 mb-1">
-                Customer Name <span className="text-pink-500">*</span>
-              </label>
-              <div className="relative">
-                <User className="w-4 h-4 text-slate-500 absolute left-3 top-1/2 -translate-y-1/2" />
-                <input
-                  type="text"
-                  placeholder="e.g. Marcus Vance"
-                  value={customerName}
-                  onChange={(e) => setCustomerName(e.target.value)}
-                  className="w-full pl-9 pr-3 py-2 bg-[#171b29] border border-slate-700/80 rounded-xl text-xs text-white placeholder-slate-500 focus:outline-none focus:border-pink-500"
-                />
-              </div>
-            </div>
-
-            <div>
-              <label className="block text-xs font-bold text-slate-300 mb-1">
-                Phone Number <span className="text-pink-500">*</span>
-              </label>
-              <div className="relative">
-                <Phone className="w-4 h-4 text-slate-500 absolute left-3 top-1/2 -translate-y-1/2" />
-                <input
-                  type="text"
-                  placeholder="(780) 555-0199"
-                  value={customerPhone}
-                  onChange={(e) => setCustomerPhone(e.target.value)}
-                  className="w-full pl-9 pr-3 py-2 bg-[#171b29] border border-slate-700/80 rounded-xl text-xs text-white placeholder-slate-500 font-mono focus:outline-none focus:border-pink-500"
-                />
-              </div>
-            </div>
-
-            <div>
-              <label className="block text-xs font-bold text-slate-300 mb-1">
-                Email Address
-              </label>
-              <input
-                type="email"
-                placeholder="customer@gmail.com"
-                value={customerEmail}
-                onChange={(e) => setCustomerEmail(e.target.value)}
-                className="w-full px-3 py-2 bg-[#171b29] border border-slate-700/80 rounded-xl text-xs text-white placeholder-slate-500 focus:outline-none focus:border-pink-500"
-              />
-            </div>
-
-            <div>
-              <label className="block text-xs font-bold text-slate-300 mb-1">
-                Service Type
-              </label>
-              <select
-                value={serviceType}
-                onChange={(e) => setServiceType(e.target.value)}
-                className="w-full px-3 py-2 bg-[#171b29] border border-slate-700/80 rounded-xl text-xs text-white focus:outline-none focus:border-pink-500 cursor-pointer"
-              >
-                <option value="Residential Standard Cleaning">Residential Standard Cleaning</option>
-                <option value="Deep Cleaning & Baseboards">Deep Cleaning &amp; Baseboards</option>
-                <option value="Move-Out / Turnover Vacate Cleaning">Move-Out / Turnover Vacate Cleaning</option>
-                <option value="Move-In Detailed Sanitization">Move-In Detailed Sanitization</option>
-                <option value="Post-Renovation HEPA Vacuum & Scrub">Post-Renovation HEPA Vacuum &amp; Scrub</option>
-                <option value="Commercial Office Cleaning">Commercial Office Cleaning</option>
-              </select>
-            </div>
-
-            <div className="sm:col-span-2">
-              <label className="block text-xs font-bold text-slate-300 mb-1">
-                Service Address (Edmonton / St. Albert / Sherwood Park)
-              </label>
-              <div className="relative">
-                <MapPin className="w-4 h-4 text-slate-500 absolute left-3 top-1/2 -translate-y-1/2" />
-                <input
-                  type="text"
-                  placeholder="e.g. 10423 124 St NW, Edmonton, AB"
-                  value={serviceAddress}
-                  onChange={(e) => setServiceAddress(e.target.value)}
-                  className="w-full pl-9 pr-3 py-2 bg-[#171b29] border border-slate-700/80 rounded-xl text-xs text-white placeholder-slate-500 focus:outline-none focus:border-pink-500"
-                />
-              </div>
-            </div>
-
-            <div>
-              <label className="block text-xs font-bold text-slate-300 mb-1">
-                Scheduled Date
-              </label>
-              <div className="relative">
-                <Calendar className="w-4 h-4 text-slate-500 absolute left-3 top-1/2 -translate-y-1/2" />
-                <input
-                  type="date"
-                  value={scheduledDate}
-                  onChange={(e) => setScheduledDate(e.target.value)}
-                  className="w-full pl-9 pr-3 py-2 bg-[#171b29] border border-slate-700/80 rounded-xl text-xs text-white focus:outline-none focus:border-pink-500"
-                />
-              </div>
-            </div>
-
-            <div>
-              <label className="block text-xs font-bold text-slate-300 mb-1">
-                Start Time
-              </label>
-              <div className="relative">
-                <Clock className="w-4 h-4 text-slate-500 absolute left-3 top-1/2 -translate-y-1/2" />
-                <input
-                  type="time"
-                  value={scheduledTime}
-                  onChange={(e) => setScheduledTime(e.target.value)}
-                  className="w-full pl-9 pr-3 py-2 bg-[#171b29] border border-slate-700/80 rounded-xl text-xs text-white focus:outline-none focus:border-pink-500"
-                />
-              </div>
-            </div>
-
-            <div>
-              <label className="block text-xs font-bold text-slate-300 mb-1">
-                Assigned Cleaner
-              </label>
-              <div className="relative">
-                <Users className="w-4 h-4 text-slate-500 absolute left-3 top-1/2 -translate-y-1/2" />
-                <select
-                  value={assignedCleaner}
-                  onChange={(e) => setAssignedCleaner(e.target.value)}
-                  className="w-full pl-9 pr-3 py-2 bg-[#171b29] border border-slate-700/80 rounded-xl text-xs text-white focus:outline-none focus:border-pink-500 cursor-pointer"
-                >
-                  <option value="Cindy Guay">Cindy Guay (Senior Tech)</option>
-                  <option value="Melissa Clarke">Melissa Clarke</option>
-                  <option value="Robyn Adele">Robyn Adele</option>
-                  <option value="Joel Mbatchou">Joel Mbatchou</option>
-                  <option value="Unassigned">Unassigned (Hold in Queue)</option>
-                </select>
-              </div>
-            </div>
-
-            <div>
-              <label className="block text-xs font-bold text-slate-300 mb-1">
-                Deposit Requirement
-              </label>
-              <div className="flex items-center gap-1.5">
-                {[0, 50, 100].map((dep) => (
-                  <button
-                    key={dep}
-                    type="button"
-                    onClick={() => setDepositAmount(dep)}
-                    className={`py-1.5 px-3 rounded-lg text-xs font-bold border cursor-pointer ${
-                      depositAmount === dep
-                        ? 'bg-pink-600 text-white border-pink-500'
-                        : 'bg-[#171b29] text-slate-300 border-slate-700'
-                    }`}
-                  >
-                    {dep === 0 ? 'No Deposit' : `$${dep}`}
-                  </button>
-                ))}
-              </div>
-            </div>
-
-            <div className="sm:col-span-2">
-              <label className="block text-xs font-bold text-slate-300 mb-1">
-                Notes / Gate Code / Special Requests
-              </label>
-              <textarea
-                rows={2}
-                placeholder="e.g. Has pets, lockbox code 1984, focus on kitchen and oven add-on."
-                value={quoteNotes}
-                onChange={(e) => setQuoteNotes(e.target.value)}
-                className="w-full px-3 py-2 bg-[#171b29] border border-slate-700/80 rounded-xl text-xs text-white placeholder-slate-500 focus:outline-none focus:border-pink-500"
-              />
-            </div>
-          </div>
-
-          {/* Action Buttons */}
-          <div className="pt-2 border-t border-slate-800 flex flex-col sm:flex-row items-center justify-end gap-3">
+          {/* 5. Primary Action Buttons: Jobber Quote Sync + Booking System Dispatch */}
+          <div className="space-y-2.5 pt-1">
             <button
-              onClick={handleSaveJobberQuote}
+              type="button"
               disabled={isSubmitting}
-              className="w-full sm:w-auto px-4 py-2.5 bg-[#1e2336] hover:bg-[#282f49] text-white border border-slate-700 rounded-xl text-xs font-bold transition-all shadow-sm flex items-center justify-center gap-2 cursor-pointer disabled:opacity-50"
+              onClick={handleSaveJobberQuote}
+              className="w-full py-3.5 px-4 bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500 text-white rounded-2xl text-xs sm:text-sm font-black shadow-xl transition-all flex items-center justify-center gap-2 cursor-pointer active:scale-98 disabled:opacity-50"
             >
-              <FileText className="w-4 h-4 text-purple-400" />
-              <span>Create Jobber Quote (${calculations.total.toFixed(2)})</span>
+              <FileText className="w-4 h-4" />
+              <span>Sync Client &amp; Create Jobber Quote (+ Google Sheet)</span>
             </button>
 
             <button
-              onClick={handleConvertToDispatchedJob}
+              type="button"
               disabled={isSubmitting}
-              className="w-full sm:w-auto px-6 py-2.5 bg-gradient-to-r from-pink-600 via-rose-600 to-purple-600 hover:from-pink-500 hover:to-purple-500 text-white rounded-xl text-xs font-extrabold shadow-lg transition-all flex items-center justify-center gap-2 cursor-pointer active:scale-95 disabled:opacity-50"
+              onClick={handleSendToBookingAndDispatch}
+              className="w-full py-3.5 px-4 bg-gradient-to-r from-pink-600 via-fuchsia-600 to-purple-600 hover:opacity-95 text-white rounded-2xl text-xs sm:text-sm font-black shadow-xl transition-all flex items-center justify-center gap-2 cursor-pointer active:scale-98 disabled:opacity-50"
             >
-              <Calendar className="w-4 h-4" />
-              <span>{isSubmitting ? 'Dispatching...' : 'Save & Dispatch to Calendar →'}</span>
+              <Send className="w-4 h-4" />
+              <span>Send to Booking System &amp; Dispatch Job (${calculations.total.toFixed(2)})</span>
             </button>
           </div>
         </div>
       </div>
 
-      {/* Exact Jobber Quote & "This is your quote" SMS Modal */}
-      <QuoteDetailModal
-        isOpen={Boolean(createdQuoteModalItem)}
-        onClose={() => setCreatedQuoteModalItem(null)}
-        quote={createdQuoteModalItem}
-        projectId={projectId}
-        onQuoteUpdated={(updated) => setCreatedQuoteModalItem(updated)}
-      />
+      {/* ─────────────────────────────────────────────────────────────────────────────
+          SECTION 3: EMBEDDED QUICK MAP & CLOSEST CLEANERS RADAR
+         ───────────────────────────────────────────────────────────────────────────── */}
+      <div className="bg-[#121520] border border-slate-800/90 rounded-3xl p-5 sm:p-6 shadow-2xl space-y-4">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-3 border-b border-slate-800">
+          <div>
+            <span className="text-[10px] font-bold text-purple-400 uppercase tracking-wider block">
+              Step 4 • Live Property Quick Map &amp; Closest Cleaners
+            </span>
+            <h2 className="text-lg font-extrabold text-white flex items-center gap-2">
+              <Compass className="w-5 h-5 text-purple-400" />
+              <span>Quick Map: {serviceAddress || 'Edmonton, AB'}</span>
+            </h2>
+          </div>
+
+          <div className="flex items-center gap-2 flex-wrap">
+            <button
+              type="button"
+              onClick={() => setQuickMapType(quickMapType === 'roadmap' ? 'hybrid' : 'roadmap')}
+              className="px-3 py-1.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 text-xs font-bold flex items-center gap-1.5 cursor-pointer"
+            >
+              <Layers className="w-3.5 h-3.5 text-purple-400" />
+              <span>{quickMapType === 'roadmap' ? 'Switch to Satellite' : 'Switch to Street Map'}</span>
+            </button>
+            {onNavigateToMap && (
+              <button
+                type="button"
+                onClick={onNavigateToMap}
+                className="px-3 py-1.5 rounded-xl bg-purple-600 hover:bg-purple-500 text-white text-xs font-bold flex items-center gap-1.5 cursor-pointer"
+              >
+                <span>Open Full Dispatch Map</span>
+                <ArrowRight className="w-3.5 h-3.5" />
+              </button>
+            )}
+          </div>
+        </div>
+
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-5 items-stretch">
+          {/* Interactive Street & Satellite Quick Map (7 Cols) */}
+          <div className="lg:col-span-7 h-[360px] sm:h-[400px] rounded-2xl overflow-hidden border border-slate-700/80 relative bg-slate-200 select-none">
+            <div
+              onMouseDown={(e) => {
+                if (e.button !== 0) return;
+                setIsDraggingMap(true);
+                setMapDragStart({ x: e.clientX - quickMapPan.x, y: e.clientY - quickMapPan.y });
+              }}
+              onMouseMove={(e) => {
+                if (!isDraggingMap) return;
+                setQuickMapPan({ x: e.clientX - mapDragStart.x, y: e.clientY - mapDragStart.y });
+              }}
+              onMouseUp={() => setIsDraggingMap(false)}
+              className={`w-full h-full relative overflow-hidden cursor-${isDraggingMap ? 'grabbing' : 'grab'}`}
+            >
+              <div
+                className="absolute inset-0 transition-transform duration-75 origin-center"
+                style={{
+                  transform: `translate(${quickMapPan.x}px, ${quickMapPan.y}px) scale(${quickMapZoom})`,
+                  width: '100%',
+                  height: '100%',
+                }}
+              >
+                {/* Real Georeferenced Edmonton Street & Satellite Map Tiles */}
+                <div className="absolute inset-0 w-full h-full pointer-events-none overflow-hidden">
+                  {[665, 666, 667, 668, 669, 670].map((ty) =>
+                    [376, 377, 378, 379, 380].map((tx) => {
+                      const z = 11;
+                      const nTiles = Math.pow(2, z);
+                      const tileMinLng = (tx / nTiles) * 360 - 180;
+                      const tileMaxLng = ((tx + 1) / nTiles) * 360 - 180;
+                      const tileMaxLat = (180 / Math.PI) * Math.atan(Math.sinh(Math.PI * (1 - (2 * ty) / nTiles)));
+                      const tileMinLat = (180 / Math.PI) * Math.atan(Math.sinh(Math.PI * (1 - (2 * (ty + 1)) / nTiles)));
+
+                      const leftPct = ((tileMinLng - MAP_BOUNDS.minLng) / (MAP_BOUNDS.maxLng - MAP_BOUNDS.minLng)) * 100;
+                      const rightPct = ((tileMaxLng - MAP_BOUNDS.minLng) / (MAP_BOUNDS.maxLng - MAP_BOUNDS.minLng)) * 100;
+                      const topPct = ((MAP_BOUNDS.maxLat - tileMaxLat) / (MAP_BOUNDS.maxLat - MAP_BOUNDS.minLat)) * 100;
+                      const bottomPct = ((MAP_BOUNDS.maxLat - tileMinLat) / (MAP_BOUNDS.maxLat - MAP_BOUNDS.minLat)) * 100;
+
+                      const isSat = quickMapType === 'hybrid';
+                      const url = isSat
+                        ? `https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/${z}/${ty}/${tx}`
+                        : `https://basemaps.cartocdn.com/rastertiles/voyager/${z}/${tx}/${ty}@2x.png`;
+
+                      return (
+                        <img
+                          key={`qm-${tx}-${ty}`}
+                          src={url}
+                          alt=""
+                          draggable={false}
+                          style={{
+                            position: 'absolute',
+                            left: `${leftPct}%`,
+                            top: `${topPct}%`,
+                            width: `${rightPct - leftPct + 0.08}%`,
+                            height: `${bottomPct - topPct + 0.08}%`,
+                            maxWidth: 'none',
+                          }}
+                          className="select-none pointer-events-none object-fill"
+                        />
+                      );
+                    })
+                  )}
+                </div>
+
+                {/* Connector Lines from Top 3 Closest Cleaners to Caller Address */}
+                <svg className="absolute inset-0 w-full h-full pointer-events-none" viewBox="0 0 100 100" preserveAspectRatio="none">
+                  {closestCleaners.slice(0, 3).map((c, idx) => {
+                    const cPos = projectMapCoord(c.lat, c.lng);
+                    return (
+                      <path
+                        key={`qm-line-${c.tech.id}`}
+                        d={`M ${cPos.x} ${cPos.y} L ${targetPinPos.x} ${targetPinPos.y}`}
+                        fill="none"
+                        stroke={idx === 0 ? '#10B981' : '#9333EA'}
+                        strokeWidth={idx === 0 ? '0.65' : '0.4'}
+                        strokeDasharray={idx === 0 ? undefined : '1.2,0.8'}
+                      />
+                    );
+                  })}
+                </svg>
+
+                {/* Caller Property Pin */}
+                <div
+                  style={{ left: `${targetPinPos.x}%`, top: `${targetPinPos.y}%` }}
+                  className="absolute -translate-x-1/2 -translate-y-1/2 z-30 flex flex-col items-center"
+                >
+                  <div className="px-2.5 py-1 bg-pink-600 text-white rounded-lg text-[10px] font-black shadow-xl whitespace-nowrap mb-1 border border-white">
+                    📍 {customerName || 'Caller'}: {bedrooms.split(' ')[0]}B/{bathrooms.split(' ')[0]}Ba (${calculations.total.toFixed(0)})
+                  </div>
+                  <div className="w-7 h-7 rounded-full bg-pink-600 border-2 border-white shadow-xl flex items-center justify-center text-white">
+                    <MapPin className="w-4 h-4" />
+                  </div>
+                </div>
+
+                {/* Top 6 Closest Cleaners Pins */}
+                {closestCleaners.slice(0, 6).map((c, idx) => {
+                  const pos = projectMapCoord(c.lat, c.lng);
+                  const isAssigned = assignedCleaner === c.tech.name;
+                  return (
+                    <div
+                      key={`qm-tech-${c.tech.id}`}
+                      onClick={() => setAssignedCleaner(c.tech.name)}
+                      style={{ left: `${pos.x}%`, top: `${pos.y}%` }}
+                      className="absolute -translate-x-1/2 -translate-y-1/2 z-20 flex flex-col items-center cursor-pointer group"
+                    >
+                      <div
+                        className={`px-2 py-0.5 rounded-full text-[9px] font-extrabold shadow-md border whitespace-nowrap mb-0.5 ${
+                          isAssigned || idx === 0
+                            ? 'bg-emerald-600 text-white border-emerald-300'
+                            : 'bg-white text-slate-900 border-slate-300'
+                        }`}
+                      >
+                        {c.tech.name.split(' ')[0]} • {c.drivingKm}km
+                      </div>
+                      <div
+                        className="w-6 h-6 rounded-xl border-2 border-white shadow-md flex items-center justify-center text-white"
+                        style={{ backgroundColor: c.tech.color || '#7C3AED' }}
+                      >
+                        <Home className="w-3 h-3" />
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+
+              {/* Zoom Controls on Quick Map */}
+              <div className="absolute bottom-3 right-3 z-30 flex flex-col gap-1 bg-white/95 rounded-xl border border-slate-300 p-1 shadow-lg">
+                <button
+                  type="button"
+                  onClick={() => setQuickMapZoom((z) => Math.min(3.2, Number((z + 0.25).toFixed(2))))}
+                  className="p-1.5 text-slate-800 hover:bg-slate-100 rounded-lg cursor-pointer"
+                  title="Zoom In"
+                >
+                  <ZoomIn className="w-4 h-4" />
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setQuickMapZoom((z) => Math.max(0.85, Number((z - 0.25).toFixed(2))))}
+                  className="p-1.5 text-slate-800 hover:bg-slate-100 rounded-lg cursor-pointer"
+                  title="Zoom Out"
+                >
+                  <ZoomOut className="w-4 h-4" />
+                </button>
+                <button
+                  type="button"
+                  onClick={() => {
+                    setQuickMapZoom(1.2);
+                    setQuickMapPan({ x: 0, y: 0 });
+                  }}
+                  className="p-1.5 text-slate-800 hover:bg-slate-100 rounded-lg border-t border-slate-200 cursor-pointer"
+                  title="Reset Map"
+                >
+                  <RotateCcw className="w-4 h-4" />
+                </button>
+              </div>
+            </div>
+          </div>
+
+          {/* Closest Cleaners Ranking List (5 Cols) */}
+          <div className="lg:col-span-5 flex flex-col justify-between space-y-3">
+            <div className="space-y-2">
+              <div className="flex items-center justify-between text-xs">
+                <span className="font-extrabold text-white">Closest Cleaners to Property</span>
+                <span className="text-slate-400">Click cleaner to assign</span>
+              </div>
+
+              <div className="space-y-2 max-h-[340px] overflow-y-auto pr-1">
+                {closestCleaners.slice(0, 5).map((c, idx) => {
+                  const isAssigned = assignedCleaner === c.tech.name;
+                  return (
+                    <div
+                      key={c.tech.id}
+                      onClick={() => setAssignedCleaner(c.tech.name)}
+                      className={`p-3 rounded-2xl border transition-all cursor-pointer flex items-center justify-between gap-3 ${
+                        isAssigned
+                          ? 'bg-emerald-950/60 border-emerald-500/80 shadow-md'
+                          : 'bg-[#171b29] border-slate-800 hover:border-slate-700'
+                      }`}
+                    >
+                      <div className="flex items-center gap-2.5 min-w-0">
+                        <div
+                          className="w-8 h-8 rounded-xl flex items-center justify-center text-white font-black text-xs shrink-0"
+                          style={{ backgroundColor: c.tech.color || '#7C3AED' }}
+                        >
+                          #{idx + 1}
+                        </div>
+                        <div className="min-w-0">
+                          <div className="flex items-center gap-1.5">
+                            <span className="font-extrabold text-xs text-white truncate">{c.tech.name}</span>
+                            {idx === 0 && (
+                              <span className="text-[10px] font-bold text-amber-300 flex items-center gap-0.5">
+                                <Award className="w-3 h-3" /> Closest
+                              </span>
+                            )}
+                          </div>
+                          <p className="text-[11px] text-slate-400 truncate">
+                            {c.tech.depotLocation?.address || c.tech.homeAddress}
+                          </p>
+                        </div>
+                      </div>
+
+                      <div className="text-right shrink-0">
+                        <div className="font-mono font-black text-xs text-emerald-400">
+                          {c.drivingKm} km
+                        </div>
+                        <div className="text-[10px] text-slate-400">~{c.driveMins} mins drive</div>
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* Interactive Quote Detail & "This is your quote" SMS Modal */}
+      {createdQuoteModalItem && (
+        <QuoteDetailModal
+          quote={createdQuoteModalItem}
+          projectId={projectId}
+          onClose={() => setCreatedQuoteModalItem(null)}
+          onQuoteUpdated={(updated) => {
+            setCreatedQuoteModalItem(updated);
+            if (onQuoteCreated) onQuoteCreated(updated);
+          }}
+        />
+      )}
     </div>
   );
 };
