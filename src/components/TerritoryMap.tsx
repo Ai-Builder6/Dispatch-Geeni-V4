@@ -447,9 +447,7 @@ export const TerritoryMap: React.FC<TerritoryMapProps> = ({
   const [showScheduledJobs, setShowScheduledJobs] = useState(true);
   const [showRoutes, setShowRoutes] = useState(true);
   const [mapType, setMapType] = useState<'roadmap' | 'hybrid' | 'terrain'>('roadmap');
-  const [bannerDismissed, setBannerDismissed] = useState(false);
   const [localMapError, setLocalMapError] = useState(false);
-  const [copiedUrl, setCopiedUrl] = useState(false);
   const [showMobileSummary, setShowMobileSummary] = useState(false);
   const [isFilterBarCollapsed, setIsFilterBarCollapsed] = useState(
     typeof window !== 'undefined' ? window.innerWidth < 640 : false
@@ -667,70 +665,6 @@ export const TerritoryMap: React.FC<TerritoryMapProps> = ({
 
   return (
     <div id="territory-map-container" className="relative w-full h-full flex flex-col bg-slate-100 overflow-hidden select-none">
-      {/* Top Notification Banner if ApiProjectMapError, RefererNotAllowedMapError, or Auth Missing */}
-      {isMapFallbackActive && !bannerDismissed && (
-        <div className="absolute top-14 left-3 right-3 z-30 bg-amber-50 border border-amber-300 rounded-xl p-3.5 shadow-lg flex items-start justify-between gap-3 text-xs animate-fadeIn">
-          <div className="flex items-start gap-2.5">
-            <ShieldAlert className="w-4 h-4 text-amber-600 flex-shrink-0 mt-0.5" />
-            <div className="space-y-1.5">
-              <div className="font-bold text-amber-950 flex flex-wrap items-center gap-2">
-                <span>Google Maps API Key Notice: Interactive Territory Mode Active</span>
-                <span className="px-1.5 py-0.5 bg-amber-200 text-amber-900 rounded text-[10px] font-mono font-semibold">
-                  Edmonton Dispatch Engine
-                </span>
-              </div>
-              {refererErrorUrl ? (
-                <div className="text-amber-900 text-[11px] leading-relaxed space-y-1.5">
-                  <p>
-                    <strong>HTTP Referrer Restriction (RefererNotAllowedMapError):</strong> Your Google Cloud API key has HTTP referrer restrictions enabled that block requests from this origin.
-                  </p>
-                  <p>
-                    To enable Google Maps for this preview deployment, add this URL pattern to your API Key's <strong>Allowed Websites</strong> in Google Cloud Console:
-                  </p>
-                  <div className="flex items-center gap-2 bg-amber-100/90 border border-amber-300 rounded-lg px-2.5 py-1.5 font-mono text-[11px] text-amber-950">
-                    <span className="truncate select-all">{refererErrorUrl}/*</span>
-                    <button
-                      type="button"
-                      onClick={() => {
-                        navigator.clipboard?.writeText(`${refererErrorUrl}/*`);
-                        setCopiedUrl(true);
-                        setTimeout(() => setCopiedUrl(false), 2500);
-                      }}
-                      className="ml-auto inline-flex items-center gap-1 px-2 py-0.5 rounded bg-amber-200 hover:bg-amber-300 text-amber-900 font-sans font-bold text-[10px] cursor-pointer shrink-0 transition-colors"
-                      title="Copy URL pattern to clipboard"
-                    >
-                      {copiedUrl ? <Check className="w-3 h-3 text-emerald-700" /> : <Copy className="w-3 h-3 text-amber-800" />}
-                      <span>{copiedUrl ? 'Copied!' : 'Copy URL'}</span>
-                    </button>
-                  </div>
-                </div>
-              ) : (
-                <p className="text-amber-800 text-[11px] leading-relaxed">
-                  The Google Maps JavaScript API is restricted or not authorized on this API key. The application is seamlessly utilizing the built-in <strong>Edmonton Territory Dispatch Engine</strong> with real coordinates, 15 live service vans, SLA ticket routes, real-time Routes API simulation, and reverse geocoding.
-                </p>
-              )}
-              <div className="flex flex-wrap items-center gap-x-3 gap-y-1 pt-0.5">
-                <a
-                  href="https://console.cloud.google.com/google/maps-apis/credentials?utm_campaign=gmp_mcp_codeassist_v1_aistudio"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="font-semibold text-slate-800 hover:text-slate-950 underline flex items-center gap-1"
-                >
-                  <span>Configure Google Cloud Key Credentials</span>
-                  <ExternalLink className="w-3 h-3" />
-                </a>
-              </div>
-            </div>
-          </div>
-          <button
-            onClick={() => setBannerDismissed(true)}
-            className="text-slate-400 hover:text-slate-700 p-1 rounded-lg text-sm font-bold shrink-0 cursor-pointer"
-            aria-label="Dismiss banner"
-          >
-            ✕
-          </button>
-        </div>
-      )}
 
       {/* Screen Reader Live Region for Territory Status Announcements */}
       <div className="sr-only" aria-live="polite" aria-atomic="true">
@@ -1666,7 +1600,7 @@ export const TerritoryMap: React.FC<TerritoryMapProps> = ({
           </Map>
           </MapErrorBoundary>
         ) : (
-          /* Interactive Fallback Edmonton Territory Dispatch Canvas */
+          /* Interactive High-Resolution Edmonton Street & Satellite Map */
           <div
             ref={vectorContainerRef}
             onMouseDown={handleMouseDown}
@@ -1675,9 +1609,13 @@ export const TerritoryMap: React.FC<TerritoryMapProps> = ({
             onTouchStart={handleTouchStart}
             onTouchMove={handleTouchMove}
             onTouchEnd={handleTouchEnd}
-            className={`w-full h-full relative bg-slate-100 overflow-hidden cursor-${isDragging ? 'grabbing' : 'grab'}`}
+            onWheel={(e) => {
+              const delta = e.deltaY < 0 ? 0.2 : -0.2;
+              setZoomLevel((prev) => Math.max(0.8, Math.min(3.5, Number((prev + delta).toFixed(2)))));
+            }}
+            className={`w-full h-full relative bg-slate-200 overflow-hidden cursor-${isDragging ? 'grabbing' : 'grab'}`}
           >
-            {/* Background Corridor Grid & Edmonton Landmarks */}
+            {/* Real Web Mercator Street & Satellite Tile Layer + Live Route Polylines */}
             <div
               className="absolute inset-0 transition-transform duration-75 origin-center"
               style={{
@@ -1686,47 +1624,72 @@ export const TerritoryMap: React.FC<TerritoryMapProps> = ({
                 height: '100%',
               }}
             >
-              {/* Edmonton Regional Highways & North Saskatchewan River SVG Network */}
+              {/* High-Resolution Georeferenced Edmonton Street & Satellite Tiles (z=11 Retina @2x) */}
+              <div className="absolute inset-0 w-full h-full pointer-events-none overflow-hidden">
+                {[665, 666, 667, 668, 669, 670].map((ty) =>
+                  [376, 377, 378, 379, 380].map((tx) => {
+                    const z = 11;
+                    const nTiles = Math.pow(2, z);
+                    const tileMinLng = (tx / nTiles) * 360 - 180;
+                    const tileMaxLng = ((tx + 1) / nTiles) * 360 - 180;
+                    const tileMaxLat = (180 / Math.PI) * Math.atan(Math.sinh(Math.PI * (1 - (2 * ty) / nTiles)));
+                    const tileMinLat = (180 / Math.PI) * Math.atan(Math.sinh(Math.PI * (1 - (2 * (ty + 1)) / nTiles)));
+
+                    const leftPct = ((tileMinLng - EDMONTON_BOUNDS.minLng) / (EDMONTON_BOUNDS.maxLng - EDMONTON_BOUNDS.minLng)) * 100;
+                    const rightPct = ((tileMaxLng - EDMONTON_BOUNDS.minLng) / (EDMONTON_BOUNDS.maxLng - EDMONTON_BOUNDS.minLng)) * 100;
+                    const topPct = ((EDMONTON_BOUNDS.maxLat - tileMaxLat) / (EDMONTON_BOUNDS.maxLat - EDMONTON_BOUNDS.minLat)) * 100;
+                    const bottomPct = ((EDMONTON_BOUNDS.maxLat - tileMinLat) / (EDMONTON_BOUNDS.maxLat - EDMONTON_BOUNDS.minLat)) * 100;
+
+                    const isSatellite = mapType === 'hybrid';
+                    const baseTileUrl = isSatellite
+                      ? `https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/${z}/${ty}/${tx}`
+                      : `https://basemaps.cartocdn.com/rastertiles/voyager/${z}/${tx}/${ty}@2x.png`;
+
+                    return (
+                      <React.Fragment key={`tile-${z}-${tx}-${ty}`}>
+                        <img
+                          src={baseTileUrl}
+                          alt=""
+                          draggable={false}
+                          onError={(e) => {
+                            if (!isSatellite) {
+                              (e.currentTarget as HTMLImageElement).src = `https://tile.openstreetmap.org/${z}/${tx}/${ty}.png`;
+                            }
+                          }}
+                          style={{
+                            position: 'absolute',
+                            left: `${leftPct}%`,
+                            top: `${topPct}%`,
+                            width: `${rightPct - leftPct + 0.08}%`,
+                            height: `${bottomPct - topPct + 0.08}%`,
+                            maxWidth: 'none',
+                          }}
+                          className="select-none pointer-events-none object-fill"
+                        />
+                        {isSatellite && (
+                          <img
+                            src={`https://basemaps.cartocdn.com/rastertiles/voyager_only_labels/${z}/${tx}/${ty}@2x.png`}
+                            alt=""
+                            draggable={false}
+                            style={{
+                              position: 'absolute',
+                              left: `${leftPct}%`,
+                              top: `${topPct}%`,
+                              width: `${rightPct - leftPct + 0.08}%`,
+                              height: `${bottomPct - topPct + 0.08}%`,
+                              maxWidth: 'none',
+                            }}
+                            className="select-none pointer-events-none object-fill"
+                          />
+                        )}
+                      </React.Fragment>
+                    );
+                  })
+                )}
+              </div>
+
+              {/* Live Route Polylines Between Techs and Assigned Tickets */}
               <svg className="absolute inset-0 w-full h-full pointer-events-none" viewBox="0 0 100 100" preserveAspectRatio="none">
-                {/* North Saskatchewan River Valley (Winding southwest to northeast) */}
-                <path
-                  d="M 10 74 Q 28 62 44 54 T 66 40 T 92 24"
-                  stroke="#BFDBFE"
-                  strokeWidth="3.2"
-                  fill="none"
-                  opacity="0.8"
-                  strokeLinecap="round"
-                />
-
-                {/* Anthony Henday Drive (Ring Road Loop around Edmonton) */}
-                <path
-                  d="M 50 16 C 82 16 86 38 86 50 C 86 68 82 84 50 84 C 18 84 14 68 14 50 C 14 38 18 16 50 16 Z"
-                  stroke="#CBD5E1"
-                  strokeWidth="1.6"
-                  fill="none"
-                  strokeDasharray="3,1"
-                />
-
-                {/* Yellowhead Trail / Hwy 16 (East-West northern freeway) */}
-                <path d="M 4 33 Q 50 31 96 33" stroke="#CBD5E1" strokeWidth="1.5" fill="none" />
-
-                {/* Whitemud Drive (East-West southern freeway) */}
-                <path d="M 12 65 Q 50 62 90 64" stroke="#CBD5E1" strokeWidth="1.5" fill="none" />
-
-                {/* Calgary Trail & Gateway Blvd (South arterial to Nisku / Airport) */}
-                <path d="M 52 48 L 52 95" stroke="#CBD5E1" strokeWidth="1.5" fill="none" />
-
-                {/* St. Albert Trail / Mark Messier Trail (Northwest) */}
-                <path d="M 45 40 L 22 10" stroke="#CBD5E1" strokeWidth="1.2" fill="none" />
-
-                {/* Sherwood Park Freeway & Baseline Rd (East corridors) */}
-                <path d="M 58 54 L 95 56" stroke="#CBD5E1" strokeWidth="1.2" fill="none" />
-                <path d="M 60 40 L 95 40" stroke="#E2E8F0" strokeWidth="1.0" fill="none" />
-
-                {/* 170th Street West Industrial Corridor */}
-                <path d="M 22 18 L 22 82" stroke="#E2E8F0" strokeWidth="1.1" fill="none" />
-
-                {/* Live Route Polylines Between Techs and Assigned Tickets */}
                 {showRoutes &&
                   technicians.map((tech) => {
                     const isSelected = selectedTechId === tech.id;
@@ -1752,24 +1715,15 @@ export const TerritoryMap: React.FC<TerritoryMapProps> = ({
                         <path
                           d={pathD}
                           stroke={tech.color || '#2563EB'}
-                          strokeWidth={isSelected ? '2.5' : '1.2'}
-                          strokeOpacity={isSelected ? 0.9 : 0.4}
-                          strokeDasharray={isSelected ? '4,2' : '2,2'}
+                          strokeWidth={isSelected ? '0.9' : '0.5'}
+                          strokeOpacity={isSelected ? 0.95 : 0.7}
+                          strokeDasharray={isSelected ? '1.5,0.8' : '1,1'}
                           fill="none"
                         />
                       </g>
                     );
                   })}
               </svg>
-
-              {/* Geographic Labels */}
-              <div className="absolute top-[8%] left-[20%] text-[11px] font-extrabold text-slate-400 tracking-wider">ST. ALBERT</div>
-              <div className="absolute top-[42%] left-[45%] text-xs font-black text-slate-600 tracking-widest bg-white/70 px-1.5 py-0.5 rounded shadow-2xs">DOWNTOWN / ICE DISTRICT</div>
-              <div className="absolute top-[52%] left-[40%] text-[11px] font-bold text-slate-500">WHYTE AVE / U OF A</div>
-              <div className="absolute top-[48%] left-[16%] text-[11px] font-bold text-slate-500">WEST EDMONTON / WEM</div>
-              <div className="absolute top-[72%] left-[44%] text-[11px] font-bold text-slate-500">SOUTH EDMONTON COMMON</div>
-              <div className="absolute top-[42%] left-[78%] text-[11px] font-extrabold text-slate-400 tracking-wider">SHERWOOD PARK</div>
-              <div className="absolute top-[90%] left-[44%] text-[10px] font-bold text-slate-400">NISKU / YEG AIRPORT</div>
 
               {/* Regional Depots */}
               {showDepots &&

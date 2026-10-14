@@ -107,6 +107,7 @@ interface AddressSearchRadarViewProps {
   onUpdateCleanerHub?: (cleanerId: string, newAddress: string, hubName?: string, lat?: number, lng?: number) => void;
   googleMapsApiKey?: string;
   onNavigateToSchedule?: () => void;
+  isMapsAuthError?: boolean;
 }
 
 // Popular Edmonton regional neighborhoods for rapid 1-click test intake
@@ -487,6 +488,7 @@ export const AddressSearchRadarView: React.FC<AddressSearchRadarViewProps> = ({
   onUpdateCleanerHub,
   googleMapsApiKey,
   onNavigateToSchedule,
+  isMapsAuthError = false,
 }) => {
   // Multi-Stop Client Inquiry list (Supports Stop 1, Stop 2, Stop 3...)
   const [clientStops, setClientStops] = useState<ClientStop[]>([
@@ -517,6 +519,11 @@ export const AddressSearchRadarView: React.FC<AddressSearchRadarViewProps> = ({
   const [cameraTarget, setCameraTarget] = useState<{ lat: number; lng: number; zoom?: number; timestamp: number } | null>(null);
   const [fitBoundsTrigger, setFitBoundsTrigger] = useState<number>(0);
   const [isCleanersBoxMinimized, setIsCleanersBoxMinimized] = useState<boolean>(false);
+  const [tileZoom, setTileZoom] = useState<number>(1.15);
+  const [tilePan, setTilePan] = useState<{ x: number; y: number }>({ x: 0, y: 0 });
+  const [isTileDragging, setIsTileDragging] = useState<boolean>(false);
+  const [tileDragStart, setTileDragStart] = useState<{ x: number; y: number }>({ x: 0, y: 0 });
+  const tileContainerRef = useRef<HTMLDivElement>(null);
   const [activeInfoWindow, setActiveInfoWindow] = useState<{
     id: string;
     type: 'CLIENT' | 'HOME' | 'LIVE';
@@ -1115,8 +1122,9 @@ export const AddressSearchRadarView: React.FC<AddressSearchRadarViewProps> = ({
             </div>
           </div>
 
-          {/* Interactive Google Map with Streets, Roads, & Multi-Stop Pins */}
+          {/* Interactive Map with Streets, Roads, & Multi-Stop Pins */}
           <div className="w-full h-full relative overflow-hidden">
+            {!isMapsAuthError ? (
             <MapErrorBoundary
               fallback={
                 <div className="w-full h-full relative bg-slate-100 flex items-center justify-center">
@@ -1184,7 +1192,6 @@ export const AddressSearchRadarView: React.FC<AddressSearchRadarViewProps> = ({
                   rankedCleaners.map((cleaner) => {
                     const tech = cleaner.technician;
                     const isTop1 = cleaner.rank === 1 && locationMode === 'HOME';
-                    const isSelected = selectedCleanerId === tech.id;
 
                     return (
                       <AdvancedMarker
@@ -1236,7 +1243,6 @@ export const AddressSearchRadarView: React.FC<AddressSearchRadarViewProps> = ({
                   rankedCleaners.map((cleaner) => {
                     const tech = cleaner.technician;
                     const isTop1 = cleaner.rank === 1 && locationMode === 'LIVE';
-                    const isSelected = selectedCleanerId === tech.id;
 
                     return (
                       <AdvancedMarker
@@ -1376,6 +1382,279 @@ export const AddressSearchRadarView: React.FC<AddressSearchRadarViewProps> = ({
                 )}
               </Map>
             </MapErrorBoundary>
+            ) : (
+              /* High-Resolution Interactive Edmonton Street & Satellite Tile Map for Custom Domains */
+              (() => {
+                const RADAR_BOUNDS = { minLat: 53.28, maxLat: 53.68, minLng: -113.72, maxLng: -113.26 };
+                const projectRadarCoord = (lat: number, lng: number) => ({
+                  x: Math.max(2, Math.min(98, ((lng - RADAR_BOUNDS.minLng) / (RADAR_BOUNDS.maxLng - RADAR_BOUNDS.minLng)) * 100)),
+                  y: Math.max(2, Math.min(98, ((RADAR_BOUNDS.maxLat - lat) / (RADAR_BOUNDS.maxLat - RADAR_BOUNDS.minLat)) * 100)),
+                });
+                const primaryStopPos = clientStops[0] ? projectRadarCoord(clientStops[0].lat, clientStops[0].lng) : { x: 50, y: 50 };
+
+                return (
+                  <div
+                    ref={tileContainerRef}
+                    onMouseDown={(e) => {
+                      if (e.button !== 0) return;
+                      setIsTileDragging(true);
+                      setTileDragStart({ x: e.clientX - tilePan.x, y: e.clientY - tilePan.y });
+                    }}
+                    onMouseMove={(e) => {
+                      if (!isTileDragging) return;
+                      setTilePan({ x: e.clientX - tileDragStart.x, y: e.clientY - tileDragStart.y });
+                    }}
+                    onMouseUp={() => setIsTileDragging(false)}
+                    onWheel={(e) => {
+                      const delta = e.deltaY < 0 ? 0.2 : -0.2;
+                      setTileZoom((prev) => Math.max(0.85, Math.min(3.5, Number((prev + delta).toFixed(2)))));
+                    }}
+                    className={`w-full h-full relative bg-slate-200 overflow-hidden select-none cursor-${isTileDragging ? 'grabbing' : 'grab'}`}
+                  >
+                    <div
+                      className="absolute inset-0 transition-transform duration-75 origin-center"
+                      style={{
+                        transform: `translate(${tilePan.x}px, ${tilePan.y}px) scale(${tileZoom})`,
+                        width: '100%',
+                        height: '100%',
+                      }}
+                    >
+                      {/* Real Georeferenced Street & Satellite Map Tiles (z=11 Retina @2x) */}
+                      <div className="absolute inset-0 w-full h-full pointer-events-none overflow-hidden">
+                        {[665, 666, 667, 668, 669, 670].map((ty) =>
+                          [376, 377, 378, 379, 380].map((tx) => {
+                            const z = 11;
+                            const nTiles = Math.pow(2, z);
+                            const tileMinLng = (tx / nTiles) * 360 - 180;
+                            const tileMaxLng = ((tx + 1) / nTiles) * 360 - 180;
+                            const tileMaxLat = (180 / Math.PI) * Math.atan(Math.sinh(Math.PI * (1 - (2 * ty) / nTiles)));
+                            const tileMinLat = (180 / Math.PI) * Math.atan(Math.sinh(Math.PI * (1 - (2 * (ty + 1)) / nTiles)));
+
+                            const leftPct = ((tileMinLng - RADAR_BOUNDS.minLng) / (RADAR_BOUNDS.maxLng - RADAR_BOUNDS.minLng)) * 100;
+                            const rightPct = ((tileMaxLng - RADAR_BOUNDS.minLng) / (RADAR_BOUNDS.maxLng - RADAR_BOUNDS.minLng)) * 100;
+                            const topPct = ((RADAR_BOUNDS.maxLat - tileMaxLat) / (RADAR_BOUNDS.maxLat - RADAR_BOUNDS.minLat)) * 100;
+                            const bottomPct = ((RADAR_BOUNDS.maxLat - tileMinLat) / (RADAR_BOUNDS.maxLat - RADAR_BOUNDS.minLat)) * 100;
+
+                            const isSatellite = mapType === 'hybrid';
+                            const baseTileUrl = isSatellite
+                              ? `https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/${z}/${ty}/${tx}`
+                              : `https://basemaps.cartocdn.com/rastertiles/voyager/${z}/${tx}/${ty}@2x.png`;
+
+                            return (
+                              <React.Fragment key={`radar-tile-${z}-${tx}-${ty}`}>
+                                <img
+                                  src={baseTileUrl}
+                                  alt=""
+                                  draggable={false}
+                                  onError={(e) => {
+                                    if (!isSatellite) {
+                                      (e.currentTarget as HTMLImageElement).src = `https://tile.openstreetmap.org/${z}/${tx}/${ty}.png`;
+                                    }
+                                  }}
+                                  style={{
+                                    position: 'absolute',
+                                    left: `${leftPct}%`,
+                                    top: `${topPct}%`,
+                                    width: `${rightPct - leftPct + 0.08}%`,
+                                    height: `${bottomPct - topPct + 0.08}%`,
+                                    maxWidth: 'none',
+                                  }}
+                                  className="select-none pointer-events-none object-fill"
+                                />
+                                {isSatellite && (
+                                  <img
+                                    src={`https://basemaps.cartocdn.com/rastertiles/voyager_only_labels/${z}/${tx}/${ty}@2x.png`}
+                                    alt=""
+                                    draggable={false}
+                                    style={{
+                                      position: 'absolute',
+                                      left: `${leftPct}%`,
+                                      top: `${topPct}%`,
+                                      width: `${rightPct - leftPct + 0.08}%`,
+                                      height: `${bottomPct - topPct + 0.08}%`,
+                                      maxWidth: 'none',
+                                    }}
+                                    className="select-none pointer-events-none object-fill"
+                                  />
+                                )}
+                              </React.Fragment>
+                            );
+                          })
+                        )}
+                      </div>
+
+                      {/* Radar Rings & Multi-Stop Connector Polylines */}
+                      <svg className="absolute inset-0 w-full h-full pointer-events-none" viewBox="0 0 100 100" preserveAspectRatio="none">
+                        {showRadiusRings && [5, 10, 15, 20].map((km) => {
+                          const rx = (km / 30) * 100;
+                          const ry = (km / 44) * 100;
+                          return (
+                            <ellipse
+                              key={`ring-${km}`}
+                              cx={primaryStopPos.x}
+                              cy={primaryStopPos.y}
+                              rx={rx}
+                              ry={ry}
+                              fill="none"
+                              stroke="#9333EA"
+                              strokeWidth="0.22"
+                              strokeDasharray="1,1"
+                              strokeOpacity="0.55"
+                            />
+                          );
+                        })}
+
+                        {showConnectorLines && rankedCleaners.map((cleaner) => {
+                          const isTop1 = cleaner.rank === 1;
+                          const isSelected = selectedCleanerId === cleaner.technician.id;
+                          const cleanerPos = projectRadarCoord(cleaner.activePoint.lat, cleaner.activePoint.lng);
+                          let d = `M ${cleanerPos.x} ${cleanerPos.y}`;
+                          clientStops.forEach((st) => {
+                            const sp = projectRadarCoord(st.lat, st.lng);
+                            d += ` L ${sp.x} ${sp.y}`;
+                          });
+                          return (
+                            <path
+                              key={`radar-line-${cleaner.technician.id}`}
+                              d={d}
+                              fill="none"
+                              stroke={isTop1 ? '#10B981' : cleaner.technician.color || '#7C3AED'}
+                              strokeWidth={isSelected || isTop1 ? '0.65' : '0.35'}
+                              strokeOpacity={isSelected || isTop1 ? 0.95 : 0.55}
+                              strokeDasharray={isTop1 ? undefined : '1.2,0.8'}
+                            />
+                          );
+                        })}
+                      </svg>
+
+                      {/* Client Stop Pins */}
+                      {clientStops.map((stop, idx) => {
+                        const pos = projectRadarCoord(stop.lat, stop.lng);
+                        return (
+                          <div
+                            key={`tile-stop-${stop.id}`}
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              setActiveStopIndex(idx);
+                              handleFocusLocation(stop.lat, stop.lng, 16, `Stop ${stop.stopNumber}`, stop.address, stop.id, 'CLIENT');
+                            }}
+                            style={{ left: `${pos.x}%`, top: `${pos.y}%` }}
+                            className="absolute -translate-x-1/2 -translate-y-1/2 z-30 flex flex-col items-center cursor-pointer group"
+                          >
+                            <div className={`px-2.5 py-1 border rounded-lg text-[10px] font-extrabold text-white shadow-xl whitespace-nowrap mb-1 flex items-center gap-1 ${
+                              idx === 0 ? 'bg-pink-700 border-pink-500' : idx === 1 ? 'bg-indigo-700 border-indigo-500' : 'bg-teal-700 border-teal-500'
+                            }`}>
+                              <MapPin className="w-3 h-3" />
+                              <span>STOP {stop.stopNumber}: {stop.address.split(',')[0]}</span>
+                            </div>
+                            <div className={`w-8 h-8 rounded-full border-2 border-white shadow-2xl flex items-center justify-center text-white font-black text-xs relative ${
+                              idx === 0 ? 'bg-pink-600' : idx === 1 ? 'bg-indigo-600' : 'bg-teal-600'
+                            }`}>
+                              <span>{stop.stopNumber}</span>
+                              <span className="absolute -inset-1.5 rounded-full border-2 border-pink-400 animate-ping opacity-90" />
+                            </div>
+                          </div>
+                        );
+                      })}
+
+                      {/* Cleaner Home Pins */}
+                      {(locationMode === 'HOME' || locationMode === 'BOTH') &&
+                        rankedCleaners.map((cleaner) => {
+                          const tech = cleaner.technician;
+                          const isTop1 = cleaner.rank === 1 && locationMode === 'HOME';
+                          const pos = projectRadarCoord(cleaner.homePoint.lat, cleaner.homePoint.lng);
+                          return (
+                            <div
+                              key={`tile-home-${tech.id}`}
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                setSelectedCleanerId(tech.id);
+                                handleFocusLocation(
+                                  cleaner.homePoint.lat,
+                                  cleaner.homePoint.lng,
+                                  15,
+                                  `${tech.name} (Home Hub)`,
+                                  cleaner.homePoint.address,
+                                  tech.id,
+                                  'HOME'
+                                );
+                              }}
+                              style={{ left: `${pos.x}%`, top: `${pos.y}%` }}
+                              className="absolute -translate-x-1/2 -translate-y-1/2 z-20 flex flex-col items-center cursor-pointer group"
+                            >
+                              <div
+                                className={`px-2 py-0.5 rounded-full text-[10px] font-bold shadow-lg border flex items-center gap-1 whitespace-nowrap mb-1 ${
+                                  isTop1 ? 'bg-emerald-600 text-white border-emerald-400 font-black' : 'bg-white text-slate-900 border-slate-300'
+                                }`}
+                              >
+                                <Home className="w-2.5 h-2.5 text-purple-600" />
+                                <span>{tech.name.split(' ')[0]}</span>
+                                <span className="font-mono text-[9px] text-purple-700 bg-purple-100 px-1 rounded">
+                                  {cleaner.totalRouteDistanceKm}km
+                                </span>
+                                {isTop1 && <Award className="w-2.5 h-2.5 text-amber-300" />}
+                              </div>
+                              <div
+                                className="w-7 h-7 rounded-xl border-2 border-white shadow-xl flex items-center justify-center text-white font-extrabold text-[11px] relative transition-transform group-hover:scale-125"
+                                style={{ backgroundColor: tech.color || '#3B82F6' }}
+                              >
+                                <Home className="w-3.5 h-3.5" />
+                              </div>
+                            </div>
+                          );
+                        })}
+
+                      {/* Cleaner Live Pins */}
+                      {(locationMode === 'LIVE' || locationMode === 'BOTH') &&
+                        rankedCleaners.map((cleaner) => {
+                          const tech = cleaner.technician;
+                          const isTop1 = cleaner.rank === 1 && locationMode === 'LIVE';
+                          const pos = projectRadarCoord(cleaner.livePoint.lat, cleaner.livePoint.lng);
+                          return (
+                            <div
+                              key={`tile-live-${tech.id}`}
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                setSelectedCleanerId(tech.id);
+                                handleFocusLocation(
+                                  cleaner.livePoint.lat,
+                                  cleaner.livePoint.lng,
+                                  15,
+                                  `${tech.name} (Live Job)`,
+                                  cleaner.livePoint.address,
+                                  tech.id,
+                                  'LIVE'
+                                );
+                              }}
+                              style={{ left: `${pos.x}%`, top: `${pos.y}%` }}
+                              className="absolute -translate-x-1/2 -translate-y-1/2 z-20 flex flex-col items-center cursor-pointer group"
+                            >
+                              <div
+                                className={`px-2 py-0.5 rounded-full text-[10px] font-bold shadow-lg border flex items-center gap-1 whitespace-nowrap mb-1 ${
+                                  isTop1 ? 'bg-emerald-600 text-white border-emerald-400 font-black' : 'bg-white text-slate-900 border-slate-300'
+                                }`}
+                              >
+                                <Car className="w-2.5 h-2.5 text-pink-600" />
+                                <span>{tech.name.split(' ')[0]} (Live)</span>
+                                <span className="font-mono text-[9px] text-pink-700 bg-pink-100 px-1 rounded">
+                                  {cleaner.totalRouteDistanceKm}km
+                                </span>
+                                {isTop1 && <Award className="w-2.5 h-2.5 text-amber-300" />}
+                              </div>
+                              <div
+                                className="w-7 h-7 rounded-full border-2 border-white shadow-xl flex items-center justify-center text-white font-extrabold text-[11px] relative transition-transform group-hover:scale-125"
+                                style={{ backgroundColor: tech.color || '#EC4899' }}
+                              >
+                                <Car className="w-3.5 h-3.5" />
+                              </div>
+                            </div>
+                          );
+                        })}
+                    </div>
+                  </div>
+                );
+              })()
+            )}
 
             {/* Custom Google Map Control Overlays */}
             <GoogleMapControlOverlay

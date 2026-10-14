@@ -141,11 +141,90 @@ export function isFakeSimulationItem(item: any): boolean {
   return false;
 }
 
+// Resolves accurate Edmonton & Capital Region coordinates from an address string so visits never clump in a 3x4 grid
+function resolveClientSideEdmontonCoords(address?: string, existingLat?: number, existingLng?: number): { lat: number; lng: number } {
+  const isClumped =
+    !existingLat ||
+    !existingLng ||
+    (Math.abs(existingLat - 53.5412) < 0.025 && Math.abs(existingLng - -113.4988) < 0.035);
+  if (!isClumped && existingLat && existingLng) {
+    return { lat: existingLat, lng: existingLng };
+  }
+
+  const norm = (address || '').toLowerCase();
+  if (norm.includes('ellington') || norm.includes('boudreau') || norm.includes('st. albert') || norm.includes('st albert')) return { lat: 53.6385, lng: -113.6268 };
+  if (norm.includes('greenbury') || norm.includes('parkland gate') || norm.includes('century crossing') || norm.includes('spruce grove')) return { lat: 53.5465, lng: -113.8980 };
+  if (norm.includes('carriere') || norm.includes('beaumont')) return { lat: 53.3572, lng: -113.4146 };
+  if (norm.includes('calmar')) return { lat: 53.2661, lng: -113.7511 };
+  if (norm.includes('rolly view') || norm.includes('range road 232')) return { lat: 53.3120, lng: -113.3080 };
+  if (norm.includes('sherwood park') || norm.includes('premier way')) return { lat: 53.5320, lng: -113.3150 };
+  if (norm.includes('king landing') || norm.includes('keswick')) return { lat: 53.4182, lng: -113.6124 };
+  if (norm.includes('james mowatt') || norm.includes('allard') || norm.includes('daniels way') || norm.includes('cunningham')) return { lat: 53.4065, lng: -113.5390 };
+  if (norm.includes('cedric mah') || norm.includes('south terwillegar')) return { lat: 53.4418, lng: -113.5882 };
+  if (norm.includes('windermere') || norm.includes('ambleside') || norm.includes('allan dr')) return { lat: 53.4342, lng: -113.6045 };
+  if (norm.includes('chappelle') || norm.includes('chivers')) return { lat: 53.4125, lng: -113.5745 };
+  if (norm.includes('keheewin') || norm.includes('saddleback') || norm.includes('bearspaw')) return { lat: 53.4585, lng: -113.5240 };
+  if (norm.includes('twin brooks') || norm.includes('blackmud creek') || norm.includes('abbott')) return { lat: 53.4385, lng: -113.5320 };
+  if (norm.includes('albany') || norm.includes('16316') || norm.includes('14751 125') || norm.includes('16948 116')) return { lat: 53.6215, lng: -113.5480 };
+  if (norm.includes('whitelaw') || norm.includes('drysdale') || norm.includes('burns close') || norm.includes('coachman')) return { lat: 53.4620, lng: -113.5910 };
+  if (norm.includes('cornell')) return { lat: 53.6195, lng: -113.5220 };
+  if (norm.includes('secord') || norm.includes('217 st') || norm.includes('202 street')) return { lat: 53.5290, lng: -113.6840 };
+  if (norm.includes('callingwood') || norm.includes('177 st')) return { lat: 53.5030, lng: -113.6260 };
+  if (norm.includes('lorelei') || norm.includes('162 ave') || norm.includes('178a avenue') || norm.includes('castle downs')) return { lat: 53.6310, lng: -113.5050 };
+  if (norm.includes('jasper park') || norm.includes('153 st') || norm.includes('154 street') || norm.includes('156 street') || norm.includes('152 street')) return { lat: 53.5320, lng: -113.5890 };
+  if (norm.includes('whyte') || norm.includes('82 ave') || norm.includes('85 avenue') || norm.includes('87 avenue')) return { lat: 53.5215, lng: -113.5040 };
+
+  const isSW = /\bsw\b|southwest/i.test(norm);
+  const aveMatch = norm.match(/(\d{1,3})[a-z]?\s*(?:ave|avenue)/i);
+  const stMatch = norm.match(/(\d{1,3})[a-z]?\s*(?:st|street)/i);
+  const leadingHouseMatch = norm.match(/^\s*(?:\d+\s*-\s*)?(\d{3,5})\b/);
+
+  let aveNum: number | null = aveMatch ? parseInt(aveMatch[1], 10) : null;
+  let stNum: number | null = stMatch ? parseInt(stMatch[1], 10) : null;
+
+  if (leadingHouseMatch) {
+    const houseVal = parseInt(leadingHouseMatch[1], 10);
+    const derivedCross = Math.floor(houseVal / 100);
+    if (aveNum !== null && stNum === null && derivedCross >= 1 && derivedCross <= 230) stNum = derivedCross;
+    else if (stNum !== null && aveNum === null && derivedCross >= 1 && derivedCross <= 230) aveNum = derivedCross;
+  }
+
+  let lat = isSW ? 53.4350 : 53.5412;
+  let lng = isSW ? -113.5650 : -113.4988;
+
+  if (aveNum !== null) {
+    lat = isSW && aveNum < 50 ? 53.4350 - aveNum * 0.0011 : 53.5412 + (aveNum - 100) * 0.00115;
+  }
+  if (stNum !== null) {
+    lng = -113.4988 - (stNum - 100) * 0.00175;
+  }
+
+  let hash = 0;
+  for (let i = 0; i < norm.length; i++) hash = (hash * 31 + norm.charCodeAt(i)) % 1000;
+  lat += ((hash % 19) - 9) * 0.00025;
+  lng += (((hash >> 3) % 19) - 9) * 0.00035;
+
+  return {
+    lat: Math.max(53.25, Math.min(53.75, lat)),
+    lng: Math.max(-113.98, Math.min(-113.20, lng)),
+  };
+}
+
 export function App() {
   const [apiKey, setApiKey] = useState<string>(
     import.meta.env.VITE_GOOGLE_MAPS_API_KEY || ''
   );
-  const [mapsAuthError, setMapsAuthError] = useState<boolean>(false);
+  const [mapsAuthError, setMapsAuthError] = useState<boolean>(() => {
+    if (typeof window !== 'undefined') {
+      const host = (window.location.hostname || '').toLowerCase();
+      const isPreviewOrLocal = host.endsWith('.run.app') || host === 'localhost' || host === '127.0.0.1';
+      const initialKey = import.meta.env.VITE_GOOGLE_MAPS_API_KEY || '';
+      if (!isPreviewOrLocal && (!initialKey || initialKey.startsWith('AIzaSyC4'))) {
+        return true;
+      }
+    }
+    return false;
+  });
   const [refererErrorUrl, setRefererErrorUrl] = useState<string | null>(null);
   const [quotaExceeded, setQuotaExceeded] = useState<boolean>(false);
   const [technicians, setTechnicians] = useState<Technician[]>(INITIAL_TECHNICIANS);
@@ -233,7 +312,11 @@ export function App() {
   } | null>(null);
   const [activeLegalTab, setActiveLegalTab] = useState<LegalPageType>('SUPPORT');
   const [scheduledJobsList, setScheduledJobsList] = useState<ScheduledJobItem[]>(() => {
-    return (storedData?.scheduledVisits && storedData.scheduledVisits.length > 0) ? storedData.scheduledVisits : generateHistoricAndFutureVisits();
+    const raw = (storedData?.scheduledVisits && storedData.scheduledVisits.length > 0) ? storedData.scheduledVisits : generateHistoricAndFutureVisits();
+    return raw.map((v: any) => {
+      const coords = resolveClientSideEdmontonCoords(v.serviceAddress, v.lat, v.lng);
+      return { ...v, lat: coords.lat, lng: coords.lng };
+    });
   });
   const [unscheduledJobsList, setUnscheduledJobsList] = useState<UnscheduledJobItem[]>(() => {
     const rawJobs = storedData?.unscheduledJobs || [];
@@ -300,7 +383,7 @@ export function App() {
   const [isSyncingFirestore, setIsSyncingFirestore] = useState<boolean>(false);
   const [firestoreSyncStatus, setFirestoreSyncStatus] = useState<string | null>(null);
 
-  // Active Brand & Domain Identification (TidyUps Cleaning, EasyCleans, Dispatch Genie)
+  // Active Brand & Domain Identification (Primary: TidyUps Cleaning app.tidyupscleaning.com; Backup: EasyCleans & Dispatch Genie)
   const [activeBrandId, setActiveBrandId] = useState<'dispatchgeeni' | 'tidyups' | 'easycleans'>(() => {
     if (typeof window !== 'undefined') {
       const params = new URLSearchParams(window.location.search);
@@ -311,14 +394,7 @@ export function App() {
 
       const host = (window.location.hostname || '').toLowerCase();
       if (host.includes('easycleans')) return 'easycleans';
-      if (host.includes('tidyupscleaning')) return 'tidyups';
       if (host.includes('dispatchgeeni') || host.includes('dispatchgenie')) return 'dispatchgeeni';
-      try {
-        const savedBrand = localStorage.getItem('active_brand_id');
-        if (savedBrand === 'tidyups' || savedBrand === 'easycleans' || savedBrand === 'dispatchgeeni') {
-          return savedBrand;
-        }
-      } catch {}
     }
     return 'tidyups';
   });
@@ -342,24 +418,27 @@ export function App() {
         if (data.tickets && data.tickets.length > 0) setTickets(data.tickets);
         if (data.scheduledVisits && data.scheduledVisits.length > 0) {
           setScheduledJobsList(
-            data.scheduledVisits.map((v: any, idx: number) => ({
-              id: v.id || `visit-${idx}`,
-              visitNumber: v.visitNumber || `VISIT-${4000 + idx}`,
-              title: v.title || 'Cleaning Service Visit',
-              clientName: v.clientName || 'Jobber Client',
-              clientPhone: v.clientPhone || '(780) 555-0100',
-              secondaryPhone: v.secondaryPhone,
-              serviceAddress: v.serviceAddress || '10405 Jasper Ave NW, Edmonton, AB',
-              lat: v.lat || 53.5412 + (idx % 3) * 0.02 - 0.01,
-              lng: v.lng || -113.4988 + (idx % 4) * 0.03 - 0.015,
-              startAt: v.startAt || new Date().toISOString(),
+            data.scheduledVisits.map((v: any, idx: number) => {
+              const coords = resolveClientSideEdmontonCoords(v.serviceAddress, v.lat, v.lng);
+              return {
+                id: v.id || `visit-${idx}`,
+                visitNumber: v.visitNumber || `VISIT-${4000 + idx}`,
+                title: v.title || 'Cleaning Service Visit',
+                clientName: v.clientName || 'Jobber Client',
+                clientPhone: v.clientPhone || '(780) 555-0100',
+                secondaryPhone: v.secondaryPhone,
+                serviceAddress: v.serviceAddress || '10405 Jasper Ave NW, Edmonton, AB',
+                lat: coords.lat,
+                lng: coords.lng,
+                startAt: v.startAt || new Date().toISOString(),
               endAt: v.endAt || new Date(Date.now() + 3600000).toISOString(),
               assignedCleaners: v.assignedCleaners || ['Melissa Clarke', 'Joel Mbatchou'],
               serviceType: v.serviceType || 'Standard Cleaning',
               status: v.status || 'SCHEDULED',
               jobberWebUri: v.jobberWebUri || 'https://secure.getjobber.com',
               notes: v.notes,
-            }))
+              };
+            })
           );
         }
         if (data.unscheduledJobs && data.unscheduledJobs.length > 0) setUnscheduledJobsList(data.unscheduledJobs);
@@ -814,24 +893,27 @@ export function App() {
           if (data.tickets && data.tickets.length > 0) setTickets(data.tickets);
           if (data.scheduledVisits && data.scheduledVisits.length > 0) {
             setScheduledJobsList(
-              data.scheduledVisits.map((v: any, idx: number) => ({
-                id: v.id || `visit-${idx}`,
-                visitNumber: v.visitNumber || `VISIT-${4000 + idx}`,
-                title: v.title || 'Cleaning Service Visit',
-                clientName: v.clientName || 'Jobber Client',
-                clientPhone: v.clientPhone || '(780) 555-0100',
-                secondaryPhone: v.secondaryPhone,
-                serviceAddress: v.serviceAddress || '10405 Jasper Ave NW, Edmonton, AB',
-                lat: v.lat || 53.5412 + (idx % 3) * 0.02 - 0.01,
-                lng: v.lng || -113.4988 + (idx % 4) * 0.03 - 0.015,
-                startAt: v.startAt || new Date().toISOString(),
+              data.scheduledVisits.map((v: any, idx: number) => {
+                const coords = resolveClientSideEdmontonCoords(v.serviceAddress, v.lat, v.lng);
+                return {
+                  id: v.id || `visit-${idx}`,
+                  visitNumber: v.visitNumber || `VISIT-${4000 + idx}`,
+                  title: v.title || 'Cleaning Service Visit',
+                  clientName: v.clientName || 'Jobber Client',
+                  clientPhone: v.clientPhone || '(780) 555-0100',
+                  secondaryPhone: v.secondaryPhone,
+                  serviceAddress: v.serviceAddress || '10405 Jasper Ave NW, Edmonton, AB',
+                  lat: coords.lat,
+                  lng: coords.lng,
+                  startAt: v.startAt || new Date().toISOString(),
                 endAt: v.endAt || new Date(Date.now() + 3600000).toISOString(),
                 assignedCleaners: v.assignedCleaners || ['Melissa Clarke', 'Joel Mbatchou'],
                 serviceType: v.serviceType || 'Standard Cleaning',
                 status: v.status || 'SCHEDULED',
                 jobberWebUri: v.jobberWebUri || 'https://secure.getjobber.com',
                 notes: v.notes,
-              }))
+                };
+              })
             );
           }
           if (data.unscheduledJobs && data.unscheduledJobs.length > 0) {
@@ -1044,19 +1126,22 @@ export function App() {
     };
   }, []);
 
-  // Fetch backend Google Maps key if not in import.meta.env
+  // Fetch backend Google Maps key if not already loaded
   useEffect(() => {
-    if (!apiKey) {
-      fetch('/api/jobber/config')
-        .then((res) => res.json())
-        .then((data) => {
-          if (data?.mapsApiKey) {
-            setApiKey(data.mapsApiKey);
-            setMapsAuthError(false);
+    if (apiKey) return;
+    fetch('/api/config')
+      .then((res) => res.json())
+      .then((data) => {
+        if (data?.mapsApiKey) {
+          setApiKey(data.mapsApiKey);
+          const host = typeof window !== 'undefined' ? (window.location.hostname || '').toLowerCase() : '';
+          const isPreviewOrLocal = host.endsWith('.run.app') || host === 'localhost' || host === '127.0.0.1';
+          if (!isPreviewOrLocal && String(data.mapsApiKey).startsWith('AIzaSyC4')) {
+            setMapsAuthError(true);
           }
-        })
-        .catch(() => {});
-    }
+        }
+      })
+      .catch(() => {});
   }, [apiKey]);
 
   // Initial calculation of routes for all technicians on mount
@@ -1408,46 +1493,16 @@ export function App() {
               <BookMyCleaningLogo projectId={activeBrandId} size={36} withText={true} />
             </div>
 
-            {/* 3-Domain Brand Switcher (1 Single Cloud Run Server, 3 Domain Identities) */}
+            {/* Primary Domain Badge (app.tidyupscleaning.com) */}
             <div className="flex items-center bg-slate-100 p-0.5 rounded-xl border border-slate-200 text-xs font-bold shrink-0">
               <button
                 type="button"
                 onClick={() => handleSwitchProject('tidyups')}
-                className={`px-2.5 py-1 rounded-lg transition-all flex items-center gap-1 cursor-pointer ${
-                  activeBrandId === 'tidyups'
-                    ? 'bg-emerald-700 text-white shadow-2xs font-extrabold'
-                    : 'text-slate-600 hover:text-slate-900'
-                }`}
-                title="Preview as app.tidyupscleaning.com (TidyUps Cleaning)"
+                className="px-2.5 py-1 rounded-lg bg-emerald-700 text-white shadow-2xs font-extrabold transition-all flex items-center gap-1 cursor-pointer"
+                title="TidyUps Cleaning (app.tidyupscleaning.com)"
               >
                 <span>✨</span>
                 <span className="hidden md:inline">app.tidyupscleaning.com</span>
-              </button>
-              <button
-                type="button"
-                onClick={() => handleSwitchProject('easycleans')}
-                className={`px-2.5 py-1 rounded-lg transition-all flex items-center gap-1 cursor-pointer ${
-                  activeBrandId === 'easycleans'
-                    ? 'bg-sky-700 text-white shadow-2xs font-extrabold'
-                    : 'text-slate-600 hover:text-slate-900'
-                }`}
-                title="Preview as easycleans.si (EasyCleans)"
-              >
-                <span>🧼</span>
-                <span className="hidden md:inline">easycleans.si</span>
-              </button>
-              <button
-                type="button"
-                onClick={() => handleSwitchProject('dispatchgeeni')}
-                className={`px-2.5 py-1 rounded-lg transition-all flex items-center gap-1 cursor-pointer ${
-                  activeBrandId === 'dispatchgeeni'
-                    ? 'bg-purple-700 text-white shadow-2xs font-extrabold'
-                    : 'text-slate-600 hover:text-slate-900'
-                }`}
-                title="Preview as dispatchgeeni.com (Dispatch Genie)"
-              >
-                <span>🚀</span>
-                <span className="hidden md:inline">dispatchgeeni.com</span>
               </button>
             </div>
 
@@ -1518,46 +1573,16 @@ export function App() {
               <BookMyCleaningLogo projectId={activeBrandId} size={36} withText={true} />
             </div>
 
-            {/* 3-Domain Brand Switcher (1 Single Cloud Run Server, 3 Domain Identities) */}
+            {/* Primary Domain Badge (app.tidyupscleaning.com) */}
             <div className="hidden xl:flex items-center bg-slate-100 p-0.5 rounded-xl border border-slate-200 text-xs font-bold shrink-0">
               <button
                 type="button"
                 onClick={() => handleSwitchProject('tidyups')}
-                className={`px-2 py-1 rounded-lg transition-all flex items-center gap-1 cursor-pointer ${
-                  activeBrandId === 'tidyups'
-                    ? 'bg-emerald-700 text-white shadow-2xs font-extrabold'
-                    : 'text-slate-600 hover:text-slate-900'
-                }`}
-                title="Preview as app.tidyupscleaning.com (TidyUps Cleaning)"
+                className="px-2.5 py-1 rounded-lg bg-emerald-700 text-white shadow-2xs font-extrabold transition-all flex items-center gap-1 cursor-pointer"
+                title="TidyUps Cleaning (app.tidyupscleaning.com)"
               >
                 <span>✨</span>
                 <span>app.tidyupscleaning.com</span>
-              </button>
-              <button
-                type="button"
-                onClick={() => handleSwitchProject('easycleans')}
-                className={`px-2 py-1 rounded-lg transition-all flex items-center gap-1 cursor-pointer ${
-                  activeBrandId === 'easycleans'
-                    ? 'bg-sky-700 text-white shadow-2xs font-extrabold'
-                    : 'text-slate-600 hover:text-slate-900'
-                }`}
-                title="Preview as easycleans.si (EasyCleans)"
-              >
-                <span>🧼</span>
-                <span>easycleans.si</span>
-              </button>
-              <button
-                type="button"
-                onClick={() => handleSwitchProject('dispatchgeeni')}
-                className={`px-2 py-1 rounded-lg transition-all flex items-center gap-1 cursor-pointer ${
-                  activeBrandId === 'dispatchgeeni'
-                    ? 'bg-purple-700 text-white shadow-2xs font-extrabold'
-                    : 'text-slate-600 hover:text-slate-900'
-                }`}
-                title="Preview as dispatchgeeni.com (Dispatch Genie)"
-              >
-                <span>🚀</span>
-                <span>dispatchgeeni.com</span>
               </button>
             </div>
 
@@ -2039,6 +2064,7 @@ export function App() {
             onBookCleaner={handleBookFromRadar}
             onUpdateCleanerHub={handleUpdateCleanerHub}
             googleMapsApiKey={apiKey}
+            isMapsAuthError={mapsAuthError}
             onNavigateToSchedule={() => {
               setActiveTopView('SCHEDULED_JOBS');
               setScheduledJobsSubTab('CALENDAR');
